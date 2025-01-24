@@ -1,0 +1,14 @@
+tasks:
+  - description: "Extract data"
+    expectedOutput: "Data extracted successfully"
+    assignedAgent: "DataExtractor"
+    tools:
+      - "ToolA"
+    dependencies: []
+  - description: "Validate data"
+    expectedOutput: "Data is valid"
+    assignedAgent: "Validator"
+    tools:
+      - "ToolB"
+    dependencies:
+      - "Extract data"
