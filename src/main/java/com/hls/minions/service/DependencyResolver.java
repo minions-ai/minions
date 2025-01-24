@@ -1,82 +1,85 @@
 package com.hls.minions.service;
 
-import com.hls.minions.model.Task;
-import com.hls.minions.model.TaskState;
+import com.hls.minions.model.Agent;
+import com.hls.minions.model.Agent;
+import com.hls.minions.model.AgentState;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// DependencyResolver class for managing task dependencies
+// DependencyResolver class for managing agent dependencies
+@Slf4j
 public class DependencyResolver {
 
     // Validate that the dependency graph is acyclic
-    public boolean isDependencyGraphValid(List<Task> tasks) {
+    public boolean isDependencyGraphValid(List<Agent> agents) {
         try {
-            List<Task> visited = new ArrayList<>();
-            for (Task task : tasks) {
-                checkForCycles(task, visited, new ArrayList<>());
+            List<Agent> visited = new ArrayList<>();
+            for (Agent agent : agents) {
+                checkForCycles(agent, visited, new ArrayList<>());
             }
             return true;
         } catch (IllegalStateException e) {
-            System.err.println("Invalid dependency graph: " + e.getMessage());
+            log.error("Invalid dependency graph: {}", e.getMessage());
             return false;
         }
     }
 
     // Recursive method to check for cycles
-    private void checkForCycles(Task task, List<Task> visited, List<Task> stack) {
-        if (stack.contains(task)) {
-            throw new IllegalStateException("Circular dependency detected for task: " + task.getDescription());
+    private void checkForCycles(Agent agent, List<Agent> visited, List<Agent> stack) {
+        if (stack.contains(agent)) {
+            throw new IllegalStateException("Circular dependency detected for agent: " + agent.getName());
         }
-        if (!visited.contains(task)) {
-            stack.add(task);
-            for (Task dependency : task.getDependencies()) {
+        if (!visited.contains(agent)) {
+            stack.add(agent);
+            for (Agent dependency : agent.getDependencies()) {
                 checkForCycles(dependency, visited, stack);
             }
-            stack.remove(task);
-            visited.add(task);
+            stack.remove(agent);
+            visited.add(agent);
         }
     }
 
-    // Get tasks that are ready for execution
-    public List<Task> getExecutableTasks(List<Task> tasks) {
-        return tasks.stream()
-                .filter(task -> task.getState() == TaskState.PENDING && task.areDependenciesResolved())
+    // Get agents that are ready for execution
+    public List<Agent> getExecutableAgents(List<Agent> agents) {
+        return agents.stream()
+                .filter(agent -> agent.getState() == AgentState.PENDING && agent.areDependenciesResolved())
                 .collect(Collectors.toList());
     }
 
-    // Mark a task as completed and update dependents
-    public void markTaskCompleted(Task completedTask, List<Task> tasks) {
-        tasks.stream()
-                .filter(task -> task.getDependencies().contains(completedTask))
-                .forEach(task -> {
-                    if (task.areDependenciesResolved()) {
-                        System.out.println("Task ready for execution: " + task.getDescription());
+    // Mark a agent as completed and update dependents
+    public void markAgentCompleted(Agent completedAgent, List<Agent> agents) {
+        agents.stream()
+                .filter(agent -> agent.getDependencies().contains(completedAgent))
+                .forEach(agent -> {
+                    if (agent.areDependenciesResolved()) {
+                        log.error("Agent ready for execution: {}", agent.getName());
                     }
                 });
     }
 
     // Determine execution order using topological sort
-    public List<Task> determineExecutionOrder(List<Task> tasks) {
-        List<Task> sortedTasks = new ArrayList<>();
-        List<Task> visited = new ArrayList<>();
+    public List<Agent> determineExecutionOrder(List<Agent> agents) {
+        List<Agent> sortedAgents = new ArrayList<>();
+        List<Agent> visited = new ArrayList<>();
 
-        for (Task task : tasks) {
-            topologicalSort(task, visited, sortedTasks);
+        for (Agent agent : agents) {
+            topologicalSort(agent, visited, sortedAgents);
         }
 
-        return sortedTasks;
+        return sortedAgents;
     }
 
     // Recursive topological sort
-    private void topologicalSort(Task task, List<Task> visited, List<Task> sortedTasks) {
-        if (!visited.contains(task)) {
-            visited.add(task);
-            for (Task dependency : task.getDependencies()) {
-                topologicalSort(dependency, visited, sortedTasks);
+    private void topologicalSort(Agent agent, List<Agent> visited, List<Agent> sortedAgents) {
+        if (!visited.contains(agent)) {
+            visited.add(agent);
+            for (Agent dependency : agent.getDependencies()) {
+                topologicalSort(dependency, visited, sortedAgents);
             }
-            sortedTasks.add(task);
+            sortedAgents.add(agent);
         }
     }
 }

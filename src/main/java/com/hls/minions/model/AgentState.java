@@ -1,7 +1,6 @@
 package com.hls.minions.model;
 
-enum AgentState {
-    IDLE,
-    WORKING,
-    ERROR
+// Task States
+public enum AgentState {
+    PENDING, IN_PROGRESS, COMPLETED, IDLE, WORKING, ERROR, FAILED
 }

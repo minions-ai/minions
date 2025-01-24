@@ -1,6 +1,6 @@
 package com.hls.minions.model;
 
 // Task Events
-public enum TaskEvent {
+public enum AgentEvent {
     START, COMPLETE, FAIL
 }
