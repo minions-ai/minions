@@ -11,7 +11,6 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class Agent extends AbstractAgent{
 
-    private final UUID id; // Unique identifier for each agent
     private String name; // Name of the agent
     private String role; // Role of the agent (e.g., DataExtractor, WorkflowManager)
     private String goal; // Goal of the agent (e.g., "Extract data from source X")
@@ -22,7 +21,7 @@ public class Agent extends AbstractAgent{
 
     // Constructor
     public Agent(String name, String role, String goal, String backstory, List<Tool> tools) {
-        this.id = UUID.randomUUID();
+        super();
         this.name = name;
         this.role = role;
         this.goal = goal;

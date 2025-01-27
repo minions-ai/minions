@@ -25,7 +25,7 @@ public class WorkflowStateMachineConfig extends StateMachineConfigurerAdapter<Wo
     public void configure(StateMachineTransitionConfigurer<WorkflowState, WorkflowEvent> transitions) throws Exception {
         transitions
                 .withExternal()
-                .source(WorkflowState.PENDING).target(WorkflowState.IN_PROGRESS).event(WorkflowEvent.START).action()
+                .source(WorkflowState.PENDING).target(WorkflowState.IN_PROGRESS).event(WorkflowEvent.START)
                 .and()
                 .withExternal()
                 .source(WorkflowState.IN_PROGRESS).target(WorkflowState.COMPLETED).event(WorkflowEvent.AGENT_COMPLETED)
