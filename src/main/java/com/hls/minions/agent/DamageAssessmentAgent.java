@@ -7,7 +7,7 @@ public class DamageAssessmentAgent implements Function<DamageAssessmentAgent.Req
 
     private final Random random = new Random();
 
-    public record Request(String claimant_first_name, String claimant_last_name, String claimant_phone_number,
+    public record Request(String instructions,String claimant_first_name, String claimant_last_name, String claimant_phone_number,
                           String claimant_policy_number) {
     }
 

@@ -1,5 +1,7 @@
 package com.hls.minions.config;
 
+import com.hls.minions.agent.ClaimSubmissionAgent;
+import com.hls.minions.agent.ClaimSubmissionAgent.Claim;
 import com.hls.minions.agent.CustomerCommunicationAgent;
 import com.hls.minions.agent.PolicyVerificationAgent;
 import com.hls.minions.agent.FollowUpQuestionAgent;
@@ -13,6 +15,13 @@ import java.util.function.Function;
 
 @Configuration
 public class AgentConfiguration {
+
+    @Bean
+    @Description("Submits the claim for further processing")
+    public Function<ClaimSubmissionAgent.Request, ClaimSubmissionAgent.Response> claimSubmissionAgent() {
+        return new ClaimSubmissionAgent();
+    }
+
 
     @Bean
     @Description("Handles communication with the customer and returns a transcript of the communication")
