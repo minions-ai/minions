@@ -16,7 +16,7 @@ public class AgentConfiguration {
 
     @Bean
     @Description("Handles communication with the customer and returns a transcript of the communication")
-    public Function<Request, CustomerCommunicationAgent.Response> communicationAgent() {
+    public Function<CustomerCommunicationAgent.Request, CustomerCommunicationAgent.Response> communicationAgent() {
         return new CustomerCommunicationAgent();
     }
 

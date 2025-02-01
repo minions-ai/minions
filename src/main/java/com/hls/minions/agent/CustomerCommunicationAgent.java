@@ -4,10 +4,12 @@ import com.sun.net.httpserver.Request;
 
 import java.util.function.Function;
 
-public class CustomerCommunicationAgent implements Function<Request, CustomerCommunicationAgent.Response> {
+public class CustomerCommunicationAgent implements Function<CustomerCommunicationAgent.Request, CustomerCommunicationAgent.Response> {
+
+
     @Override
-    public Response apply(com.sun.net.httpserver.Request request) {
-        return null;
+    public Response apply(Request request) {
+        return new Response("Communication with customer was done. Customer is happy.");
     }
 
     public record Request(String initialUserRequest, String masterAgentCommandPrompt) {

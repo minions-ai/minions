@@ -1,0 +1,13 @@
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=IntelliJ IDEA
+
+###
+POST http://localhost:8080/agent/process
+Content-Type: application/json
+
+{
+  "prompt": "I just had an accident, a car rear ended me and I need to report this as a claim"
+}
+
+

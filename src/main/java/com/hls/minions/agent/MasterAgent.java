@@ -13,25 +13,22 @@ import org.springframework.stereotype.Component;
 public class MasterAgent {
 
     @Autowired
-    private final ChatClient.Builder chatClientBuilder;
+    private ChatClient.Builder chatClientBuilder;
     private final String prompt;
-    @Getter
-    @Setter
-    private String userRequest;
 
-    public MasterAgent(@Autowired ChatClient.Builder chatClientBuilder) {
-        this.chatClientBuilder = chatClientBuilder;
-        this.userRequest = userRequest;
+
+    public MasterAgent() {
+
+
         prompt = ResourceUtils.getText("classpath:master_agent.txt");
     }
 
 
-    public String processPrompt(String prompt) {
+    public String processPrompt(String userRequest) {
         ChatClient chatClient = chatClientBuilder
                 .defaultFunctions("communicationAgent"
                         , "followUpQuestionAgent"
                         , "policyVerificationTool"
-                        , "towTruckDispatcherAgent"
                         , "coverageVerificationAgent"
                         , "damageAssessmentAgent"
                         , "fraudDetectionAgent")
