@@ -1,0 +1,22 @@
+graph TD
+    A[Claim Received via Text] -->|Extract Data using GPT-4o| B[Claim Intake Agent]
+
+    B -->|Check Policy Number| C[Policy Verification Agent]
+    C -->|Valid Policy| C1{Policy Active}
+
+    C1 -- Yes --> D[Fraud Investigation Agent]
+    C1 -- No --> C2[Send Policy Expired Notification and Exit]
+
+    D -->|Analyze Claim Patterns using GPT-4o| D1{Fraud Detected}
+    D1 -- Yes --> D2[Flag Claim for Manual Review]
+    D1 -- No --> E[Tow Dispatch Agent Check]
+
+    E -->|Check if Tow Service Needed| E1{Tow Required}
+    E1 -- Yes --> E2[Dispatch Tow Truck and Notify Claimant]
+    E1 -- No --> F[Proceed to Claim Creation]
+
+    E2 --> F
+
+    F -->|Compile Data and Submit Claim| G[Claim Creation Agent]
+    G -->|Generate Adjuster Report using GPT-4o| H[Assign Adjuster]
+    H -->|Send SMS Confirmation to Claimant| I[Claim Process Completed]

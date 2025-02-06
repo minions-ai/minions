@@ -1,0 +1,36 @@
+sequenceDiagram
+    participant Claimant
+    participant MasterAgent as Master Agent (GPT-4o)
+    participant ClaimIntake as Claim Intake Agent (GPT-4o NLP)
+    participant PolicyVerify as Policy Verification Agent (GPT-4o Query)
+    participant FraudCheck as Fraud Investigation Agent (GPT-4o AI)
+    participant TowDispatch as Tow Dispatch Agent (GPT-4o Coordination)
+    participant ClaimCreate as Claim Creation Agent (GPT-4o Summary)
+    participant Adjuster as Human Adjuster (if needed)
+
+    Claimant->>MasterAgent: Sends claim via text
+    MasterAgent->>ClaimIntake: Parse text, extract details
+    ClaimIntake->>Claimant: Request missing info (if needed)
+    ClaimIntake->>PolicyVerify: Send extracted policy details
+    PolicyVerify->>PolicyVerify: Validate policy & coverage
+    PolicyVerify->>Claimant: Send confirmation/denial SMS
+    PolicyVerify->>FraudCheck: Forward claim for fraud analysis
+
+    alt High fraud risk
+        FraudCheck->>Adjuster: Flag claim for manual review
+        Adjuster->>ClaimCreate: Approve or reject claim
+    else Low fraud risk
+        FraudCheck->>ClaimCreate: Send fraud risk score
+    end
+
+    alt Tow required
+        ClaimIntake->>TowDispatch: Request tow truck
+        TowDispatch->>TowDispatch: Find nearest tow service
+        TowDispatch->>Claimant: Send tow truck ETA via SMS
+    end
+
+    ClaimCreate->>ClaimCreate: Aggregate all claim data
+    ClaimCreate->>Claimant: Confirm claim submission & adjuster assignment
+    ClaimCreate->>Adjuster: Assign adjuster & finalize claim
+
+    Adjuster->>Claimant: Follow-up on next steps (if needed)
