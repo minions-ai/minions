@@ -3,7 +3,7 @@ package com.hls.minions.claim.controller;
 import com.hls.minions.claim.dto.ClaimRequest;
 import com.hls.minions.claim.service.ClaimService;
 
-import com.hls.minions.service.ResponseSupplier.Response;
+import com.hls.minions.core.service.ResponseSupplier.Response;
 import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

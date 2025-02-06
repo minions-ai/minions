@@ -2,7 +2,7 @@ package com.hls.minions.patient.view;
 
 import com.hls.minions.core.view.ChatView;
 import com.hls.minions.patient.service.PatientService;
-import com.hls.minions.service.ResponseSupplier.Response;
+import com.hls.minions.core.service.ResponseSupplier.Response;
 import com.vaadin.flow.router.Route;
 import java.util.concurrent.CompletableFuture;
 

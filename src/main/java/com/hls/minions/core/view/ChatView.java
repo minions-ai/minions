@@ -1,6 +1,6 @@
 package com.hls.minions.core.view;
 
-import com.hls.minions.service.ResponseSupplier;
+import com.hls.minions.core.service.ResponseSupplier;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;

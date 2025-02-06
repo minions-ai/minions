@@ -1,4 +1,4 @@
-package com.hls.minions.service;
+package com.hls.minions.core.service;
 
 import java.util.concurrent.CompletableFuture;
 
