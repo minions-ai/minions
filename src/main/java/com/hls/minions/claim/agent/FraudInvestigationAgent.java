@@ -16,7 +16,7 @@ import org.springframework.ai.chat.memory.ChatMemory;
 public class FraudInvestigationAgent extends BaseAgent {
 
   public FraudInvestigationAgent(Builder chatClientBuilder, ChatMemory chatMemory, Modality modality) {
-    super(chatClientBuilder, chatMemory, modality);
+    super(loader, chatClientBuilder, chatMemory, modality);
   }
 
 

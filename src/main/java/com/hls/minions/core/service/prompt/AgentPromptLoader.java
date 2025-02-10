@@ -1,6 +1,7 @@
 package com.hls.minions.core.service.prompt;
 
 import com.hls.minions.core.annotation.AgentPrompt;
+import java.io.IOException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,7 +15,7 @@ public class AgentPromptLoader {
     this.filePromptLoader = filePromptLoader;
   }
 
-  public String loadPrompt(Class<?> agentClass, String tenantId, String userId) {
+  public String loadPrompt(Class<?> agentClass, String tenantId, String userId) throws IOException {
     if (!agentClass.isAnnotationPresent(AgentPrompt.class)) {
       throw new IllegalStateException("Missing @AgentPrompt annotation for " + agentClass.getName());
     }

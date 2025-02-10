@@ -14,7 +14,7 @@ public class MasterAgent extends BaseAgent {
 
   public MasterAgent(Builder chatClientBuilder,
       ChatMemory chatMemory, Modality modality) {
-    super(chatClientBuilder, chatMemory, modality);
+    super(loader, chatClientBuilder, chatMemory, modality);
   }
 
 

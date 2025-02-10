@@ -27,15 +27,13 @@ public abstract class BaseAgent {
   private AgentPromptLoader loader;
 
   public BaseAgent(AgentPromptLoader loader, Builder builder, ChatMemory chatMemory) {
-    this(builder, chatMemory, null);
-    this.loader = loader;
+    this(loader,builder, chatMemory, null);
   }
 
 
-  public BaseAgent(Builder chatClientBuilder, ChatMemory chatMemory, Modality modality) {
-    this.prompt = ResourceUtils.getText("classpath:" + resolvePromptFilePath());
+  public BaseAgent(AgentPromptLoader loader, Builder chatClientBuilder, ChatMemory chatMemory, Modality modality) {
     this.chatMemory = chatMemory;
-    prompt = loader.loadPrompt(this.getClass(), null, null);
+    this.prompt = this.loader.loadPrompt(this.getClass(), null, null);
   }
 
   private String resolvePromptFilePath() {
