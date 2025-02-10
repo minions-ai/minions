@@ -1,5 +1,6 @@
 package com.hls.minions.core.service;
 
+import com.hls.minions.core.view.Modality;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,7 +23,7 @@ public abstract class BaseResponseSupplier implements ResponseSupplier {
    * @return
    */
   @Async
-  public CompletableFuture<Response> process(String requestId, String requestText) {
+  public CompletableFuture<Response> process(String requestId, String requestText, Modality modality) {
     if (requestId == null || requestId.isEmpty()) {
       requestId = agentManager.generateRequestId();
       log.info("Generated new Request ID: {}", requestId);
@@ -32,11 +33,14 @@ public abstract class BaseResponseSupplier implements ResponseSupplier {
 
     String finalRequestId = requestId;
     return CompletableFuture.supplyAsync(() -> {
-      String response = agentManager.executePrompt(finalRequestId, requestText);
-      return new Response(finalRequestId, response);
+      String response = agentManager.executePrompt(finalRequestId, requestText,modality);
+      return new Response(finalRequestId, response, null);
     });
   }
 
+  public CompletableFuture<Response> process(String requestId, String requestText) {
+    return process(requestId, requestText, null);
+  }
 
   public CompletableFuture<Response> getFuture(String requestId) {
     return futureCache.get(requestId);

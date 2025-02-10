@@ -1,7 +1,7 @@
 package com.hls.minions.core.service;
 
-import com.hls.minions.claim.agent.MasterAgent;
 import com.hls.minions.core.agent.BaseAgent;
+import com.hls.minions.core.view.Modality;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,18 +44,19 @@ import org.springframework.stereotype.Service;
   /**
    * Creates a new Master Agent and its associated Chat Memory.
    */
-  protected abstract BaseAgent createMasterAgent(String requestId, ChatMemory chatMemory);
+  protected abstract BaseAgent createMasterAgent(String requestId, ChatMemory chatMemory, Modality modality);
 
 
   /**
    * Executes a prompt using the Master Agent.
    */
-  public String executePrompt(String requestId, String requestText) {
+  public String executePrompt(String requestId, String requestText, Modality modality) {
     ChatMemory chatMemory = new InMemoryChatMemory();
     chatMemoryMap.put(requestId, chatMemory);
-    BaseAgent masterAgent = masterAgentMap.computeIfAbsent(requestId, id -> createMasterAgent(id,chatMemory));
+    BaseAgent masterAgent = masterAgentMap.computeIfAbsent(requestId, id -> createMasterAgent(id, chatMemory,modality));
     return execute(requestId, requestText, masterAgent);
   }
+
 
   /**
    * Retrieves or creates an agent for the given request ID and agent type.

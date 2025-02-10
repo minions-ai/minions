@@ -2,6 +2,7 @@ package com.hls.minions.claim.service;
 
 
 import com.hls.minions.core.service.BaseResponseSupplier;
+import com.hls.minions.core.service.Response;
 import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,9 +22,9 @@ public class ClaimService extends BaseResponseSupplier {
    * Allows external agents to retrieve and complete the CompletableFuture.
    */
   public void completeClaim(String requestId, String responseText) {
-    CompletableFuture<ClaimService.Response> future = getFuture(requestId);
+    CompletableFuture<Response> future = getFuture(requestId);
     if (future != null) {
-      future.complete(new Response(requestId, responseText));
+      future.complete(new Response(requestId, responseText,null));
       log.info("Completed future for Request ID: {}", requestId);
       removeFuture(requestId); // Clean up after completion
     } else {

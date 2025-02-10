@@ -92,6 +92,11 @@
       <artifactId>commonmark</artifactId>
       <version>0.22.0</version>
     </dependency>
+    <dependency>
+      <groupId>com.hls</groupId>
+      <artifactId>hyperlogic-minions</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
 
   </dependencies>
   <dependencyManagement>

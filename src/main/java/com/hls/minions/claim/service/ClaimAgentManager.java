@@ -2,6 +2,7 @@ package com.hls.minions.claim.service;
 
 import com.hls.minions.claim.agent.MasterAgent;
 import com.hls.minions.core.service.AgentManager;
+import com.hls.minions.core.view.Modality;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -17,7 +18,7 @@ public class ClaimAgentManager extends AgentManager {
   }
 
 
-  @Override protected MasterAgent createMasterAgent(String requestId, ChatMemory chatMemory) {
+  @Override protected MasterAgent createMasterAgent(String requestId, ChatMemory chatMemory, Modality modality) {
     return new MasterAgent(chatClientBuilder, chatMemory);
   }
 }

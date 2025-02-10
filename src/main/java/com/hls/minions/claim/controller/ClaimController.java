@@ -3,7 +3,7 @@ package com.hls.minions.claim.controller;
 import com.hls.minions.claim.dto.ClaimRequest;
 import com.hls.minions.claim.service.ClaimService;
 
-import com.hls.minions.core.service.ResponseSupplier.Response;
+import com.hls.minions.core.service.Response;
 import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -27,7 +27,7 @@ public class ClaimController {
   }
 
   private static Response getErrorResponse(String errorText) {
-    return new Response(null, errorText);
+    return new Response(null, errorText,null);
   }
 
   @PostMapping("/process")
@@ -41,7 +41,7 @@ public class ClaimController {
   }
 
   @GetMapping("/status/{requestId}")
-  public ResponseEntity<ClaimService.Response> checkClaimStatus(@PathVariable String requestId) {
+  public ResponseEntity<Response> checkClaimStatus(@PathVariable String requestId) {
     CompletableFuture<Response> future = claimService.getFuture(requestId);
 
     if (future == null) {

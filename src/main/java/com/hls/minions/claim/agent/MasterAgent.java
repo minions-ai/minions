@@ -1,23 +1,22 @@
 package com.hls.minions.claim.agent;
 
 import com.hls.minions.core.agent.BaseAgent;
+import com.hls.minions.core.annotation.AgentPrompt;
+import com.hls.minions.core.service.prompt.ScopeType;
+import com.hls.minions.core.service.prompt.SourceType;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.ResourceUtils;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 
 @Slf4j
+@AgentPrompt(scope = ScopeType.SYSTEM, source = SourceType.FILE, value ="agents/claim/master_agent.txt")
 public class MasterAgent extends BaseAgent {
 
 
   public MasterAgent(ChatClient.Builder chatClientBuilder, ChatMemory chatMemory) {
     super(chatClientBuilder, chatMemory);
 
-  }
-
-  protected String getPromptFilePath() {
-    return "agents/claim/master_agent.txt";
   }
 
 

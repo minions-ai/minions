@@ -3,6 +3,7 @@ package com.hls.minions.patient.service;
 
 import com.hls.minions.core.agent.BaseAgent;
 import com.hls.minions.core.service.AgentManager;
+import com.hls.minions.core.view.Modality;
 import com.hls.minions.patient.agent.MasterAgent;
 import org.springframework.ai.chat.client.ChatClient.Builder;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -15,7 +16,7 @@ public class PatientAgentManager extends AgentManager {
     super(chatClientBuilder);
   }
 
-  @Override protected BaseAgent createMasterAgent(String requestId, ChatMemory chatMemory) {
-    return new MasterAgent(chatClientBuilder, chatMemory);
+  @Override protected BaseAgent createMasterAgent(String requestId, ChatMemory chatMemory, Modality modality) {
+    return new MasterAgent(chatClientBuilder, chatMemory,modality);
   }
 }

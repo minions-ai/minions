@@ -1,5 +1,6 @@
 package com.hls.minions.core.view;
 
+import com.hls.minions.core.service.Response;
 import com.hls.minions.core.service.ResponseSupplier;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
@@ -80,7 +81,7 @@ public abstract class ChatView extends VerticalLayout {
     String requestId = (cachedRequestId != null) ? cachedRequestId : "";
 
     // Call service asynchronously and attach a completion callback
-    CompletableFuture<ResponseSupplier.Response> future = getFuture(requestId, inputRequest);
+    CompletableFuture<Response> future = getFuture(requestId, inputRequest);
 
     future.whenComplete((response, throwable) -> {
       getUI().ifPresent(ui -> ui.access(new Command() {
@@ -151,5 +152,5 @@ public abstract class ChatView extends VerticalLayout {
     chatHistory.getElement().executeJs("this.scrollTop = this.scrollHeight;");
   }
 
-  protected abstract CompletableFuture<ResponseSupplier.Response> getFuture(String requestId, String requestDetail);
+  protected abstract CompletableFuture<Response> getFuture(String requestId, String requestDetail);
 }

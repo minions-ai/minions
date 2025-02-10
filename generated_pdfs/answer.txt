@@ -1,0 +1,37 @@
+Other Ideas We’ve Considered
+
+AI-Powered Triage for Mental Health Patients
+
+In countries like Canada and the UK, mental health patients often wait up to two years for specialist care.
+Many commit suicide or self-harm while waiting.
+A model trained to:
+  - Interact with patients and assess their mental state
+  - Triage them based on urgency to help relieve overloaded systems
+  - Reduce tragic outcomes by identifying high-risk cases early
+
+LLM-Powered API Layer for Legacy Insurance Contracts
+
+Many specialty insurance lines (municipality, hospital, long-tail liabilities) still rely on decades-old, paper-based contracts as their system of record.
+Some claims are still being paid based on scanned documents with no structured access.
+A LLM-powered API layer that:
+  - Extracts and processes contract terms
+  - Automates inquiries and decision-making
+  - Modernizes legacy systems without full system replacements
+
+AI for Fire Risk Assessment & Public Awareness
+
+Fire risk models used by insurers today are based on static, outdated parameters that homeowners and businesses often don’t have access to.
+A system that analyzes satellite imagery to assess fire expansion risks in a neighborhood, town, or entire region could:
+  - Educate the public on hidden risks that insurers already use for policy assessments
+  - Help homeowners take proactive action, such as:
+    - Creating defensible space
+    - Clearing brush
+    - Strengthening fire-resistant structures
+    - Adjusting coverage (e.g., adding Excess & Surplus coverage)
+  - Enable insurers to refine pricing and underwriting based on:
+    - Forest proximity
+    - Building density
+    - Wind patterns
+  - Assist governments with disaster preparedness to reduce future losses and improve community resilience
+
+These ideas align with our expertise in AI automation, structured decision-making, and real-world risk assessment, leveraging many of the core technologies we are already building.
