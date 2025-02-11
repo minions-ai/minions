@@ -1,5 +1,0 @@
-workflow:
-  name: "Data Processing Workflow"
-  tasks:
-    - "Extract data"
-    - "Validate data"

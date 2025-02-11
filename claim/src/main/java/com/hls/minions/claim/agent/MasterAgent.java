@@ -3,7 +3,6 @@ package com.hls.minions.claim.agent;
 import com.hls.minions.core.agent.BaseAgent;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.ResourceUtils;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 
