@@ -1,6 +1,7 @@
 package com.hls.minions.patient.agent;
 
 
+import com.hls.minions.core.agent.BaseAgent;
 import java.util.List;
 import org.springframework.ai.chat.client.ChatClient.Builder;
 import org.springframework.ai.chat.memory.ChatMemory;

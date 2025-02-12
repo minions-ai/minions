@@ -2,10 +2,9 @@ package com.hls.minions.patient.tool;
 
 import com.hls.minions.patient.entity.PatientInfo;
 import com.hls.minions.patient.service.PatientService;
-import com.hls.minions.patient.tool.PatientInfoRetrievalTool.Request;
 import java.util.function.Function;
 
-public class PatientInfoRetrievalTool implements Function<Request, PatientInfo> {
+public class PatientInfoRetrievalTool implements Function<PatientInfoRetrievalTool.Request, PatientInfo> {
 
   private final PatientService patientService;
 

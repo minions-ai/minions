@@ -1,6 +1,5 @@
 package com.hls.minions.core.service;
 
-import com.hls.minions.claim.agent.MasterAgent;
 import com.hls.minions.core.agent.BaseAgent;
 import java.util.Map;
 import java.util.UUID;
@@ -12,7 +11,9 @@ import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.stereotype.Service;
 
-@Slf4j @Service public abstract class AgentManager {
+@Slf4j
+@Service
+public abstract class AgentManager {
 
   protected final ChatClient.Builder chatClientBuilder;
   protected final Map<String, BaseAgent> masterAgentMap = new ConcurrentHashMap<>();
@@ -53,7 +54,7 @@ import org.springframework.stereotype.Service;
   public String executePrompt(String requestId, String requestText) {
     ChatMemory chatMemory = new InMemoryChatMemory();
     chatMemoryMap.put(requestId, chatMemory);
-    BaseAgent masterAgent = masterAgentMap.computeIfAbsent(requestId, id -> createMasterAgent(id,chatMemory));
+    BaseAgent masterAgent = masterAgentMap.computeIfAbsent(requestId, id -> createMasterAgent(id, chatMemory));
     return execute(requestId, requestText, masterAgent);
   }
 
