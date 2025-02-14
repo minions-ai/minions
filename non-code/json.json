@@ -1,0 +1,53 @@
+{
+  "type": "response.done",
+  "event_id": "event_B0hJmmkLmxbbrKxLz25ri",
+  "response": {
+    "object": "realtime.response",
+    "id": "resp_B0hJhC89fcfH0tMuCnGJk",
+    "status": "completed",
+    "status_details": null,
+    "output": [
+      {
+        "id": "item_B0hJhLaCHa6BAJYhUgRaD",
+        "object": "realtime.item",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "audio",
+            "transcript": "Hello, Vahid Mansouri. I am your Mental Health Assessment Assistant. I'm here to help evaluate the condition of your companion and determine whether urgent medical attention is required.\n\nFirst, I need some basic information about the patient to retrieve their medical records. Can you please provide me with the following details?\n- What is the patient’s full legal name?"
+          }
+        ]
+      }
+    ],
+    "conversation_id": "conv_B0hJa4NYK1SNGi3C10YZz",
+    "modalities": [
+      "text",
+      "audio"
+    ],
+    "voice": "sage",
+    "output_audio_format": "pcm16",
+    "temperature": 0.8,
+    "max_output_tokens": "inf",
+    "usage": {
+      "total_tokens": 1653,
+      "input_tokens": 1044,
+      "output_tokens": 609,
+      "input_token_details": {
+        "text_tokens": 1024,
+        "audio_tokens": 20,
+        "cached_tokens": 1024,
+        "cached_tokens_details": {
+          "text_tokens": 1024,
+          "audio_tokens": 0
+        }
+      },
+      "output_token_details": {
+        "text_tokens": 102,
+        "audio_tokens": 507
+      }
+    },
+    "metadata": null
+  }
+}

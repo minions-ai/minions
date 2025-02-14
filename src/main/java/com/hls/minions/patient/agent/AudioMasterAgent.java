@@ -1,7 +1,6 @@
 package com.hls.minions.patient.agent;
 
 import com.hls.minions.core.agent.BaseAudioAgent;
-import com.hls.minions.core.service.RealtimeWebSocketClientFactory;
 import java.util.List;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
