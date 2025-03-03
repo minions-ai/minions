@@ -9,9 +9,10 @@
     <version>3.3.9-SNAPSHOT</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
-  <groupId>com.hls</groupId>
-  <artifactId>hyperlogic-minions</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <groupId>com.minionsai</groupId>
+  <artifactId>minions</artifactId>
+  <version>1.0-SNAPSHOT</version>
   <name>minionsAI</name>
   <description>minionsAI</description>
   <properties>
@@ -88,6 +89,31 @@
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>okhttp</artifactId>
     </dependency>
+    <!-->RabbitMQ Dependency<!-->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-amqp</artifactId>
+    </dependency>
+    <!--  RabbitMQ Dependency -->
+    <!--  Caching dependencies -->
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-cache</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+    <!--  Caching dependencies -->
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+      <version>3.1.8</version>
+    </dependency>
   </dependencies>
   <dependencyManagement>
     <dependencies>
@@ -160,5 +186,11 @@
       </snapshots>
     </pluginRepository>
   </pluginRepositories>
+
+  <modules>
+    <module>core</module>
+    <module>usecases</module>
+    <!-- Add other modules here -->
+  </modules>
 
 </project>
