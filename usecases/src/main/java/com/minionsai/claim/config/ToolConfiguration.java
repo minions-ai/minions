@@ -44,7 +44,7 @@ public class ToolConfiguration {
   }
 
   @Bean
-  @Description("Retrieves policy details from the insurer’s system to verify whether the policy exists, its status, and the type of coverage it provides.")
+  @Description("Retrieves policy details from the insurer’s system to verify whether the policy exists, its status, and the minionType of coverage it provides.")
   public Function<PolicyDatabaseTool.Request, PolicyDatabaseTool.Response> policyDatabaseTool() {
     return new PolicyDatabaseTool();
   }

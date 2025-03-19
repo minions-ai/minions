@@ -80,7 +80,7 @@ public class OpenAIWebSocketService {
     payload.put("server_vad", serverVad);
 
     JSONObject system = new JSONObject();
-    system.put("prompt", "Continue helping the user based on previous context.");
+    system.put("prompt", "Continue helping the user based on previous parameters.");
     JSONArray tools = new JSONArray();
   /*  JSONObject weatherTool = new JSONObject();
     weatherTool.put("name", "weather");

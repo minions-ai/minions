@@ -1,7 +1,7 @@
 package com.minionsai.patient.service;
 
 
-import com.minionsai.claude.agent.Minion;
+import com.minionslab.core.domain.Minion;
 import com.minionsai.core.agent.BaseAudioAgent;
 import com.minionsai.core.service.AgentManager;
 import com.minionsai.patient.agent.AudioMasterAgent;

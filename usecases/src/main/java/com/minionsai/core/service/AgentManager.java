@@ -1,6 +1,6 @@
 package com.minionsai.core.service;
 
-import com.minionsai.claude.agent.Minion;
+import com.minionslab.core.domain.Minion;
 import com.minionsai.core.agent.BaseAudioAgent;
 import java.util.Map;
 import java.util.UUID;
@@ -69,7 +69,7 @@ import org.springframework.stereotype.Service;
   }
 
   /**
-   * Retrieves or creates an agent for the given request ID and agent type.
+   * Retrieves or creates an agent for the given request ID and agent minionType.
    */
   public <T extends Minion> T getOrCreateAgent(String requestId, String agentName) {
     requestAgentsMap.putIfAbsent(requestId, new ConcurrentHashMap<>());
@@ -92,7 +92,7 @@ import org.springframework.stereotype.Service;
       // Load class dynamically
       Class<?> agentClass = Class.forName(fullClassName, true, Thread.currentThread().getContextClassLoader());
 
-      // Validate class type
+      // Validate class minionType
       if (!Minion.class.isAssignableFrom(agentClass)) {
         throw new IllegalArgumentException("Class " + agentName + " is not a valid Minion subclass.");
       }

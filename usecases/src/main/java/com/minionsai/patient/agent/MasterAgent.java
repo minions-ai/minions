@@ -1,6 +1,6 @@
 package com.minionsai.patient.agent;
 
-import com.minionsai.claude.agent.Minion;
+import com.minionslab.core.domain.Minion;
 import java.util.List;
 import org.springframework.ai.chat.client.ChatClient.Builder;
 import org.springframework.ai.chat.memory.ChatMemory;

@@ -37,7 +37,7 @@ public class FunctionCallService {
   }
 
   private List<String> getFunctions() {
-    // Load the Spring context using ToolConfiguration
+    // Load the Spring parameters using ToolConfiguration
 
     return
         List.of(applicationContext.getBeanNamesForType(Function.class));

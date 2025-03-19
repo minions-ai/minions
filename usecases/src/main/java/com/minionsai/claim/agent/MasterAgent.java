@@ -1,6 +1,6 @@
 package com.minionsai.claim.agent;
 
-import com.minionsai.claude.agent.Minion;
+import com.minionslab.core.domain.Minion;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;

@@ -34,7 +34,7 @@ public class AudioWebSocketView extends VerticalLayout {
 
     UI.getCurrent().getPage().executeJs("async function loadAudioWorkletModule() {\n"
         + "  try {\n"
-        + "    // Assuming your audio context is already created\n"
+        + "    // Assuming your audio parameters is already created\n"
         + "    await audioContext.audioWorklet.addModule(\"frontend://pcm-processor.js\");\n"
         + "    console.log(\"✅ pcm-processor module loaded successfully.\");\n"
         + "  } catch (error) {\n"

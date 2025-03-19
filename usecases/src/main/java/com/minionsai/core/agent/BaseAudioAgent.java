@@ -1,6 +1,6 @@
 package com.minionsai.core.agent;
 
-import com.minionsai.claude.agent.Minion;
+import com.minionslab.core.domain.Minion;
 import java.util.List;
 import lombok.Data;
 import lombok.experimental.Accessors;

@@ -10,7 +10,7 @@ public class CoverageCheckerTool implements Function<CoverageCheckerTool.Request
       return new Response(false,"Policy number is needed.");
     }
     if(request.incidentType == null) {
-      return new Response(false,"Incident type is needed.");
+      return new Response(false,"Incident minionType is needed.");
     }
     return new Response(true, "Collision Damage is covered.");
   }

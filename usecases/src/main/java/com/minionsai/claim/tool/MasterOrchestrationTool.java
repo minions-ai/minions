@@ -1,6 +1,6 @@
 package com.minionsai.claim.tool;
 
-import com.minionsai.claude.agent.Minion;
+import com.minionslab.core.domain.Minion;
 import com.minionsai.claim.service.ClaimAgentManager;
 import java.util.function.Function;
 
