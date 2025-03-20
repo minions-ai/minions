@@ -7,7 +7,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.minionslab.core.domain.MinionPrompt;
 import com.minionslab.core.domain.enums.MinionType;
 import java.util.Arrays;
 import java.util.List;

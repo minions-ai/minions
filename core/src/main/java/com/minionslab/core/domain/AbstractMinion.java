@@ -40,7 +40,7 @@ public abstract class AbstractMinion implements MinionLifecycle {
 
 
   private static final PromptComponent DEFAULT_PROMPT_TEMPLATE = PromptComponent.builder().type(PromptType.REQUEST_TEMPLATE)
-      .content("Prompt template content").build();
+      .text("Prompt template content").build();
 
   // Unique identifier for each agent
   @Builder.Default private final String minionId = UUID.randomUUID().toString();

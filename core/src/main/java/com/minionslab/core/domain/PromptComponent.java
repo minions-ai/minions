@@ -15,6 +15,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
+import javax.validation.constraints.NotNull;
 
 /**
  * Represents a single component/section within a system prompt.
@@ -31,7 +32,11 @@ public class PromptComponent extends BaseEntity {
     @Builder.Default 
     private String id = UUID.randomUUID().toString();
 
-    private String content;
+    @NotNull
+    private PromptType type;
+
+    @NotNull
+    private String text;
 
     /**
      * Embedding vector ID for this component (when stored in vector DB)
@@ -51,12 +56,6 @@ public class PromptComponent extends BaseEntity {
     private double order = 0.0;
 
     /**
-     * Component type (e.g., "instruction", "parameters", "examples", etc.)
-     */
-    @Builder.Default 
-    private PromptType type = PromptType.DYNAMIC;
-
-    /**
      * Additional metadata for this component
      */
     @Builder.Default 
@@ -73,7 +72,7 @@ public class PromptComponent extends BaseEntity {
             ObjectNode node = objectMapper.createObjectNode()
                 .put("id", id)
                 .put("type", type.name())
-                .put("content", Objects.requireNonNullElse(content, ""))
+                .put("content", Objects.requireNonNullElse(text, ""))
                 .put("order", order)
                 .put("weight", weight);
 
@@ -98,26 +97,15 @@ public class PromptComponent extends BaseEntity {
      * @return Formatted prompt text
      */
     @JsonIgnore
-    public String getFullPromptText() {
-        if (content == null || content.trim().isEmpty()) {
+    public String getFormattedText() {
+        if (text == null || text.trim().isEmpty()) {
             return "";
         }
-
-        StringBuilder formatted = new StringBuilder();
         
-        // Add section header based on component type
-        if (type != null) {
-            formatted.append('<').append(type.name()).append('>').append('\n');
-        }
-
-        // Add the main content
-        formatted.append(content.trim()).append('\n');
-
-        // Close the section
-        if (type != null) {
-            formatted.append("</").append(type.name()).append('>').append('\n');
-        }
-
+        StringBuilder formatted = new StringBuilder();
+        formatted.append('<').append(type.name()).append('>').append('\n');
+        formatted.append(text.trim()).append('\n');
+        formatted.append("</").append(type.name()).append('>').append('\n');
         return formatted.toString();
     }
 
@@ -128,7 +116,7 @@ public class PromptComponent extends BaseEntity {
      */
     @JsonIgnore
     public String getRawContent() {
-        return Objects.requireNonNullElse(content, "").trim();
+        return Objects.requireNonNullElse(text, "").trim();
     }
 
     /**
@@ -152,5 +140,11 @@ public class PromptComponent extends BaseEntity {
         return Collections.unmodifiableMap(metadata);
     }
 
+    /**
+     * Appends content to the existing content
+     */
+    public void appendContent(String newContent) {
+        this.text = (this.text == null ? "" : this.text) + newContent;
+    }
 
 }

@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +73,7 @@ public class MinionContextFilter extends OncePerRequestFilter {
           extractEnvironmentId(auth), new ConcurrentHashMap<>());
 
       // Set initial request metadata
-      context.addMetadata("requestTimestamp", System.currentTimeMillis());
+      context.addMetadata("requestTimestamp", Optional.of(System.currentTimeMillis()));
       context.addMetadata("requestPath",
           ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest().getRequestURI());
 

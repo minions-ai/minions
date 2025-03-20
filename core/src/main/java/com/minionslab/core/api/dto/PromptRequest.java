@@ -1,6 +1,5 @@
 package com.minionslab.core.api.dto;
 
-
 import com.minionslab.core.domain.MinionPrompt;
 import com.minionslab.core.domain.PromptComponent;
 import com.minionslab.core.domain.enums.MinionType;
@@ -14,8 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class CreatePromptRequest {
-
+public class PromptRequest {
     @NotNull(message = "Name is required")
     private String name;
 
@@ -29,22 +27,18 @@ public class CreatePromptRequest {
     @NotNull(message = "Tenant ID is required")
     private String tenantId;
 
-    @NotNull(message = "Content is required")
+    @NotNull(message = "Components are required")
     private List<PromptComponent> components = new ArrayList<>();
 
     private Map<String, Object> metadata = new HashMap<>();
 
     public MinionPrompt toMinionPrompt() {
-        MinionPrompt prompt = MinionPrompt.builder()
+        return MinionPrompt.builder()
                 .name(name)
-                .type(type)
+                .minionType(type)
                 .version(version)
                 .tenantId(tenantId)
                 .metadata(metadata)
                 .build();
-        for (PromptComponent component : components) {
-            prompt.addPrompt(component, true);
-        }
-        return prompt;
     }
 } 

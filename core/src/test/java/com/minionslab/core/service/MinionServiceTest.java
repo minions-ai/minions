@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 import com.minionslab.core.common.exception.MinionException;
 import com.minionslab.core.domain.Minion;
 import com.minionslab.core.domain.MinionFactory;
-import com.minionslab.core.domain.MinionPrompt;
 import com.minionslab.core.domain.MinionRegistry;
 import com.minionslab.core.domain.enums.MinionType;
 import com.minionslab.core.test.BaseTenantAwareTest;

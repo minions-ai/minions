@@ -6,7 +6,6 @@ import com.minionslab.core.api.dto.MinionResponse;
 import com.minionslab.core.common.exception.MinionException;
 import com.minionslab.core.common.exception.MinionException.CreationException;
 import com.minionslab.core.domain.MinionContext;
-import com.minionslab.core.domain.MinionPrompt;
 import com.minionslab.core.domain.Minion;
 import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;

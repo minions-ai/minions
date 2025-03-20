@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 import com.minionslab.core.common.exception.PromptException;
 import com.minionslab.core.domain.MinionContext;
 import com.minionslab.core.domain.MinionContextHolder;
-import com.minionslab.core.domain.MinionPrompt;
 import com.minionslab.core.domain.enums.MinionType;
 import com.minionslab.core.repository.PromptRepository;
 import com.minionslab.core.repository.validator.PromptValidator;

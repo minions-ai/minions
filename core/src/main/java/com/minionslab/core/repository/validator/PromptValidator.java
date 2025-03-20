@@ -6,24 +6,24 @@ import org.springframework.util.StringUtils;
 
 @Component
 public class PromptValidator {
-    
+
     public void validate(MinionPrompt prompt) {
         if (prompt == null) {
             throw new IllegalArgumentException("Prompt cannot be null");
         }
-        
+
         if (!StringUtils.hasText(prompt.getName())) {
             throw new IllegalArgumentException("Prompt name cannot be empty");
         }
-        
-        if (prompt.getType() == null) {
+
+        if (prompt.getMinionType() == null) {
             throw new IllegalArgumentException("Prompt type cannot be null");
         }
-        
+
         if (!StringUtils.hasText(prompt.getVersion())) {
             throw new IllegalArgumentException("Prompt version cannot be empty");
         }
-        
+
         // Add more validation as needed
     }
 } 

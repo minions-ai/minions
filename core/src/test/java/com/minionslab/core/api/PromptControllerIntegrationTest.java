@@ -16,13 +16,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.minionslab.core.api.dto.CreatePromptRequest;
 import com.minionslab.core.api.dto.UpdatePromptRequest;
-import com.minionslab.core.common.exception.MinionException.PromptNotFoundException;
 import com.minionslab.core.domain.MinionPrompt;
 import com.minionslab.core.domain.enums.MinionType;
+import com.minionslab.core.domain.enums.PromptType;
 import com.minionslab.core.repository.PromptRepository;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+
+import com.minionslab.core.util.PromptUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,9 +65,9 @@ class PromptControllerIntegrationTest {
         .id("test-id")
         .name("Test Prompt")
         .tenantId("tenant-id")
-        .type(MinionType.USER_DEFINED_AGENT)
+        .minionType(MinionType.USER_DEFINED_AGENT)
         .version("1.0")
-        .contents(List.of("Test Prompt"))
+        .component(PromptType.DYNAMIC,PromptUtil.getPromptComponent(PromptType.DYNAMIC,"Test Prompt"))
         .build();
 
     // Setup common repository mock behaviors
@@ -95,7 +97,7 @@ class PromptControllerIntegrationTest {
     CreatePromptRequest request = new CreatePromptRequest();
     request.setName("Test Prompt");
     request.setType(MinionType.USER_DEFINED_AGENT);
-    request.setContent("Test content");
+    request.setComponents("Test content");
     request.setVersion("1.0");
     request.setTenantId("tenant-id");
 

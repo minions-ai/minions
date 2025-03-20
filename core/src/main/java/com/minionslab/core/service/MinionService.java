@@ -2,7 +2,6 @@ package com.minionslab.core.service;
 
 import com.minionslab.core.common.exception.MinionException;
 import com.minionslab.core.common.exception.MinionException.ContextCreationException;
-import com.minionslab.core.domain.MinionPrompt;
 import com.minionslab.core.domain.Minion;
 import com.minionslab.core.domain.MinionRegistry;
 import com.minionslab.core.domain.MinionFactory;

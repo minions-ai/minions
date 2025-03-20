@@ -7,6 +7,7 @@ import com.minionslab.core.common.exception.MinionException.CreationException;
 import com.minionslab.core.service.RequestHandlerService;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -67,7 +68,7 @@ public class MinionController {
       @RequestBody @Validated MinionRequest request) {
     log.info("Processing prompt with minion {}: {}", minionId, request);
     return requestHandler.handleRequest(minionId, request)
-        .thenApply(response -> ResponseEntity.ok(response))
+        .thenApply(ResponseEntity::ok)
         .exceptionally(throwable -> {
           log.error("Error processing request", throwable);
           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -105,7 +106,7 @@ public class MinionController {
   public ResponseEntity<Map<String, Object>> handleException(Exception ex) {
     Map<String, Object> error = new HashMap<>();
     error.put("error", ex.getMessage());
-    error.put("timestamp", System.currentTimeMillis());
+    error.put("timestamp", Optional.of(System.currentTimeMillis()));
 
     HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
     if (ex instanceof IllegalArgumentException) {
