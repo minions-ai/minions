@@ -37,4 +37,11 @@ public class PromptException extends RuntimeException {
       super(s);
     }
   }
+
+  public static class PromptIsLockedException extends PromptException {
+
+    public PromptIsLockedException(String s) {
+      super(s);
+    }
+  }
 }

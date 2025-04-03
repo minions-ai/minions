@@ -1,204 +1,176 @@
 package com.minionslab.core.api;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static com.minionslab.core.test.TestConstants.TEST_COMPONENT_TYPE;
+import static com.minionslab.core.test.TestConstants.TEST_PROMPT_DESCRIPTION;
+import static com.minionslab.core.test.TestConstants.TEST_PROMPT_VERSION;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.minionslab.core.api.dto.CreatePromptRequest;
+import com.minionslab.core.api.dto.PromptComponentRequest;
+import com.minionslab.core.api.dto.PromptResponse;
 import com.minionslab.core.api.dto.UpdatePromptRequest;
+import com.minionslab.core.config.WithMockMinionUser;
 import com.minionslab.core.domain.MinionPrompt;
-import com.minionslab.core.domain.enums.MinionType;
-import com.minionslab.core.domain.enums.PromptType;
 import com.minionslab.core.repository.PromptRepository;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
-
-import com.minionslab.core.util.PromptUtil;
-import org.junit.jupiter.api.BeforeEach;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = {
-        "spring.data.mongodb.host=localhost",
-        "spring.data.mongodb.port=27017",
-        "spring.data.mongodb.database=test_db"
-    }
-)
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-class PromptControllerIntegrationTest {
-
-  @Autowired
-  private MockMvc mockMvc;
+@Slf4j
+public class PromptControllerIntegrationTest extends BaseControllerIntegrationTest {
 
   @Autowired
   private ObjectMapper objectMapper;
 
-  @MockBean
+  @Autowired
   private PromptRepository promptRepository;
 
-  private MinionPrompt testPrompt;
+  @Test
+  void getPrompt_Success() {
+    // Given
+    MinionPrompt savedPrompt = promptRepository.save(context.get(MinionPrompt.class));
 
-  @BeforeEach
-  void setUp() {
-    testPrompt = MinionPrompt.builder()
-        .id("test-id")
-        .name("Test Prompt")
-        .tenantId("tenant-id")
-        .minionType(MinionType.USER_DEFINED_AGENT)
-        .version("1.0")
-        .component(PromptType.DYNAMIC,PromptUtil.getPromptComponent(PromptType.DYNAMIC,"Test Prompt"))
-        .build();
+    // When
+    ResponseEntity<PromptResponse> response = GET(
+        BASE_URL + "/prompts/" + savedPrompt.getId(),
+        PromptResponse.class,
+        PrivilegeLevel.LOW
+    );
 
-    // Setup common repository mock behaviors
-    when(promptRepository.save(any(MinionPrompt.class))).thenAnswer(invocation -> {
-      MinionPrompt prompt = invocation.getArgument(0);
-      if (prompt.getId() == null) {
-        prompt.setId("generated-id");
-      }
-      return prompt;
-    });
-
-    // Setup findById mock
-    when(promptRepository.findById("test-id")).thenReturn(Optional.of(testPrompt));
-    
-    // Setup delete mock - using doAnswer for void methods
-    doAnswer(invocation -> {
-      String id = invocation.getArgument(0);
-      // After deletion, findById should return empty
-      when(promptRepository.findById(id)).thenReturn(Optional.empty());
-      return null;
-    }).when(promptRepository).deleteById(any());
+    // Then
+    assertResponseStatus(response, HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getId()).isEqualTo(savedPrompt.getId());
+    assertThat(response.getBody().getDescription()).isEqualTo(TEST_PROMPT_DESCRIPTION);
   }
 
   @Test
-  @WithMockUser(roles = "ADMIN")
-  void createPrompt_Success() throws Exception {
-    CreatePromptRequest request = new CreatePromptRequest();
-    request.setName("Test Prompt");
-    request.setType(MinionType.USER_DEFINED_AGENT);
-    request.setComponents("Test content");
-    request.setVersion("1.0");
-    request.setTenantId("tenant-id");
+  void updatePrompt_Success() {
+    // Given
+    MinionPrompt savedPrompt = promptRepository.save(context.get(MinionPrompt.class));
+    UpdatePromptRequest updateRequest = context.get(UpdatePromptRequest.class);
 
-    mockMvc.perform(post("/api/v1/prompts")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.name", is("Test Prompt")))
-        .andExpect(jsonPath("$.content", hasSize(1)))
-        .andExpect(jsonPath("$.content[0]", is("Test content")));
+    // When
+    ResponseEntity<PromptResponse> response = PUT(
+        updateRequest,
+        BASE_URL + "/prompts/" + savedPrompt.getId(),
+        PromptResponse.class,
+        PrivilegeLevel.HIGH
+    );
+
+    // Then
+    assertResponseStatus(response, HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getDescription()).isEqualTo("Updated Name");
+
+    // Verify in database
+    Optional<MinionPrompt> updatedPrompt = promptRepository.findById(savedPrompt.getId());
+    assertThat(updatedPrompt).isPresent();
+    assertThat(updatedPrompt.get().getDescription()).isEqualTo("Updated Name");
   }
 
   @Test
-  void getPrompt_Success() throws Exception {
-    when(promptRepository.findById("test-id")).thenReturn(Optional.of(testPrompt));
+  void deletePrompt_Success() {
+    // Given
+    MinionPrompt savedPrompt = promptRepository.save(context.get(MinionPrompt.class));
 
-    mockMvc.perform(get("/api/v1/prompts/test-id"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id", is("test-id")))
-        .andExpect(jsonPath("$.name", is("Test Prompt")));
+    // When
+    ResponseEntity<Void> response = DELETE(
+        BASE_URL + "/prompts/" + savedPrompt.getId(),
+        Void.class,
+        PrivilegeLevel.HIGH
+    );
+
+    // Then
+    assertResponseStatus(response, HttpStatus.NO_CONTENT);
+
+    // Verify in database
+    Optional<MinionPrompt> deletedPrompt = promptRepository.findById(savedPrompt.getId());
+    assertThat(deletedPrompt).isEmpty();
   }
 
   @Test
-  void getAllPrompts_Success() throws Exception {
-    when(promptRepository.findAllByTenantId("tenant-1"))
-        .thenReturn(Arrays.asList(testPrompt));
+  void addPromptComponent_Success() {
+    // Given
+    MinionPrompt savedPrompt = promptRepository.save(context.get(MinionPrompt.class));
+    PromptComponentRequest componentRequest = context.get(PromptComponentRequest.class);
 
-    mockMvc.perform(get("/api/v1/prompts")
-            .param("tenantId", "tenant-1"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].id", is("test-id")));
+    // When
+    ResponseEntity<PromptResponse> response = POST(
+        componentRequest,
+        BASE_URL + "/prompts/" + savedPrompt.getId() + "/components",
+        PromptResponse.class,
+        PrivilegeLevel.HIGH
+    );
+
+    // Then
+    assertResponseStatus(response, HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getComponents()).isNotNull();
+
+    // Verify in database
+    Optional<MinionPrompt> updatedPrompt = promptRepository.findById(savedPrompt.getId());
+    assertThat(updatedPrompt).isPresent();
+    assertThat(updatedPrompt.get().getComponents()).containsKey(TEST_COMPONENT_TYPE);
   }
 
   @Test
-  void getPromptsByType_Success() throws Exception {
-    when(promptRepository.findAllByTypeAndTenantId(any(MinionType.class), any(String.class)))
-        .thenReturn(Arrays.asList(testPrompt));
+  void unauthorized_Access() {
+    // When
+    ResponseEntity<String> response = GET(
+        BASE_URL + "/prompts",
+        String.class,
+        PrivilegeLevel.NO
+    );
 
-    mockMvc.perform(get("/api/v1/prompts/type/" + MinionType.USER_DEFINED_AGENT)
-            .param("tenantId", "tenant-1"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].id", is("test-id")));
+    // Then
+    assertResponseStatus(response, HttpStatus.UNAUTHORIZED);
   }
 
   @Test
-  @WithMockUser(roles = "ADMIN")
-  void updatePrompt_Success() throws Exception {
-    when(promptRepository.findById("test-id")).thenReturn(Optional.of(testPrompt));
+  void userAccessingAdminEndpoint_ShouldReturnForbidden() {
+    // Given
+    CreatePromptRequest request = context.get(CreatePromptRequest.class);
 
-    UpdatePromptRequest request = new UpdatePromptRequest();
-    request.setContent("Updated content");
+    // When
+    ResponseEntity<String> response = POST(
+        request,
+        BASE_URL + "/prompts",
+        String.class,
+        PrivilegeLevel.LOW
+    );
 
-    mockMvc.perform(put("/api/v1/prompts/test-id")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id", is("test-id")))
-        .andExpect(jsonPath("$.content", hasSize(1)))
-        .andExpect(jsonPath("$.content[0]", is("Updated content")));
+    // Then
+    assertResponseStatus(response, HttpStatus.FORBIDDEN);
   }
 
   @Test
-  @WithMockUser(roles = "ADMIN")
-  void deletePrompt_Success() throws Exception {
-    // Verify prompt exists before deletion
-    assertThat(promptRepository.findById("test-id")).isPresent();
+  @WithMockMinionUser(roles = {"ADMIN"})
+  void createPrompt_Success() {
+    // Given
+    CreatePromptRequest request = context.get(CreatePromptRequest.class);
 
-    // Perform delete
-    mockMvc.perform(delete("/api/v1/prompts/test-id"))
-        .andExpect(status().isNoContent());
+    // When
+    ResponseEntity<PromptResponse> response = POST(
+        request,
+        BASE_URL + "/prompts",
+        PromptResponse.class,
+        PrivilegeLevel.HIGH
+    );
 
-    // Verify prompt no longer exists
-    assertThat(promptRepository.findById("test-id")).isEmpty();
+    // Then
+    assertResponseStatus(response, HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getDescription()).isEqualTo(TEST_PROMPT_DESCRIPTION);
+    assertThat(response.getBody().getVersion()).isEqualTo(TEST_PROMPT_VERSION);
+
+    // Verify in database
+    Optional<MinionPrompt> savedPrompt = promptRepository.findById(response.getBody().getId());
+    assertThat(savedPrompt).isPresent();
+    assertThat(savedPrompt.get().getDescription()).isEqualTo(TEST_PROMPT_DESCRIPTION);
   }
-
-  @Test
-  @WithMockUser(roles = "ADMIN")
-  void deletePrompt_NonExistent_ShouldReturnNotFound() throws Exception {
-    // Setup non-existent prompt
-    when(promptRepository.findById("non-existent-id")).thenReturn(Optional.empty());
-
-    try {
-      mockMvc.perform(delete("/api/v1/prompts/non-existent-id"));
-    }catch (Exception e) {
-      assertThat(e.getMessage()).isEqualTo("Request processing failed: com.minionslab.core.common.exception.PromptException$PromptNotFoundException: Prompt not found: non-existent-id");
-    }
-
-  }
-
-  @Test
-  @WithMockUser(roles = "USER")
-  void deletePrompt_Unauthorized_ShouldReturnForbidden() throws Exception {
-    mockMvc.perform(delete("/api/v1/prompts/test-id"))
-        .andExpect(status().isForbidden());
-  }
-
-  @Test
-  void deletePrompt_Unauthenticated_ShouldReturnUnauthorized() throws Exception {
-    mockMvc.perform(delete("/api/v1/prompts/test-id"))
-        .andExpect(status().isUnauthorized());
-  }
-} 
+}

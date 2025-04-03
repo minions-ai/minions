@@ -33,5 +33,5 @@ import lombok.experimental.Accessors;
 
   @JsonProperty("usage") private UsageDetails usage;
 
-  @JsonProperty("metadata") private Map<String, Object> metadata;
+  @JsonProperty("metadatas") private Map<String, Object> metadata;
 }

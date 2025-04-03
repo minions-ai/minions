@@ -18,7 +18,7 @@ public class PromptResolutionContext {
 
   private MinionType minionType;
   private PromptType promptType;
-  private String name;
+  private String description;
   private String version;
   private String requestContent;
   private Map<String, Object> metadata;

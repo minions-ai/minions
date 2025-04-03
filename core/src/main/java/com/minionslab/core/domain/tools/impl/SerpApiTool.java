@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@Toolbox(name = "SerpApi", version = "1.0", categories = "data")
+@Toolbox(name = "SerpApi", version = "1.0", categories = "basic")
 public class SerpApiTool extends BaseAPIToolBox {
 
   @Value("${serp.api.key}")

@@ -1,5 +1,7 @@
-package com.minionslab.core.service.resolver;
+package com.minionslab.core.service;
 
+import com.minionslab.core.domain.MinionPrompt;
+import com.minionslab.core.service.resolver.PromptResolutionContext;
 import java.util.Optional;
 
 /**

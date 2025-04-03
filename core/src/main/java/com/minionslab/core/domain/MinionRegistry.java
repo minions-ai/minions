@@ -1,8 +1,10 @@
 package com.minionslab.core.domain;
 
+import com.minionslab.core.common.exception.MinionException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -31,7 +33,7 @@ public class MinionRegistry {
    *
    * @param minion The minion to register
    */
-  public void registerAgent(Minion minion) {
+  public void registerMinion(Minion minion) {
     try {
       // First register in maps to ensure visibility
       minionsById.put(minion.getMinionId(), minion);
@@ -151,7 +153,8 @@ public class MinionRegistry {
    * @return The minion or null if not found
    */
   public Minion getMinionById(String id) {
-    return minionsById.get(id);
+    return Optional.ofNullable(minionsById.get(id))
+        .orElseThrow(() -> new MinionException.MinionNotFoundException("Minion not found: " + id));
   }
 
   /**

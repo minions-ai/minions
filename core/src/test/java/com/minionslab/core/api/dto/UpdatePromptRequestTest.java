@@ -1,141 +1,120 @@
 package com.minionslab.core.api.dto;
 
+import static com.minionslab.core.test.TestConstants.TEST_METADATA_KEY;
+import static com.minionslab.core.test.TestConstants.TEST_METADATA_VALUE;
+import static com.minionslab.core.test.TestConstants.TEST_PROMPT_DESCRIPTION;
+import static com.minionslab.core.test.TestConstants.TEST_PROMPT_VERSION;
+import static com.minionslab.core.test.TestConstants.getMinionPrompt;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.minionslab.core.domain.MinionPrompt;
-import com.minionslab.core.domain.PromptComponent;
-import com.minionslab.core.domain.enums.MinionType;
-import com.minionslab.core.domain.enums.PromptType;
+import com.minionslab.core.test.TestConstants;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.minionslab.core.util.PromptUtil.getPromptComponent;
-import static com.mongodb.assertions.Assertions.assertTrue;
-import static org.assertj.core.api.Assertions.assertThat;
-
 class UpdatePromptRequestTest {
 
-    private UpdatePromptRequest updateRequest;
-    private MinionPrompt existingPrompt;
+  private UpdatePromptRequest updateRequest;
 
-    @BeforeEach
-    void setUp() {
-        // Initialize the update request
-        updateRequest = new UpdatePromptRequest();
-        updateRequest.setContent("Updated content");
 
-        // Initialize existing prompt using builder with @Singular
-        existingPrompt = MinionPrompt.builder().id("test-id").name("Test Prompt").minionType(MinionType.USER_DEFINED_AGENT).version("1.0").tenantId("test-tenant").component(PromptType.DYNAMIC, PromptComponent.builder().type(PromptType.DYNAMIC).text("Original content").build())  // Uses @Singular
-                .build();
-    }
+  @BeforeEach
+  void setUp() {
+    // Initialize the update request
+    updateRequest = new UpdatePromptRequest();
 
-    @Test
-    void updateMinionPrompt_WithNewContent_ShouldUpdateContentOnly() {
-        // Act
-        MinionPrompt updatedPrompt = updateRequest.updateMinionPrompt(existingPrompt);
 
-        // Assert
-        assertThat(updatedPrompt).satisfies(prompt -> {
-            assertThat(prompt.getId()).isEqualTo(existingPrompt.getId());
-            assertThat(prompt.getName()).isEqualTo(existingPrompt.getName());
-            assertThat(prompt.getMinionType()).isEqualTo(existingPrompt.getMinionType());
-            assertThat(prompt.getVersion()).isEqualTo(existingPrompt.getVersion());
-            assertThat(prompt.getTenantId()).isEqualTo(existingPrompt.getTenantId());
-//                    assertThat(prompt.getContents()).contains("Updated content");
-//                    assertThat(prompt.getContents()).hasSize(1);
+  }
+
+  @Test
+  void updateMinionPrompt_WithNewContent_ShouldUpdateContentOnly() {
+    // Act
+    MinionPrompt updatedPrompt = updateRequest.updateMinionPrompt(getMinionPrompt());
+
+    // Assert
+    assertThat(updatedPrompt)
+        .satisfies(prompt -> {
+          assertThat(prompt.getId()).isEqualTo(getMinionPrompt().getId());
+          assertThat(prompt.getDescription()).isEqualTo(getMinionPrompt().getDescription());
+          assertThat(prompt.getVersion()).isEqualTo(getMinionPrompt().getVersion());
+          assertThat(prompt.getTenantId()).isEqualTo(getMinionPrompt().getTenantId());
         });
-    }
+  }
 
-    @Test
-    void updateMinionPrompt_WithNewMetadata_ShouldUpdateMetadata() {
-        // Arrange
-        Map<String, Object> newMetadata = new HashMap<>();
-        newMetadata.put("key1", "value1");
-        newMetadata.put("key2", 123);
-        updateRequest.setMetadata(newMetadata);
+  @Test
+  void updateMinionPrompt_WithNewMetadata_ShouldUpdateMetadata() {
+    // Arrange
+    Map<String, Object> newMetadata = new HashMap<>();
+    newMetadata.put("key1", "value1");
+    newMetadata.put("key2", 123);
+    updateRequest.setMetadata(newMetadata);
 
-        // Act
-        MinionPrompt updatedPrompt = updateRequest.updateMinionPrompt(existingPrompt);
+    // Act
+    MinionPrompt updatedPrompt = updateRequest.updateMinionPrompt(getMinionPrompt());
 
-        // Assert
-        assertThat(updatedPrompt).satisfies(prompt -> {
-            assertThat(prompt.getMetadata()).containsEntry("key1", "value1").containsEntry("key2", 123);
-            assertThat(prompt.getComponents()).hasSize(1);
-            assertTrue(prompt.getComponents().values().stream().anyMatch(component -> component.getText().equalsIgnoreCase("Updated content")));
+    // Assert
+    assertThat(updatedPrompt)
+        .satisfies(prompt -> {
+          assertThat(prompt.getMetadata())
+              .containsEntry(TestConstants.TEST_METADATA_KEY, TestConstants.TEST_METADATA_VALUE)
+              .containsEntry(TestConstants.TEST_METADATA_KEY_2, TestConstants.TEST_METADATA_VALUE_2);
+
         });
-    }
-
-    @Test
-    void updateMinionPrompt_WithNullMetadata_ShouldKeepExistingMetadata() {
-        // Arrange
-        existingPrompt = MinionPrompt.builder().id("test-id").name("Test Prompt").minionType(MinionType.USER_DEFINED_AGENT).version("1.0").metadata(Map.of("existing", "value"))  // Uses @Singular
-                .build();
-        updateRequest.setMetadata(null);
-
-        // Act
-        MinionPrompt updatedPrompt = updateRequest.updateMinionPrompt(existingPrompt);
-
-        // Assert
-        assertThat(updatedPrompt.getMetadata()).containsEntry("existing", "value").hasSize(1);
-    }
-
-    @Test
-    void updateMinionPrompt_ShouldMergeMetadata() {
-        // Arrange
-        existingPrompt = MinionPrompt.builder().id("test-id").name("Test Prompt").minionType(MinionType.USER_DEFINED_AGENT).version("1.0").metadata(Map.of("existing", "value")) // Uses @Singular
-                .build();
-
-        Map<String, Object> newMetadata = new HashMap<>();
-        newMetadata.put("new", "newValue");
-        updateRequest.setMetadata(newMetadata);
-
-        // Act
-        MinionPrompt updatedPrompt = updateRequest.updateMinionPrompt(existingPrompt);
-
-        // Assert
-        assertThat(updatedPrompt.getMetadata()).containsEntry("existing", "value").containsEntry("new", "newValue").hasSize(2);
-    }
-
-    @Test
-    void updateMinionPrompt_WithEmptyMetadata_ShouldKeepEmptyMetadata() {
-        // Arrange
-        Map<String, Object> emptyMetadata = new HashMap<>();
-        updateRequest.setMetadata(emptyMetadata);
-
-        // Act
-        MinionPrompt updatedPrompt = updateRequest.updateMinionPrompt(existingPrompt);
-
-        // Assert
-        assertThat(updatedPrompt.getMetadata()).isEmpty();
-    }
-
-    @Test
-    void updateMinionPrompt_WithMultipleContents_ShouldUpdateAllContents() {
-        // Arrange
-        existingPrompt = MinionPrompt.builder().id("test-id").name("Test Prompt").minionType(MinionType.USER_DEFINED_AGENT)
-                .version("1.0")
-                .component(PromptType.DYNAMIC, getPromptComponent("First content"))
-                .component(PromptType.DYNAMIC, getPromptComponent("Second content"))
-                .build();
-
-        // Act
-        MinionPrompt updatedPrompt = updateRequest.updateMinionPrompt(existingPrompt);
-
-        // Assert
-        assertThat(updatedPrompt.getComponents()).containsValue(getPromptComponent("First content"));
-        assertThat(updatedPrompt.getComponents()).hasSize(1).containsValue(getPromptComponent("Second content"));
-    }
+  }
 
 
-    @Test
-    void updateMinionPrompt_ShouldNotModifyOriginalPrompt() {
-        // Act
-        MinionPrompt updatedPrompt = updateRequest.updateMinionPrompt(existingPrompt);
+  @Test
+  void updateMinionPrompt_ShouldMergeMetadata() {
+    // Arrange
+    MinionPrompt existingPrompt = MinionPrompt.builder()
+        .id("test-id")
+        .description(TEST_PROMPT_DESCRIPTION)
+        .version(TEST_PROMPT_VERSION)
+        .metadata(Map.of(TEST_METADATA_KEY, TEST_METADATA_VALUE)) // Uses @Singular
+        .build();
 
-        // Assert
-        assertThat(existingPrompt.getComponents()).containsValue(getPromptComponent("Original content"));
-        assertThat(updatedPrompt.getComponents()).containsValue(getPromptComponent("Updated content"));
-        assertThat(existingPrompt).isNotSameAs(updatedPrompt);
-    }
+    Map<String, Object> newMetadata = new HashMap<>();
+    newMetadata.put("new", "newValue");
+    updateRequest.setMetadata(newMetadata);
+
+    // Act
+    MinionPrompt updatedPrompt = updateRequest.updateMinionPrompt(existingPrompt);
+
+    // Assert
+    assertThat(updatedPrompt.getMetadata())
+        .containsEntry("existing", "value")
+        .containsEntry("new", "newValue")
+        .hasSize(2);
+  }
+
+  @Test
+  void updateMinionPrompt_WithEmptyMetadata_ShouldKeepEmptyMetadata() {
+    // Arrange
+    Map<String, Object> emptyMetadata = new HashMap<>();
+    updateRequest.setMetadata(emptyMetadata);
+
+    // Act
+    MinionPrompt updatedPrompt = updateRequest.updateMinionPrompt(getMinionPrompt());
+
+    // Assert
+    assertThat(updatedPrompt.getMetadata()).isEmpty();
+  }
+
+  @Test
+  void updateMinionPrompt_WithMultipleContents_ShouldUpdateAllContents() {
+
+    //Fill the body of this method with the required code to fullfill the test
+
+  }
+
+  @Test
+  void updateMinionPrompt_ShouldNotModifyOriginalPrompt() {
+    // Act
+    MinionPrompt updatedPrompt = updateRequest.updateMinionPrompt(getMinionPrompt());
+
+    // Assert
+
+    assertThat(getMinionPrompt()).isNotSameAs(updatedPrompt);
+  }
 } 

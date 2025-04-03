@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +25,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Order(1) // Execute early in the filter chain
 public class MinionContextFilter extends OncePerRequestFilter {
 
-  MinionContextHolder contextHolder;
 
   private static String extractTenantId(Authentication auth) {
     if (!(auth.getDetails() instanceof Map)) {
@@ -49,43 +47,40 @@ public class MinionContextFilter extends OncePerRequestFilter {
     return envId != null ? envId.toString() : "default";
   }
 
-  @Override
-  protected void doFilterInternal(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      FilterChain filterChain) throws ServletException, IOException {
+  private final MinionContextHolder contextHolder;
 
-    setupContextForRequest();
-
-    // Continue with the filter chain
-    filterChain.doFilter(request, response);
+  public MinionContextFilter(MinionContextHolder contextHolder) {
+    this.contextHolder = contextHolder;
   }
 
-  public void setupContextForRequest() {
+  @Override
+  protected void doFilterInternal(HttpServletRequest request,
+      HttpServletResponse response,
+      FilterChain filterChain) throws ServletException, IOException {
     try {
-      Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-      if (auth == null || !auth.isAuthenticated()) {
-        throw new IllegalStateException("No authenticated user found");
-      }
-
-      // Create new parameters
-      MinionContext context = new MinionContext(UUID.randomUUID().toString(), auth.getName(), extractTenantId(auth),
-          extractEnvironmentId(auth), new ConcurrentHashMap<>());
-
-      // Set initial request metadata
-      context.addMetadata("requestTimestamp", Optional.of(System.currentTimeMillis()));
-      context.addMetadata("requestPath",
-          ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest().getRequestURI());
-
-      contextHolder.setContext(context);
-      log.debug("Created parameters: {}", context.toString());
-
-    } catch (Exception e) {
-      log.error("Failed to setup parameters ", e);
-      throw new MinionException.ContextCreationException("Failed to create minion parameters", e);
+      setupContextForRequest();
+      filterChain.doFilter(request, response);
+    } finally {
+      contextHolder.setContext(null);
     }
   }
 
+  private void setupContextForRequest() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null || !auth.isAuthenticated()) {
+      throw new IllegalStateException("No authenticated user found");
+    }
+
+    MinionContext context = new MinionContext(
+        UUID.randomUUID().toString(),
+        auth.getName(),
+        extractTenantId(auth),
+        extractEnvironmentId(auth),
+        new ConcurrentHashMap<>()
+    );
+
+    contextHolder.setContext(context);
+  }
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getRequestURI();

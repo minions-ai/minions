@@ -66,7 +66,7 @@ import org.springframework.stereotype.Service;
   }
 
   /**
-   * Update parameters metadata
+   * Update parameters metadatas
    */
   public void updateContextMetadata(String minionId, String key, Object value) {
     MinionContext context = null;
@@ -78,7 +78,7 @@ import org.springframework.stereotype.Service;
       throw new RuntimeException(e);
     }
     context.addMetadata(key, value);
-    log.debug("Updated parameters metadata for minion: {}, key: {}", minionId, key);
+    log.debug("Updated parameters metadatas for minion: {}, key: {}", minionId, key);
   }
 
   /**

@@ -1,69 +1,36 @@
 package com.minionslab.core.service;
 
-import com.minionslab.core.common.exception.MinionException;
-import com.minionslab.core.common.exception.MinionException.ContextCreationException;
+import com.minionslab.core.api.dto.CreateMinionRequest;
 import com.minionslab.core.domain.Minion;
-import com.minionslab.core.domain.MinionRegistry;
-import com.minionslab.core.domain.MinionFactory;
-import com.minionslab.core.domain.enums.MinionType;
-import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
-@Slf4j @Service public class MinionService {
+/**
+ * Service interface for managing minions and their interactions.
+ */
+public interface MinionService {
 
-  private final MinionFactory minionFactory;
-  private final MinionRegistry minionRegistry;
-  private final ContextService contextService;
+    /**
+     * Creates a new minion.
+     *
+     * @param minion The minion to create
+     * @return The created minion
+     */
+    Minion createMinion(CreateMinionRequest minion);
 
-  public MinionService(MinionFactory minionFactory, MinionRegistry minionRegistry, ContextService contextService) {
-    this.minionFactory = minionFactory;
-    this.minionRegistry = minionRegistry;
-    this.contextService = contextService;
-  }
+    /**
+     * Processes a request using the specified minion.
+     *
+     * @param minionId The ID of the minion to use
+     * @param request The request to process
+     * @return The response from the LLM service
+     */
+    String processRequest(String minionId, String request);
 
-  /**
-   * Create a new minion based on the creation request
-   *
-   * @param minionType The type of the minion
-   * @param metadata   The metadata for the minion
-   * @return The created minion
-   */
-  public Minion createMinion(MinionType minionType, Map<String, String> metadata, MinionPrompt prompt) throws MinionException {
-
-    try {
-      validateCreateMinionInputs(minionType);
-
-      contextService.createContext();
-      Minion minion = minionFactory.createMinion(minionType, metadata, prompt);
-
-      // Set metadata if provided
-      if (metadata != null && !metadata.isEmpty()) {
-        minion.setMetadata(metadata);
-      }
-
-      minionRegistry.registerAgent(minion);
-
-      log.info("Created new minion with ID: {}", minion.getMinionId());
-      return minion;
-
-    } catch (ContextCreationException e) {
-      log.error("Failed to create minion: {}", minionType, e);
-      throw new MinionException.CreationException("Failed to create minion: " + e.getMessage(), e);
-    }
-  }
-
-  private void validateCreateMinionInputs(MinionType minionType) {
-
-    if (minionType == null) {
-      throw new IllegalArgumentException("Minion type cannot be null");
-    }
-
-
-  }
-
-
-  public Minion getMinionById(String minionId) {
-    return minionRegistry.getMinionById(minionId);
-  }
+    /**
+     * Retrieves a minion by its ID.
+     *
+     * @param minionId The ID of the minion to retrieve
+     * @return The minion if found
+     */
+    Minion getMinion(String minionId);
 }
+

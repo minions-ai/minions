@@ -1,5 +1,7 @@
 package com.minionslab.core.service.resolver;
 
+import com.minionslab.core.domain.MinionPrompt;
+import com.minionslab.core.service.PromptResolver;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 

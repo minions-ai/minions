@@ -3,12 +3,14 @@ package com.minionslab.core.domain;
 import java.util.Map;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.annotation.RequestScope;
 
 /**
  * Simple ThreadLocal holder for MinionContext.
  * Provides access to the current minion's parameters across the application.
  */
 @Component
+@RequestScope
 public class MinionContextHolder {
     private static final ThreadLocal<MinionContext> contextHolder = new ThreadLocal<>();
 

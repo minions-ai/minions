@@ -1,5 +1,6 @@
-package com.minionslab.core.service;
+package com.minionslab.core.service.impl;
 
+import com.minionslab.core.service.AIService;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;

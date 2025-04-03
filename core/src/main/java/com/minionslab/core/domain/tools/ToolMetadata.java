@@ -25,7 +25,7 @@ public class ToolMetadata {
   private boolean enabled;
 
   /**
-   * Additional metadata for the tool
+   * Additional metadatas for the tool
    */
   @Builder.Default
   private Map<String, Object> metadata = new HashMap<>();

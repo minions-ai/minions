@@ -25,9 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.function.FunctionCallback;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -36,11 +34,12 @@ import org.springframework.retry.annotation.Retryable;
 @Data
 @Accessors(chain = true)
 @SuperBuilder
-public abstract class AbstractMinion implements MinionLifecycle {
+public abstract class AbstractMinion  extends BaseEntity implements MinionLifecycle {
+
 
 
   private static final PromptComponent DEFAULT_PROMPT_TEMPLATE = PromptComponent.builder().type(PromptType.REQUEST_TEMPLATE)
-      .text("Prompt template content").build();
+      .text("Prompt template text").build();
 
   // Unique identifier for each agent
   @Builder.Default private final String minionId = UUID.randomUUID().toString();
@@ -50,7 +49,7 @@ public abstract class AbstractMinion implements MinionLifecycle {
   // System prompts and configuration
   @Setter @Getter protected MinionPrompt minionPrompt;
 
-  // Agent metadata
+  // Agent metadatas
   private String description;
   @Default private MinionState state = MinionState.CREATED;
 
@@ -64,7 +63,7 @@ public abstract class AbstractMinion implements MinionLifecycle {
   @Getter @Setter private MinionType minionType;
   private List<String> toolboxNames = new ArrayList<>();
   private Map<String, Object> toolboxes = new ConcurrentHashMap<>();
-  @Getter @Setter private Map<String, String> metadata;
+  @Getter @Setter private Map<String, Object> metadata;
 
 
   /**
@@ -107,6 +106,13 @@ public abstract class AbstractMinion implements MinionLifecycle {
   /**
    * Process a user request synchronously
    */
+  /*
+  * //todo:
+  *    1- Handle reactive execution
+  *    2- Handle tool context creation if needed from MinionContext
+  *    3-  Hanlde structured output
+  *
+  * */
   @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 1000, multiplier = 2))
   public String processPrompt(String userRequest, Map<String, Object> parameters) {
     if (userRequest == null || userRequest.trim().isEmpty()) {
@@ -133,7 +139,7 @@ public abstract class AbstractMinion implements MinionLifecycle {
 
       // Log the response
       log.info("Agent {} generated response", minionId);
-      log.debug("Response content: {}", response);
+      log.debug("Response text: {}", response);
 
       // Update metrics
       updateMetrics("promptsProcessed", getMetricValue("promptsProcessed", 0) + 1);

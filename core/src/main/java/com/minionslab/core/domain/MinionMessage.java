@@ -56,7 +56,7 @@ public class MinionMessage {
     private Object payload;
 
     /**
-     * Additional metadata for the message
+     * Additional metadatas for the message
      */
     @Builder.Default
     private Map<String, Object> metadata = Map.of();

@@ -5,8 +5,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 /**
- * Simple parameters holder for minion metadata.
- * Thread-safe and mutable to allow adding metadata during operation execution.
+ * Simple parameters holder for minion metadatas.
+ * Thread-safe and mutable to allow adding metadatas during operation execution.
  */
 @Data
 @Accessors(chain = true)

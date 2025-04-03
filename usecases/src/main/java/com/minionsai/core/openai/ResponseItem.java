@@ -25,6 +25,6 @@ import lombok.experimental.Accessors;
   @JsonProperty("arguments")
   private String arguments; // Stored as raw JSON string
 
-  @JsonProperty("content")
+  @JsonProperty("text")
   private List<ResponseContent> content;
 }

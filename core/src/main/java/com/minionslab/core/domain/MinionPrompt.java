@@ -1,87 +1,118 @@
 package com.minionslab.core.domain;
 
-import com.minionslab.core.domain.enums.MinionType;
+import com.minionslab.core.common.exception.PromptException;
 import com.minionslab.core.domain.enums.PromptType;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import javax.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Data;
-import lombok.Singular;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-
 /**
- * Represents a system prompt with its content and metadata. This class is designed to be stored in a document database (MongoDB).
+ * Represents a system prompt with its text and metadatas. This class is designed to be stored in a document database (MongoDB). Each prompt
+ * is immutable once created and versioned. Updates create new versions with effective dates. The active version at any point in time is
+ * determined by the effective and expiry dates.
  */
-
-@Slf4j
 @Data
-@Document(collection = "prompts")
+@Document(collection = "minion_prompts")
 @SuperBuilder
-public class MinionPrompt {
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@CompoundIndexes({
+    @CompoundIndex(name = "prompt_primary_key", def = "{'entityId': 1, 'version': 1}", unique = true)
+})
+public class MinionPrompt extends EffectiveDatedEntity {
 
-    @Id
-    private String id;
+  @Builder.Default
+  private Map<PromptType, PromptComponent> components = new HashMap<>();
 
-    @NotNull
-    private String name;
+  @Builder.Default
+  private Map<String, Object> metadata = new HashMap<>();
 
-    @NotNull
-    private MinionType minionType;
+  @NotNull
+  private String description;
 
-    @NotNull
-    private String version;
+  @NotNull
+  @Default
+  private String version = "1";
 
-    @NotNull
-    private String tenantId;
+  @Builder.Default
+  private boolean deployed = false;
 
+  @Builder.Default
+  private Set<String> toolboxes = new HashSet<>();
 
-    @Singular
-    private final Map<PromptType, PromptComponent> components;
-
-    @Default
-    private final Map<String, Object> metadata = new HashMap<>();
-
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-
-    // Domain behavior methods
-    public void addComponent(PromptComponent component) {
-        Objects.requireNonNull(component, "Component cannot be null");
-        Objects.requireNonNull(component.getType(), "Component type cannot be null");
-        components.put(component.getType(), component);
-        updatedAt = LocalDateTime.now();
+  /**
+   * Sets the entityId. This method ensures that the entityId cannot be changed once it's set.
+   *
+   * @throws PromptException if attempting to change an existing entityId
+   */
+  public void setEntityId(String entityId) {
+    if (this.entityId != null && !this.entityId.equals(entityId)) {
+      throw new PromptException("Cannot change entityId once it's set");
     }
+    this.entityId = entityId;
+  }
 
-    public void removeComponent(PromptType type) {
-        components.remove(type);
-        updatedAt = LocalDateTime.now();
-    }
+  /**
+   * Creates a new version of this prompt with updated components. The current version will be automatically expired at the effective date
+   * of the new version.
+   *
+   * @param component     The new component to add
+   * @param newVersion    The version number for the new version
+   * @param effectiveDate The date when this version becomes effective
+   * @return A new MinionPrompt instance with the updated component
+   * @throws PromptException if the version already exists
+   */
+  public MinionPrompt createNewVersion(Instant effectiveDate) {
+    String newVersion = incrementVersion();
+    MinionPrompt newPrompt = MinionPrompt.builder()
+        .entityId(entityId)  // Keep the same entityId
+        .description(description)
+        .version(newVersion)
+        .components(components)
+        .metadata(metadata)
+        .effectiveDate(effectiveDate)
+        .build();
+    this.setExpiryDate(effectiveDate);
+    return newPrompt;
+  }
 
-    public Optional<PromptComponent> getComponent(PromptType type) {
-        return Optional.ofNullable(components.get(type));
-    }
+  private String incrementVersion() {
+    String[] parts = version.split("\\.");
+    int lastPart = Integer.parseInt(parts[parts.length - 1]);
+    parts[parts.length - 1] = String.valueOf(lastPart + 1);
+    return String.join(".", parts);
+  }
 
-    public String getFullPromptText() {
-        return components.values().stream()
-                .sorted(Comparator.comparingDouble(PromptComponent::getOrder))
-                .map(PromptComponent::getFormattedText)
-                .collect(Collectors.joining("\n"));
-    }
+  /**
+   * Checks if this prompt is active at the given point in time
+   */
+  public boolean isActiveAt(Instant pointInTime) {
+    return (expiryDate == null || expiryDate.isAfter(pointInTime)) &&
+        effectiveDate.isBefore(pointInTime);
+  }
 
-    public void updatePrompt(PromptType type, String content) {
+  /**
+   * Checks if this prompt is currently active
+   */
+  public boolean isActive() {
+    return isActiveAt(Instant.now());
+  }
 
-    }
-
-    public void addPrompt(PromptComponent component, boolean b) {
-        if (components.get(component.getType()) != null && !b) {
-            throw new IllegalArgumentException(String.format("Component already exists for prompt type %s", component.getType()));
-        }
-        addComponent(component);
-    }
+  public boolean isLocked() {
+    return isActive() && deployed;
+  }
 }

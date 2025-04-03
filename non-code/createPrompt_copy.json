@@ -1,0 +1,10 @@
+{
+  "name": "Job Search Assistant",
+  "type": "USER_DEFINED_AGENT",
+  "version": "1.0",
+  "metadata": {
+    "description": "An AI assistant specialized in helping users with job search",
+    "category": "Career Development",
+    "tags": ["job-search", "career", "employment"],
+  }
+}

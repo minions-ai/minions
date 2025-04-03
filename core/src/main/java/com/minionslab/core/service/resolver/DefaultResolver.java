@@ -12,16 +12,13 @@ public class DefaultResolver extends BasePromptResolver {
 
   @Override
   public Optional<MinionPrompt> resolve(PromptResolutionContext context) {
-    log.info("Using default prompt for minion: {}", context.getName());
+    log.info("Using default prompt for minion: {}", context.getDescription());
 
     // Create a default prompt
     MinionPrompt defaultPrompt = MinionPrompt.builder()
-        .name(context.getName())
-        .type(context.getMinionType())
+        .description(context.getDescription())
         .version(context.getVersion())
         .build();
-
-
 
     return Optional.of(defaultPrompt);
   }

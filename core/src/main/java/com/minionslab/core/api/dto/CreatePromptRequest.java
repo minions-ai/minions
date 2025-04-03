@@ -1,50 +1,72 @@
 package com.minionslab.core.api.dto;
 
-
 import com.minionslab.core.domain.MinionPrompt;
 import com.minionslab.core.domain.PromptComponent;
 import com.minionslab.core.domain.enums.MinionType;
-import lombok.Data;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
+import com.minionslab.core.domain.enums.PromptType;
+import jakarta.validation.constraints.NotBlank;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.Builder.Default;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+import lombok.experimental.SuperBuilder;
 
 @Data
+@Accessors(chain = true)
+@SuperBuilder
+@NoArgsConstructor
 public class CreatePromptRequest {
 
-    @NotNull(message = "Name is required")
-    private String name;
+  @NotBlank(message = "Description is required")
+  private String description;
 
-    @NotNull(message = "Type is required")
-    private MinionType type;
+  @NotBlank
+  private String entityId;
 
-    @NotNull(message = "Version is required")
-    @Pattern(regexp = "^\\d+\\.\\d+(\\.\\d+)?$", message = "Version must be in format X.Y or X.Y.Z")
-    private String version;
+  private Instant effectiveDate;
+  private Instant expiryDate;
 
-    @NotNull(message = "Tenant ID is required")
-    private String tenantId;
+  @Default
+  private Map<String, Object> metadata = new HashMap<>();
 
-    @NotNull(message = "Content is required")
-    private List<PromptComponent> components = new ArrayList<>();
+  @Default
+  private List<PromptComponentRequest> components = new ArrayList<>();
 
-    private Map<String, Object> metadata = new HashMap<>();
+  private String version;
 
-    public MinionPrompt toMinionPrompt() {
-        MinionPrompt prompt = MinionPrompt.builder()
-                .name(name)
-                .type(type)
-                .version(version)
-                .tenantId(tenantId)
-                .metadata(metadata)
-                .build();
-        for (PromptComponent component : components) {
-            prompt.addPrompt(component, true);
-        }
-        return prompt;
-    }
+  private String tenantId;
+
+  private MinionType minionType;
+
+  @Default
+  private Set<String> toolboxes = new HashSet<>();
+
+  public MinionPrompt toMinionPrompt() {
+    return MinionPrompt.builder()
+        .entityId(entityId)
+        .description(description)
+        .effectiveDate(effectiveDate != null ? effectiveDate : Instant.now())
+        .expiryDate(expiryDate)
+        .toolboxes(toolboxes)
+        .components(components.stream()
+            .collect(Collectors.toMap(
+                PromptComponentRequest::getType,
+                component -> PromptComponent.builder()
+                    .type(component.getType())
+                    .text(component.getContent())
+                    .metadata(component.getMetadatas())
+                    .build()
+            )))
+        .metadata(metadata)
+        .version(version)
+        .build();
+  }
 } 

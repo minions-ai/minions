@@ -5,146 +5,144 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.minionslab.core.domain.enums.PromptType;
-import java.util.Collections;
+import jakarta.validation.constraints.NotBlank;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
-import javax.validation.constraints.NotNull;
 
 /**
- * Represents a single component/section within a system prompt.
- * This class provides JSON formatting capabilities for prompt content.
+ * Represents a single component/section within a system prompt. This class provides JSON formatting capabilities for prompt text.
  */
-@Data 
-@Accessors(chain = true) 
+@Data
+@Accessors(chain = true)
 @SuperBuilder
 @Slf4j
+@NoArgsConstructor
 public class PromptComponent extends BaseEntity {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+  @JsonIgnore
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Builder.Default 
-    private String id = UUID.randomUUID().toString();
 
-    @NotNull
-    private PromptType type;
+  @NotBlank(message = "Prompt text cannot be blank.")
+  private String text;
 
-    @NotNull
-    private String text;
+  /**
+   * Embedding vector ID for this component (when stored in vector DB)
+   */
+  private String embeddingId;
 
-    /**
-     * Embedding vector ID for this component (when stored in vector DB)
-     */
-    private String embeddingId;
+  /**
+   * Weight of this component (used for vector search)
+   */
+  @Builder.Default
+  private double weight = 1.0;
 
-    /**
-     * Weight of this component (used for vector search)
-     */
-    @Builder.Default 
-    private double weight = 1.0;
+  /**
+   * Order in which this component should appear (lower values first)
+   */
+  @Builder.Default
+  private double order = 0.0;
 
-    /**
-     * Order in which this component should appear (lower values first)
-     */
-    @Builder.Default 
-    private double order = 0.0;
+  /**
+   * Component type (e.g., "system", "user", "context", "metadata")
+   */
+  @NotBlank(message = "PromptComponentType cannot be blank")
+  private PromptType type;
 
-    /**
-     * Additional metadata for this component
-     */
-    @Builder.Default 
-    private Map<String, Object> metadata = new HashMap<>();
+  /**
+   * Additional metadatas for this component
+   */
+  @Builder.Default
+  private Map<String, Object> metadata = new HashMap<>();
 
-    /**
-     * Returns the component content in JSON format.
-     *
-     * @return JSON string representation of the component
-     */
-    @JsonIgnore
-    public String getJsonContent() {
-        try {
-            ObjectNode node = objectMapper.createObjectNode()
-                .put("id", id)
-                .put("type", type.name())
-                .put("content", Objects.requireNonNullElse(text, ""))
-                .put("order", order)
-                .put("weight", weight);
+  /**
+   * Returns the component text in JSON format.
+   *
+   * @return JSON string representation of the component
+   */
+  @JsonIgnore
+  public String getJsonContent() {
+    try {
+      ObjectNode node = objectMapper.createObjectNode()
+          .put("id", id)
+          .put("type", type.name())
+          .put("text", Objects.requireNonNullElse(text, ""))
+          .put("order", order)
+          .put("weight", weight);
 
-            if (embeddingId != null) {
-                node.put("embeddingId", embeddingId);
-            }
+      if (embeddingId != null) {
+        node.put("embeddingId", embeddingId);
+      }
 
-            if (!metadata.isEmpty()) {
-                node.set("metadata", objectMapper.valueToTree(metadata));
-            }
+      if (!metadata.isEmpty()) {
+        node.set("metadatas", objectMapper.valueToTree(metadata));
+      }
 
-            return objectMapper.writeValueAsString(node);
-        } catch (JsonProcessingException e) {
-            log.error("Failed to serialize PromptComponent to JSON", e);
-            return String.format("{\"error\":\"Failed to serialize component %s\"}", id);
-        }
+      return objectMapper.writeValueAsString(node);
+    } catch (JsonProcessingException e) {
+      log.error("Failed to serialize PromptComponent to JSON", e);
+      return String.format("{\"error\":\"Failed to serialize component %s\"}", id);
+    }
+  }
+
+  /**
+   * Returns the formatted prompt text with XML-style tags.
+   *
+   * @return Formatted prompt text
+   */
+  @JsonIgnore
+  public String getFullPromptText() {
+    if (text == null || text.trim().isEmpty()) {
+      return "";
     }
 
-    /**
-     * Returns the formatted prompt text with XML-style tags.
-     *
-     * @return Formatted prompt text
-     */
-    @JsonIgnore
-    public String getFormattedText() {
-        if (text == null || text.trim().isEmpty()) {
-            return "";
-        }
-        
-        StringBuilder formatted = new StringBuilder();
-        formatted.append('<').append(type.name()).append('>').append('\n');
-        formatted.append(text.trim()).append('\n');
-        formatted.append("</").append(type.name()).append('>').append('\n');
-        return formatted.toString();
+    StringBuilder formatted = new StringBuilder();
+
+    // Add section header based on component type
+    if (type != null) {
+      formatted.append('<').append(type.name()).append('>').append('\n');
     }
 
-    /**
-     * Returns the raw content without formatting.
-     *
-     * @return Raw content string
-     */
-    @JsonIgnore
-    public String getRawContent() {
-        return Objects.requireNonNullElse(text, "").trim();
+    // Add the main text
+    formatted.append(text.trim()).append('\n');
+
+    // Close the section
+    if (type != null) {
+      formatted.append("</").append(type.name()).append('>').append('\n');
     }
 
-    /**
-     * Adds a metadata entry to this component.
-     *
-     * @param key Metadata key
-     * @param value Metadata value
-     * @throws IllegalArgumentException if key is null
-     */
-    public void addMetadata(String key, Object value) {
-        Objects.requireNonNull(key, "Metadata key cannot be null");
-        metadata.put(key, value);
-    }
+    return formatted.toString();
+  }
 
-    /**
-     * Returns an unmodifiable view of the metadata.
-     *
-     * @return Unmodifiable metadata map
-     */
-    public Map<String, Object> getMetadata() {
-        return Collections.unmodifiableMap(metadata);
-    }
+  /**
+   * Returns the raw text without formatting.
+   *
+   * @return Raw text string
+   */
+  @JsonIgnore
+  public String getRawContent() {
+    return Objects.requireNonNullElse(text, "").trim();
+  }
 
-    /**
-     * Appends content to the existing content
-     */
-    public void appendContent(String newContent) {
-        this.text = (this.text == null ? "" : this.text) + newContent;
-    }
+  /**
+   * Adds a metadatas entry to this component.
+   *
+   * @param key   Metadata key
+   * @param value Metadata value
+   * @throws IllegalArgumentException if key is null
+   */
+  public void addMetadata(String key, Object value) {
+    Objects.requireNonNull(key, "Metadata key cannot be null");
+    metadata.put(key, value);
+  }
+
+
 
 }

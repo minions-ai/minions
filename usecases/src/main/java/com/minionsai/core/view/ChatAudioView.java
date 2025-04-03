@@ -112,7 +112,7 @@ public abstract class ChatAudioView extends VerticalLayout {
     Div wrapper = new Div();
     wrapper.getStyle().set("width", "100%");
     wrapper.getStyle().set("display", "flex");
-    wrapper.getStyle().set("justify-content", sender.equals("You") ? "flex-end" : "flex-start");
+    wrapper.getStyle().set("justify-text", sender.equals("You") ? "flex-end" : "flex-start");
 
     Div messageBox = new Div();
     messageBox.setWidth("80%");

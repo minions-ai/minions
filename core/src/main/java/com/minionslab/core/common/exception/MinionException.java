@@ -23,9 +23,12 @@ public class MinionException extends RuntimeException {
     }
 
     public static class CreationException extends MinionException {
+        public CreationException(String message) {
+            super(message);
+        }
 
-        public CreationException(String s, Throwable e) {
-            super(s, e);
+        public CreationException(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 
@@ -66,6 +69,18 @@ public class MinionException extends RuntimeException {
 
         public ProcessingException(String failedToProcessRequest, Exception e) {
             super(failedToProcessRequest, e);
+        }
+    }
+
+    public static class RecipeNotFoundException extends MinionException {
+        public RecipeNotFoundException(String message) {
+            super(message);
+        }
+    }
+
+    public static class InvalidPromptException extends MinionException {
+        public InvalidPromptException(String message) {
+            super(message);
         }
     }
 }

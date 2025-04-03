@@ -113,9 +113,9 @@ public abstract class ChatView extends VerticalLayout {
     wrapper.getStyle().set("display", "flex");
     // Align to right for user messages, left for agent messages
     if (sender.equals("You")) {
-      wrapper.getStyle().set("justify-content", "flex-end");
+      wrapper.getStyle().set("justify-text", "flex-end");
     } else {
-      wrapper.getStyle().set("justify-content", "flex-start");
+      wrapper.getStyle().set("justify-text", "flex-start");
     }
 
     // Create the message box with a fixed width of 80%
@@ -129,7 +129,7 @@ public abstract class ChatView extends VerticalLayout {
     messageBox.getStyle().set("margin", "5px 0");
     messageBox.getStyle().set("border", "1px solid #ddd");
 
-    // Process the message content
+    // Process the message text
     String formattedContent;
     if (sender.equals("Agent")) {
       // Parse the markdown and convert it to HTML

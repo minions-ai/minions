@@ -7,12 +7,17 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.minionslab.core.api.dto.CreateMinionRequest;
 import com.minionslab.core.common.exception.MinionException;
 import com.minionslab.core.domain.Minion;
 import com.minionslab.core.domain.MinionFactory;
+import com.minionslab.core.domain.MinionPrompt;
+import com.minionslab.core.domain.MinionRecipeRegistry;
 import com.minionslab.core.domain.MinionRegistry;
 import com.minionslab.core.domain.enums.MinionType;
+import com.minionslab.core.repository.MinionRepository;
 import com.minionslab.core.test.BaseTenantAwareTest;
+import com.minionslab.core.test.TestConstants;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,81 +39,85 @@ class MinionServiceTest extends BaseTenantAwareTest {
   private ContextService contextService;
 
   @Mock
+  private MinionRecipeRegistry recipeRegistry;
+
+  @Mock
   private Minion mockMinion;
+
+  @Mock
+  private MinionRepository minionRepository;
 
   private MinionService minionService;
 
+  @Mock
+  private PromptService promptService;
+
   @BeforeEach
   void setUp() {
-    minionService = new MinionService(minionFactory, minionRegistry, contextService);
   }
 
   @Test
   void createMinion_Success() throws MinionException {
     // Arrange
-    MinionType type = MinionType.USER_DEFINED_AGENT;
-    Map<String, String> metadata = new HashMap<>();
-    metadata.put("key", "value");
+    Map<String, Object> metadata = new HashMap<>();
+    metadata.put(TestConstants.TEST_METADATA_KEY, TestConstants.TEST_METADATA_VALUE);
     MinionPrompt prompt = MinionPrompt.builder()
         .build();
-    prompt.addContent("This is a prompt");
 
-    when(minionFactory.createMinion(type, metadata, prompt)).thenReturn(mockMinion);
-    when(mockMinion.getMinionId()).thenReturn("test-id");
+    when(minionFactory.createMinion(TestConstants.TEST_MINION_TYPE, metadata, prompt)).thenReturn(mockMinion);
+    when(mockMinion.getMinionId()).thenReturn(TestConstants.TEST_PROMPT_ID);
 
     // Act
-    Minion result = minionService.createMinion(type, metadata, prompt);
+    Minion result = minionService.createMinion(
+        CreateMinionRequest.builder().minionType(MinionType.USER_SUPPORT).promptEntityId(TestConstants.TEST_PROMPT_ID).build());
 
     // Assert
     assertNotNull(result);
     verify(contextService).createContext();
-    verify(minionFactory).createMinion(type, metadata, prompt);
-    verify(minionRegistry).registerAgent(mockMinion);
+    verify(minionFactory).createMinion(TestConstants.TEST_MINION_TYPE, metadata, prompt);
+    verify(minionRegistry).registerMinion(mockMinion);
     verify(mockMinion).setMetadata(metadata);
   }
 
   @Test
   void createMinion_NullType_ThrowsException() {
     // Arrange
-    Map<String, String> metadata = new HashMap<>();
+    Map<String, Object> metadata = new HashMap<>();
     MinionPrompt prompt = MinionPrompt.builder()
         .build();
-    prompt.addContent("This is a prompt");
 
     // Act & Assert
     assertThrows(IllegalArgumentException.class,
-        () -> minionService.createMinion(null, metadata, prompt));
+        () -> minionService.createMinion(
+            CreateMinionRequest.builder().minionType(null).promptEntityId(TestConstants.TEST_PROMPT_ID).build()));
   }
 
   @Test
   void createMinion_ContextCreationFails_ThrowsException() throws MinionException {
     // Arrange
-    MinionType type = MinionType.valueOf("SOME_TYPE");
-    Map<String, String> metadata = new HashMap<>();
+    Map<String, Object> metadata = new HashMap<>();
     MinionPrompt prompt = MinionPrompt.builder()
         .build();
-    prompt.addContent("This is a prompt");
 
     doThrow(new MinionException.ContextCreationException("Context creation failed"))
         .when(contextService).createContext();
 
     // Act & Assert
     assertThrows(MinionException.CreationException.class,
-        () -> minionService.createMinion(type, metadata, prompt));
+        () -> minionService.createMinion(CreateMinionRequest.builder().minionType(MinionType.USER_SUPPORT).build()));
   }
 
   @Test
   void getMinionById_Success() {
     // Arrange
-    String minionId = "test-id";
-    when(minionRegistry.getMinionById(minionId)).thenReturn(mockMinion);
+    when(minionRegistry.getMinionById(TestConstants.TEST_PROMPT_ID)).thenReturn(mockMinion);
 
     // Act
-    Minion result = minionService.getMinionById(minionId);
+    Minion result = minionService.getMinion(TestConstants.TEST_PROMPT_ID);
 
     // Assert
     assertNotNull(result);
     assertEquals(mockMinion, result);
-    verify(minionRegistry).getMinionById(minionId);
+    verify(minionRegistry).getMinionById(TestConstants.TEST_PROMPT_ID);
   }
 } 
