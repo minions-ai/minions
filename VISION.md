@@ -1,118 +1,172 @@
-# Minions Framework Vision
+# Minions Framework Vision Document
 
-## Overview
-Minions is an innovative framework designed to empower developers to create, manage, and deploy AI agents with unprecedented ease and flexibility. It provides a robust foundation for building intelligent systems that can understand, process, and respond to complex tasks while maintaining high standards of reliability and scalability.
+## Executive Summary
+The Minions Framework is a sophisticated AI agent orchestration platform designed to create, manage, and deploy specialized AI agents (called "Minions") for various tasks. It provides a flexible, secure, and scalable architecture for building AI-powered applications with composable prompts and configurable behaviors.
 
-## Core Principles
-1. **Simplicity**: Make AI agent development accessible to developers of all skill levels
-2. **Flexibility**: Support diverse use cases and integration scenarios
-3. **Reliability**: Ensure consistent and predictable behavior
-4. **Scalability**: Enable seamless deployment and management of multiple agents
-5. **Security**: Maintain robust security and privacy standards
+## Core Vision
+To provide a robust framework that enables developers to create specialized AI agents that can:
+1. Handle complex tasks through composable prompts
+2. Maintain consistent behavior across interactions
+3. Scale across different domains and use cases
+4. Operate with enterprise-grade security and multi-tenancy
 
 ## Key Features
-- **Prompt Management**: Sophisticated system for managing AI prompts with versioning and component-based structure
-- **Agent Types**: Support for various agent types (USER_DEFINED_AGENT, etc.)
-- **Tenant Isolation**: Multi-tenant support for secure deployment
-- **Component System**: Modular prompt components for better organization and reuse
-- **Version Control**: Built-in versioning for prompts and components
+
+### 1. Flexible Agent Architecture
+- **Composable Prompts**: Agents are built using modular prompt components that can be mixed and matched
+- **Version Control**: Built-in versioning for prompts and agents
+- **Effective Dating**: Support for time-based activation and expiration of prompts
+- **State Management**: Comprehensive lifecycle management for agents
+
+### 2. Enterprise Integration
+- **Multi-tenancy**: Built-in support for multiple organizations
+- **Role-based Access**: Granular security controls
+- **Audit Trail**: Track changes and agent interactions
+- **Monitoring**: Built-in metrics and observability
+
+### 3. Extensible Design
+- **Tool Registry**: Pluggable system for adding new capabilities
+- **Recipe System**: Templated agent creation through recipes
+- **Custom Behaviors**: Support for user-defined agent types
+- **Chain of Responsibility**: Flexible prompt resolution system
+
+### 4. Built-in Agent Types
+1. **User-Defined Agent**
+   - Custom behavior through system prompts
+   - Configurable templates
+   - Metadata-driven customization
+
+2. **Communication Agent**
+   - Specialized for user interactions
+   - Persona management
+   - Context-aware responses
+
+3. **Testing Agent**
+   - Automated testing capabilities
+   - Test case generation
+   - Result validation
+
+4. **Automation Engineer**
+   - Process automation
+   - Workflow optimization
+   - Task orchestration
+
+## Technical Architecture
+
+### Core Components
+1. **Prompt Management**
+   - Version control
+   - Component-based composition
+   - Metadata management
+   - Effective dating
+
+2. **Agent Lifecycle**
+   - State management
+   - Resource cleanup
+   - Error handling
+   - Event notifications
+
+3. **Security Layer**
+   - Authentication
+   - Authorization
+   - Tenant isolation
+   - Role-based access
+
+4. **Integration Layer**
+   - API endpoints
+   - Event system
+   - External tool integration
+   - Monitoring hooks
+
+### Data Model
+1. **MinionPrompt**
+   - Versioned prompts
+   - Component composition
+   - Metadata storage
+   - Temporal validity
+
+2. **PromptComponent**
+   - Modular prompt pieces
+   - Type-based organization
+   - Weight and ordering
+   - Metadata attachment
+
+3. **MinionRecipe**
+   - Agent templates
+   - Required components
+   - Default configurations
+   - Validation rules
 
 ## Use Cases
 
-### 1. Customer Service Automation
-- Create specialized agents for handling customer inquiries
-- Manage different response templates for various scenarios
-- Scale customer support operations efficiently
+### 1. Enterprise Automation
+- Process automation
+- Workflow optimization
+- Task orchestration
+- Integration with existing systems
 
-### 2. Data Analysis
-- Deploy agents for automated data processing and analysis
-- Generate insights from complex datasets
-- Create custom reporting solutions
+### 2. Customer Service
+- Automated responses
+- Query handling
+- Ticket management
+- Escalation handling
 
-### 3. Content Generation
-- Manage content creation workflows
-- Generate consistent, branded content
-- Handle multiple content types and formats
+### 3. Development Support
+- Code review
+- Testing automation
+- Documentation generation
+- Development assistance
 
-### 4. Process Automation
-- Automate complex business processes
-- Integrate with existing systems
-- Handle workflow orchestration
+### 4. Domain-Specific Applications
+- Job search automation
+- Content generation
+- Data analysis
+- Research assistance
 
-## Roadmap
+## Future Roadmap
 
-### Phase 1: Foundation (Current)
-- [x] Core prompt management system
-- [x] Basic agent types
-- [x] Component-based architecture
-- [x] Multi-tenant support
+### Phase 1: Core Framework
+- [x] Basic agent architecture
+- [x] Prompt management
+- [x] Security integration
+- [x] API endpoints
 
-### Phase 2: Enhancement
-- [ ] Advanced prompt templating
-- [ ] Component versioning
-- [ ] Enhanced validation system
-- [ ] Improved error handling
+### Phase 2: Enterprise Features
+- [ ] Advanced monitoring
+- [ ] Audit logging
+- [ ] Performance optimization
+- [ ] Scaling capabilities
 
-### Phase 3: Expansion
-- [ ] Additional agent types
+### Phase 3: Advanced Features
+- [ ] Agent collaboration
+- [ ] Learning capabilities
 - [ ] Advanced analytics
-- [ ] Performance monitoring
-- [ ] Enhanced security features
+- [ ] Custom tool development
 
-### Phase 4: Enterprise
-- [ ] Enterprise-grade deployment options
-- [ ] Advanced integration capabilities
-- [ ] Custom extension framework
-- [ ] Advanced monitoring and alerting
+### Phase 4: Ecosystem Development
+- [ ] Community recipes
+- [ ] Plugin marketplace
+- [ ] Integration templates
+- [ ] Developer tools
 
-## Milestones
+## Success Metrics
+1. **Technical Metrics**
+   - Agent response time
+   - System throughput
+   - Error rates
+   - Resource utilization
 
-### Q2 2024
-- Complete core prompt management system
-- Implement basic agent types
-- Establish multi-tenant architecture
+2. **Business Metrics**
+   - Task completion rate
+   - User satisfaction
+   - Time savings
+   - Cost reduction
 
-### Q3 2024
-- Launch component versioning
-- Implement advanced templating
-- Enhance validation system
+3. **Development Metrics**
+   - Implementation time
+   - Code quality
+   - Test coverage
+   - Documentation completeness
 
-### Q4 2024
-- Add performance monitoring
-- Implement advanced analytics
-- Enhance security features
-
-### Q1 2025
-- Launch enterprise features
-- Implement custom extension framework
-- Add advanced integration capabilities
-
-## Getting Started
-```java
-// Example of creating a basic prompt
-MinionPrompt prompt = MinionPrompt.builder()
-    .name("CustomerServicePrompt")
-    .type(MinionType.USER_DEFINED_AGENT)
-    .version("1.0.0")
-    .build();
-
-// Adding components
-prompt.addComponent(PromptComponent.builder()
-    .type(PromptType.INSTRUCTION)
-    .text("Handle customer inquiries professionally")
-    .build());
-```
-
-## Future Vision
-Minions aims to become the standard framework for AI agent development, providing:
-- Seamless integration with existing systems
-- Advanced AI capabilities
-- Enterprise-grade security and reliability
-- Comprehensive monitoring and analytics
-- Extensive customization options
-
-## Contributing
-We welcome contributions from the community. Please see our contributing guidelines for more information.
-
-## License
-This project is licensed under the MIT License - see the LICENSE file for details. 
+## Conclusion
+The Minions Framework aims to revolutionize how organizations build and deploy AI agents by providing a robust, secure, and scalable platform that can adapt to various use cases while maintaining enterprise-grade quality and security. 
