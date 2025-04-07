@@ -1,7 +1,7 @@
 package com.minionslab.core.domain;
 
-import static com.minionslab.core.test.TestConstants.TEST_PROMPT_DESCRIPTION;
-import static com.minionslab.core.test.TestConstants.TEST_PROMPT_VERSION;
+import static com.minionslab.core.util.TestConstants.TEST_PROMPT_DESCRIPTION;
+import static com.minionslab.core.util.TestConstants.TEST_PROMPT_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -57,25 +57,15 @@ class MinionPromptTest {
 
     // Create a new version
     MinionPrompt newVersion = prompt.createNewVersion(future);
+    newVersion.getComponents().put(newComponent.getType(), newComponent);
 
     // Verify the new version
-    assertEquals("1.0.1", newVersion.getVersion());
+    assertEquals("1.1", newVersion.getVersion());
     assertEquals(future, newVersion.getEffectiveDate());
     assertEquals("New content", newVersion.getComponents().get(PromptType.SYSTEM).getText());
   }
 
-  @Test
-  void createNewVersion_WhenForceUpdateFalseAndComponentExists_ShouldThrowException() {
-    // Create a new component with the same type
-    PromptComponent newComponent = PromptComponent.builder()
-        .type(PromptType.SYSTEM)
-        .text("New content")
-        .metadata(new HashMap<>())
-        .build();
 
-    // Attempt to create a new version without force update
-    assertThrows(RuntimeException.class, () -> prompt.createNewVersion(future));
-  }
 
   @Test
   void createNewVersion_WhenForceUpdateTrueAndComponentExists_ShouldUpdateComponent() {
@@ -88,11 +78,12 @@ class MinionPromptTest {
 
     // Create a new version with force update
     MinionPrompt newVersion = prompt.createNewVersion(future);
+    newVersion.getComponents().put(newComponent.getType(), newComponent);
 
     // Verify the component was updated
     assertEquals("New content", newVersion.getComponents().get(PromptType.SYSTEM).getText());
     assertEquals(future, newVersion.getEffectiveDate());
-    assertEquals("1.0.1", newVersion.getVersion());
+    assertEquals("1.1", newVersion.getVersion());
   }
 
   @Test

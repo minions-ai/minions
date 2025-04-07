@@ -2,6 +2,7 @@ package com.minionsai.claim.service;
 
 import com.minionsai.claim.agent.MasterAgent;
 import com.minionsai.core.service.AgentManager;
+import com.minionslab.core.service.ChatMemoryFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -12,8 +13,8 @@ import org.springframework.stereotype.Service;
 public class ClaimAgentManager extends AgentManager {
 
 
-  public ClaimAgentManager(ChatClient.Builder chatClientBuilder) {
-    super(chatClientBuilder);
+  public ClaimAgentManager(ChatClient.Builder chatClientBuilder, ChatMemoryFactory chatMemoryFactory) {
+    super(chatClientBuilder, chatMemoryFactory);
   }
 
 

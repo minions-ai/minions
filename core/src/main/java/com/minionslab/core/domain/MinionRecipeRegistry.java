@@ -36,7 +36,7 @@ public class MinionRecipeRegistry {
     }
 
     public MinionRecipe getRecipe(MinionType type) {
-        MinionRecipe recipe = recipes.getOrDefault(type,recipes.get(MinionType.USER_DEFINED_AGENT));
+        MinionRecipe recipe = recipes.get(type);
         if (recipe == null) {
             throw new MinionException.RecipeNotFoundException("No recipe found for type: " + type);
         }

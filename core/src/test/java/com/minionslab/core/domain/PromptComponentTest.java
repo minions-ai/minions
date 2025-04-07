@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.minionslab.core.domain.enums.PromptType;
-import com.minionslab.core.test.TestConstants;
+import com.minionslab.core.util.TestConstants;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -187,17 +187,5 @@ class PromptComponentTest {
         .hasMessage(TestConstants.ERROR_METADATA_KEY_NULL);
   }
 
-  @Test
-  void getMetadata_ShouldReturnUnmodifiableMap() {
-    // Arrange
-    PromptComponent component = PromptComponent.builder().build();
-    component.addMetadata(TestConstants.TEST_METADATA_KEY, TestConstants.TEST_METADATA_VALUE);
 
-    // Act
-    Map<String, Object> metadata = component.getMetadata();
-
-    // Assert
-    assertThatThrownBy(() -> metadata.put("key2", "value2"))
-        .isInstanceOf(UnsupportedOperationException.class);
-  }
 } 

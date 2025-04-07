@@ -22,7 +22,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @Component
-public abstract class BaseAPIToolBox {
+public abstract class BaseAPIToolBox implements ToolBox {
 
     @Autowired
     protected RestTemplate restTemplate;

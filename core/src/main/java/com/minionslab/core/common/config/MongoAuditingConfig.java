@@ -1,8 +1,8 @@
 package com.minionslab.core.common.config;
 
 import com.minionslab.core.domain.BaseEntity;
-import com.minionslab.core.domain.MinionContext;
-import com.minionslab.core.domain.MinionContextHolder;
+import com.minionslab.core.context.MinionContext;
+import com.minionslab.core.context.MinionContextHolder;
 import com.minionslab.core.domain.MinionPrompt;
 import java.time.Instant;
 import java.util.Optional;

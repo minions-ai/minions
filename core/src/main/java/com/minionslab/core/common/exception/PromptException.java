@@ -31,7 +31,7 @@ public class PromptException extends RuntimeException {
     }
   }
 
-  public static class InvalidPromptIdException extends Throwable {
+  public static class InvalidPromptIdException extends PromptException {
 
     public InvalidPromptIdException(String s) {
       super(s);

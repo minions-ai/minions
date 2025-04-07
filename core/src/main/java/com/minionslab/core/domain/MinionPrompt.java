@@ -2,6 +2,7 @@ package com.minionslab.core.domain;
 
 import com.minionslab.core.common.exception.PromptException;
 import com.minionslab.core.domain.enums.PromptType;
+import jakarta.validation.constraints.NotBlank;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,7 +42,7 @@ public class MinionPrompt extends EffectiveDatedEntity {
   @Builder.Default
   private Map<String, Object> metadata = new HashMap<>();
 
-  @NotNull
+  @NotBlank
   private String description;
 
   @NotNull
@@ -70,8 +71,6 @@ public class MinionPrompt extends EffectiveDatedEntity {
    * Creates a new version of this prompt with updated components. The current version will be automatically expired at the effective date
    * of the new version.
    *
-   * @param component     The new component to add
-   * @param newVersion    The version number for the new version
    * @param effectiveDate The date when this version becomes effective
    * @return A new MinionPrompt instance with the updated component
    * @throws PromptException if the version already exists
@@ -85,6 +84,7 @@ public class MinionPrompt extends EffectiveDatedEntity {
         .components(components)
         .metadata(metadata)
         .effectiveDate(effectiveDate)
+        .tenantId(getTenantId())
         .build();
     this.setExpiryDate(effectiveDate);
     return newPrompt;
@@ -101,8 +101,7 @@ public class MinionPrompt extends EffectiveDatedEntity {
    * Checks if this prompt is active at the given point in time
    */
   public boolean isActiveAt(Instant pointInTime) {
-    return (expiryDate == null || expiryDate.isAfter(pointInTime)) &&
-        effectiveDate.isBefore(pointInTime);
+    return (expiryDate == null || expiryDate.isAfter(pointInTime)) && effectiveDate != null && effectiveDate.isBefore(pointInTime);
   }
 
   /**
@@ -114,5 +113,13 @@ public class MinionPrompt extends EffectiveDatedEntity {
 
   public boolean isLocked() {
     return isActive() && deployed;
+  }
+
+  public String getPromptAsText() {
+    StringBuilder promptAsText = new StringBuilder(description);
+    for (PromptComponent component : components.values()) {
+      promptAsText.append(component.getFullPromptText());
+    }
+    return promptAsText.toString();
   }
 }

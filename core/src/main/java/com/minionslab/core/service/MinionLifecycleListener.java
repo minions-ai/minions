@@ -1,15 +1,16 @@
 package com.minionslab.core.service;
 
-import com.minionslab.core.domain.MinionLifecycleEvent;
+import com.minionslab.core.event.MinionEvent;
 
 /**
- * Interface for listening to minion lifecycle events.
+ * Listener interface for minion lifecycle events.
  */
 public interface MinionLifecycleListener {
+    
     /**
-     * Called when a minion's state changes.
+     * Called when a lifecycle event occurs.
      *
      * @param event The lifecycle event
      */
-    void onStateChange(MinionLifecycleEvent event);
+    void onLifecycleEvent(MinionEvent event);
 } 

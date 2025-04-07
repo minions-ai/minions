@@ -1,7 +1,7 @@
 package com.minionslab.core.common.config;
 
-import com.minionslab.core.domain.MinionContext;
-import com.minionslab.core.domain.MinionContextHolder;
+import com.minionslab.core.context.MinionContext;
+import com.minionslab.core.context.MinionContextHolder;
 import java.util.concurrent.Executor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.AsyncConfigurer;

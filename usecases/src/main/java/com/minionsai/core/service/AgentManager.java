@@ -2,6 +2,7 @@ package com.minionsai.core.service;
 
 import com.minionslab.core.domain.Minion;
 import com.minionsai.core.agent.BaseAudioAgent;
+import com.minionslab.core.service.ChatMemoryFactory;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,7 +10,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.stereotype.Service;
 
 @Slf4j @Service public abstract class AgentManager {
@@ -18,9 +18,11 @@ import org.springframework.stereotype.Service;
   protected final Map<String, Minion> masterAgentMap = new ConcurrentHashMap<>();
   protected final Map<String, ChatMemory> chatMemoryMap = new ConcurrentHashMap<>();
   protected final Map<String, Map<String, Minion>> requestAgentsMap = new ConcurrentHashMap<>();
+  protected final ChatMemoryFactory chatMemoryFactory;
 
-  public AgentManager(ChatClient.Builder chatClientBuilder) {
+  public AgentManager(ChatClient.Builder chatClientBuilder, ChatMemoryFactory chatMemoryFactory) {
     this.chatClientBuilder = chatClientBuilder;
+    this.chatMemoryFactory = chatMemoryFactory;
   }
 
   /**
@@ -55,14 +57,14 @@ import org.springframework.stereotype.Service;
    * Executes a prompt using the Master Agent.
    */
   public String executePrompt(String requestId, String requestText) {
-    ChatMemory chatMemory = new InMemoryChatMemory();
+    ChatMemory chatMemory = chatMemoryFactory.createDefaultChatMemory();
     chatMemoryMap.put(requestId, chatMemory);
     Minion masterAgent = masterAgentMap.computeIfAbsent(requestId, id -> createMasterAgent(id, chatMemory));
     return execute(requestId, requestText, masterAgent);
   }
 
   public byte[] executePrompt(String requestId, Object requestData) {
-    ChatMemory chatMemory = new InMemoryChatMemory();
+    ChatMemory chatMemory = chatMemoryFactory.createDefaultChatMemory();
     chatMemoryMap.put(requestId, chatMemory);
     Minion masterAgent = masterAgentMap.computeIfAbsent(requestId, id -> createMasterAgent(id, chatMemory));
     return execute(requestId, requestData, (BaseAudioAgent) masterAgent);

@@ -1,9 +1,7 @@
 package com.minionslab.core.common.config;
 
-import com.minionslab.core.domain.memory.CaffeineChatMemory;
-import java.time.Duration;
+import com.minionslab.core.service.ChatMemoryFactory;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -14,26 +12,12 @@ import org.springframework.context.annotation.Primary;
 @Configuration
 public class ChatMemoryConfig {
 
-  @Value("${minions.chat.memory.type:CaffeineChatMemory}")
-  private String chatMemoryType;
-
   /**
-   * Creates a ChatMemory bean based on the configured minionType.
+   * Creates a ChatMemory bean using the ChatMemoryFactory.
    */
   @Bean
   @Primary
-  public ChatMemory chatMemory() {
-    if ("CaffeineChatMemory".equals(chatMemoryType)) {
-      return new CaffeineChatMemory();
-    }
-    throw new IllegalArgumentException("Unsupported chat memory minionType: " + chatMemoryType);
-  }
-
-  /**
-   * Creates a CaffeineChatMemory bean with custom settings.
-   */
-  @Bean
-  public ChatMemory customChatMemory() {
-    return new CaffeineChatMemory(20, Duration.ofHours(48));
+  public ChatMemory chatMemory(ChatMemoryFactory chatMemoryFactory) {
+    return chatMemoryFactory.createDefaultChatMemory();
   }
 } 

@@ -17,14 +17,44 @@ public interface MinionLifecycle {
   void start();
 
   /**
+   * Stop the minion's operations
+   */
+  void stop();
+
+  /**
    * Pause the minion's operations
    */
   void pause();
 
   /**
-   * Resume the minion's operations
+   * Resume the minion's operations from idle state
    */
   void resume();
+
+  /**
+   * Resume the minion's operations from waiting state to processing state
+   */
+  void resumeProcessing();
+
+  /**
+   * Pause the minion's operations during processing
+   */
+  void pauseProcessing();
+
+  /**
+   * Recover the minion from error state to idle state
+   */
+  void recover();
+
+  /**
+   * Reinitialize the minion from error state
+   */
+  void reinitialize();
+
+  /**
+   * Start processing from started state
+   */
+  void startProcessing();
 
   /**
    * Shutdown the minion gracefully
@@ -32,12 +62,16 @@ public interface MinionLifecycle {
   void shutdown();
 
   /**
-   * Handle a failure in the minion
+   * Handle a failure in the minion's operations
+   *
+   * @param error the exception that caused the failure
    */
   void handleFailure(Exception error);
 
   /**
    * Get the current state of the minion
+   *
+   * @return the current state
    */
   MinionState getState();
 }

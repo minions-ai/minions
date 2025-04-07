@@ -1,11 +1,16 @@
 package com.minionslab.core.service.impl.llm;
 
-import com.minionslab.core.domain.MinionContext;
-import com.minionslab.core.domain.MinionContextHolder;
+import com.minionslab.core.context.MinionContext;
+import com.minionslab.core.context.MinionContextHolder;
 import com.minionslab.core.service.LLMService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/**
+ * Factory for creating and managing LLM services.
+ * This class should only be accessed through LLMService.
+ * Direct instantiation or injection is not allowed.
+ */
 @Component
 @RequiredArgsConstructor
 public class LLMServiceFactory {

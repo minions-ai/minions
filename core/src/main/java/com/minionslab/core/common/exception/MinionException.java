@@ -22,12 +22,12 @@ public class MinionException extends RuntimeException {
         }
     }
 
-    public static class CreationException extends MinionException {
-        public CreationException(String message) {
+    public static class MinionCreationException extends MinionException {
+        public MinionCreationException(String message) {
             super(message);
         }
 
-        public CreationException(String message, Throwable cause) {
+        public MinionCreationException(String message, Throwable cause) {
             super(message, cause);
         }
     }
@@ -58,12 +58,7 @@ public class MinionException extends RuntimeException {
         }
     }
 
-    public static class PromptNotFoundException extends MinionException {
 
-        public PromptNotFoundException(String s) {
-            super(s);
-        }
-    }
 
     public static class ProcessingException extends MinionException {
 

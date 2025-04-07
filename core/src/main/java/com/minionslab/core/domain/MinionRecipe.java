@@ -3,6 +3,8 @@ package com.minionslab.core.domain;
 import com.minionslab.core.common.exception.MinionException;
 import com.minionslab.core.domain.enums.MinionType;
 import com.minionslab.core.domain.enums.PromptType;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.Builder;
@@ -20,6 +22,7 @@ public class MinionRecipe {
     private final Map<String, Object> defaultMetadata;
     private final String description;
     private final boolean requiresTenant;
+    private final List<ChateMemoryStrategy> memoryStrategies = new ArrayList<>();
     private final Set<String> requiredToolboxes;  // Set of required toolbox names
 
     public void validatePrompt(MinionPrompt prompt) {

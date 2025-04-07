@@ -5,6 +5,7 @@ import com.minionslab.core.domain.Minion;
 import com.minionsai.core.agent.BaseAudioAgent;
 import com.minionsai.core.service.AgentManager;
 import com.minionsai.patient.agent.AudioMasterAgent;
+import com.minionslab.core.service.ChatMemoryFactory;
 import org.springframework.ai.chat.client.ChatClient.Builder;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.stereotype.Service;
@@ -13,8 +14,8 @@ import org.springframework.stereotype.Service;
 public class PatientAudioAgentManager extends AgentManager {
 
   private final WebMToMp3Converter converter;
-  public PatientAudioAgentManager(Builder chatClientBuilder, WebMToMp3Converter converter) {
-    super(chatClientBuilder);
+  public PatientAudioAgentManager(Builder chatClientBuilder, WebMToMp3Converter converter, ChatMemoryFactory chatMemoryFactory) {
+    super(chatClientBuilder, chatMemoryFactory);
     this.converter = converter;
   }
 

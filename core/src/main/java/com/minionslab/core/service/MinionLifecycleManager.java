@@ -8,49 +8,54 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Component;
 
 /**
- * Centralized manager for minion lifecycle stages. Handles creation, initialization, monitoring, and shutdown of minions.
+ * Service responsible for managing the lifecycle of minions.
+ * This includes initialization, starting, pausing, resuming, and cleanup.
  */
-@Slf4j
-@Component
-@RequiredArgsConstructor
-public class MinionLifecycleManager {
+public interface MinionLifecycleManager {
+    
+    /**
+     * Initializes a minion with its required components and configuration.
+     *
+     * @param minion The minion to initialize
+     */
+    void initializeMinion(Minion minion);
+    
 
-  private final PromptService promptService;
-  private final ChatClient.Builder chatClientBuilder;
-  private AIService aIService;
-
-  public CompletableFuture<Void> initializeMinion(Minion minion) {
-    return CompletableFuture.runAsync(() -> {
-      try {
-        // Load and set the prompt
-
-        minion.setChatClient(aIService.getChatClient());
-
-        // Initialize the minion
-        minion.initialize();
-      } catch (Exception e) {
-        log.error("Failed to initialize minion: {}", minion.getMinionId(), e);
-        minion.handleFailure(e);
-      }
-    });
-  }
-
-  public CompletableFuture<Void> shutdownMinion(Minion minion) {
-    return CompletableFuture.runAsync(() -> {
-      try {
-        // Clean up resources
-        minion.getMetrics().clear();
-      } catch (Exception e) {
-        log.error("Error during minion shutdown: {}", minion.getMinionId(), e);
-        throw new IllegalStateException("Failed to shutdown minion", e);
-      }
-    });
-  }
-
-  public void handleFailure(Minion minion, Exception error) {
-    log.error("Handling failure for minion: {}", minion.getMinionId(), error);
-    // Add any failure handling logic here
-  }
-
-
-} 
+    
+    /**
+     * Pauses a minion, temporarily stopping it from processing requests.
+     *
+     * @param minion The minion to pause
+     */
+    void pauseMinion(Minion minion);
+    
+    /**
+     * Resumes a paused minion, allowing it to process requests again.
+     *
+     * @param minion The minion to resume
+     */
+    void resumeMinion(Minion minion);
+    
+    /**
+     * Stops a minion and performs cleanup.
+     *
+     * @param minion The minion to stop
+     */
+    void stopMinion(Minion minion);
+    
+    /**
+     * Registers a lifecycle listener for a minion.
+     *
+     * @param minion The minion to register the listener for
+     * @param listener The listener to register
+     */
+    void registerLifecycleListener(Minion minion, MinionLifecycleListener listener);
+    
+    /**
+     * Unregisters a lifecycle listener from a minion.
+     *
+     * @param minion The minion to unregister the listener from
+     * @param listener The listener to unregister
+     */
+    void unregisterLifecycleListener(Minion minion, MinionLifecycleListener listener);
+}

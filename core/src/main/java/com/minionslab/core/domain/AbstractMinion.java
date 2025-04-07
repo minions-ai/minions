@@ -1,20 +1,23 @@
 package com.minionslab.core.domain;
 
+import com.minionslab.core.context.MinionContext;
+import com.minionslab.core.context.MinionContextHolder;
 import com.minionslab.core.domain.enums.MinionState;
 import com.minionslab.core.domain.enums.MinionType;
-import com.minionslab.core.domain.enums.PromptType;
 import com.minionslab.core.domain.tools.ToolRegistry;
-import com.minionslab.core.service.MinionLifecycleListener;
-import java.time.Instant;
+import com.minionslab.core.event.MinionEventPublisher;
+import com.minionslab.core.event.MinionStateChangedEvent;
+import com.minionslab.core.service.LLMService;
+import com.minionslab.core.service.impl.llm.model.LLMRequest;
+import com.minionslab.core.service.impl.llm.model.LLMResponse;
+import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Data;
 import lombok.Getter;
@@ -22,10 +25,6 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.model.function.FunctionCallback;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -34,17 +33,15 @@ import org.springframework.retry.annotation.Retryable;
 @Data
 @Accessors(chain = true)
 @SuperBuilder
-public abstract class AbstractMinion  extends BaseEntity implements MinionLifecycle {
+public abstract class AbstractMinion extends BaseEntity implements MinionLifecycle {
 
-
-
-  private static final PromptComponent DEFAULT_PROMPT_TEMPLATE = PromptComponent.builder().type(PromptType.REQUEST_TEMPLATE)
-      .text("Prompt template text").build();
 
   // Unique identifier for each agent
-  @Builder.Default private final String minionId = UUID.randomUUID().toString();
+  @Default private final String minionId = UUID.randomUUID().toString();
 
-  @Getter(AccessLevel.PROTECTED) private final List<MinionLifecycleListener> lifecycleListeners = new ArrayList<>();
+  // Add event publisher
+  @NotNull
+  private final MinionEventPublisher eventPublisher;
 
   // System prompts and configuration
   @Setter @Getter protected MinionPrompt minionPrompt;
@@ -54,16 +51,25 @@ public abstract class AbstractMinion  extends BaseEntity implements MinionLifecy
   @Default private MinionState state = MinionState.CREATED;
 
   // Core components
-  @Setter(AccessLevel.PACKAGE) private ChatMemory chatMemory;
-  private ChatClient chatClient;
+
   @Setter(AccessLevel.PACKAGE) private ToolRegistry toolRegistry;
 
   // Metrics and monitoring
   @Default private Map<String, Object> metrics = new ConcurrentHashMap<>();
-  @Getter @Setter private MinionType minionType;
+  @NotNull private MinionType minionType;
+
+  @Default
   private List<String> toolboxNames = new ArrayList<>();
+  @Default
   private Map<String, Object> toolboxes = new ConcurrentHashMap<>();
-  @Getter @Setter private Map<String, Object> metadata;
+  @Default
+  private Map<String, Object> metadata = new ConcurrentHashMap<>();
+
+  @NotNull
+  private LLMService llmService;
+
+  @NotNull
+  private MinionRecipe recipe;
 
 
   /**
@@ -76,7 +82,6 @@ public abstract class AbstractMinion  extends BaseEntity implements MinionLifecy
     changeState(MinionState.INITIALIZING);
     try {
       // Load registered tools
-      loadRegisteredTools();
       changeState(MinionState.IDLE);
     } catch (Exception e) {
       changeState(MinionState.ERROR);
@@ -85,7 +90,11 @@ public abstract class AbstractMinion  extends BaseEntity implements MinionLifecy
   }
 
   @Override public void start() {
-    changeState(MinionState.IDLE);
+    changeState(MinionState.STARTED);
+  }
+
+  @Override public void stop() {
+    changeState(MinionState.STOPPED);
   }
 
   @Override public void pause() {
@@ -96,23 +105,53 @@ public abstract class AbstractMinion  extends BaseEntity implements MinionLifecy
     changeState(MinionState.IDLE);
   }
 
-  protected void loadRegisteredTools() {
-    for (String toolboxName : toolboxNames) {
-      Object toolbox = toolRegistry.getToolbox(toolboxName);
-      this.toolboxes.put(toolboxName, toolbox);
+  @Override public void resumeProcessing() {
+    validateState(MinionState.WAITING, "Cannot resume processing from current state: " + state);
+    changeState(MinionState.PROCESSING);
+  }
+
+  @Override public void pauseProcessing() {
+    validateState(MinionState.PROCESSING, "Cannot pause processing from current state: " + state);
+    changeState(MinionState.WAITING);
+  }
+
+  @Override public void recover() {
+    validateState(MinionState.ERROR, "Cannot recover from current state: " + state);
+    changeState(MinionState.IDLE);
+  }
+
+  @Override public void reinitialize() {
+    validateState(MinionState.ERROR, "Cannot reinitialize from current state: " + state);
+    initialize();
+  }
+
+  @Override public void startProcessing() {
+    validateState(MinionState.STARTED, "Cannot start processing from current state: " + state);
+    changeState(MinionState.IDLE);
+  }
+
+  @Override public void shutdown() {
+    try {
+      changeState(MinionState.SHUTTING_DOWN);
+      changeState(MinionState.SHUTDOWN);
+    } catch (Exception e) {
+      log.error("Error during shutdown of minion: {}", minionId, e);
+      throw new IllegalStateException("Failed to shutdown minion", e);
     }
   }
+
+
 
   /**
    * Process a user request synchronously
    */
   /*
-  * //todo:
-  *    1- Handle reactive execution
-  *    2- Handle tool context creation if needed from MinionContext
-  *    3-  Hanlde structured output
-  *
-  * */
+   * //todo:
+   *    1- Handle reactive execution
+   *    2- Handle tool context creation if needed from MinionContext
+   *    3-  Hanlde structured output
+   *
+   * */
   @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 1000, multiplier = 2))
   public String processPrompt(String userRequest, Map<String, Object> parameters) {
     if (userRequest == null || userRequest.trim().isEmpty()) {
@@ -125,26 +164,24 @@ public abstract class AbstractMinion  extends BaseEntity implements MinionLifecy
 
       // Update agent state
       changeState(MinionState.PROCESSING);
+      this.metadata.putAll(parameters);
 
-      // Create user message
-      Message userMessage = new UserMessage(userRequest);
+      LLMRequest request = LLMRequest.builder()
+          .prompt(this.minionPrompt)
+          .userRequest(userRequest)
+          .metadata(metadata)
+          .build();
 
-      // Log the incoming request
-      log.debug("Agent {} processing request: {}", minionId, userRequest);
-
-      enrichContext(userRequest);
-
-      // Execute the prompt
-      String response = chatClient.prompt().messages(List.of(userMessage)).call().content();
+      LLMResponse llmResponse = llmService.processRequest(request);
 
       // Log the response
       log.info("Agent {} generated response", minionId);
-      log.debug("Response text: {}", response);
+      log.debug("Response text: {}", llmResponse.getResponseText());
 
       // Update metrics
       updateMetrics("promptsProcessed", getMetricValue("promptsProcessed", 0) + 1);
 
-      return response;
+      return llmResponse.getResponseText();
     } catch (Exception e) {
       log.error("Error processing prompt", e);
       handleFailure(e);
@@ -152,7 +189,6 @@ public abstract class AbstractMinion  extends BaseEntity implements MinionLifecy
     } finally {
       // Return to idle state and clear parameters
       changeState(MinionState.IDLE);
-      MinionContextHolder.clearContext();
     }
   }
 
@@ -162,7 +198,6 @@ public abstract class AbstractMinion  extends BaseEntity implements MinionLifecy
   public CompletableFuture<String> processPromptAsync(String userRequest, Map<String, Object> parameters) {
     return CompletableFuture.supplyAsync(() -> processPrompt(userRequest, parameters));
   }
-
 
 
   /**
@@ -179,7 +214,8 @@ public abstract class AbstractMinion  extends BaseEntity implements MinionLifecy
     MinionState oldState = this.state;
     if (isValidStateTransition(oldState, newState)) {
       this.state = newState;
-      fireLifecycleEvent(oldState, newState);
+      // Publish state change event instead of directly notifying listeners
+      eventPublisher.publishEvent(MinionStateChangedEvent.of(getMinionId(), oldState, newState));
     } else {
       throw new IllegalStateException(String.format("Invalid state transition from %s to %s", oldState, newState));
     }
@@ -192,12 +228,14 @@ public abstract class AbstractMinion  extends BaseEntity implements MinionLifecy
     return switch (from) {
       case CREATED -> to == MinionState.INITIALIZING || to == MinionState.ERROR;
       case INITIALIZING -> to == MinionState.IDLE || to == MinionState.ERROR;
-      case IDLE -> to == MinionState.PROCESSING || to == MinionState.WAITING;
-      case PROCESSING -> to == MinionState.IDLE || to == MinionState.ERROR;
-      case WAITING -> to == MinionState.IDLE || to == MinionState.ERROR;
-      case ERROR -> to == MinionState.IDLE || to == MinionState.SHUTTING_DOWN;
+      case IDLE -> to == MinionState.PROCESSING || to == MinionState.WAITING || to == MinionState.SHUTTING_DOWN;
+      case PROCESSING -> to == MinionState.IDLE || to == MinionState.WAITING || to == MinionState.ERROR;
+      case WAITING -> to == MinionState.IDLE || to == MinionState.PROCESSING || to == MinionState.ERROR;
+      case ERROR -> to == MinionState.IDLE || to == MinionState.INITIALIZING || to == MinionState.SHUTTING_DOWN;
       case SHUTTING_DOWN -> to == MinionState.SHUTDOWN;
       case SHUTDOWN -> false; // No transitions from SHUTDOWN
+      case STARTED -> to == MinionState.IDLE || to == MinionState.STOPPED;
+      case STOPPED -> to == MinionState.SHUTTING_DOWN;
     };
   }
 
@@ -225,19 +263,6 @@ public abstract class AbstractMinion  extends BaseEntity implements MinionLifecy
   }
 
   /**
-   * Shutdown the minion gracefully
-   */
-  @Override public void shutdown() {
-    try {
-      changeState(MinionState.SHUTTING_DOWN);
-      changeState(MinionState.SHUTDOWN);
-    } catch (Exception e) {
-      log.error("Error during shutdown of minion: {}", minionId, e);
-      throw new IllegalStateException("Failed to shutdown minion", e);
-    }
-  }
-
-  /**
    * Handle a failure in the minion
    */
   @Override public void handleFailure(Exception error) {
@@ -248,19 +273,6 @@ public abstract class AbstractMinion  extends BaseEntity implements MinionLifecy
       log.error("Error handling failure in minion: {}", minionId, e);
       throw new IllegalStateException("Failed to handle minion failure", e);
     }
-  }
-
-  protected void fireLifecycleEvent(MinionState oldState, MinionState newState) {
-    MinionLifecycleEvent event = MinionLifecycleEvent.builder().minionId(this.getMinionId()).oldState(oldState).newState(newState)
-        .timestamp(Instant.now()).metadata(Collections.emptyMap()).build();
-
-    lifecycleListeners.forEach(listener -> {
-      try {
-        listener.onStateChange(event);
-      } catch (Exception e) {
-        log.error("Error notifying lifecycle listener", e);
-      }
-    });
   }
 
   /**
@@ -282,6 +294,7 @@ public abstract class AbstractMinion  extends BaseEntity implements MinionLifecy
   public void updateMetadata(Map<String, String> metadata) {
     //todo complete this method
   }
+
 
 
 }

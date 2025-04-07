@@ -21,9 +21,6 @@ public interface MinionRepository extends MongoRepository<Minion, String> {
      */
     List<Minion> findAllByTenantId(String tenantId);
 
-
-
-
     /**
      * Find a minion by its ID and tenant ID.
      *

@@ -107,11 +107,8 @@ public class PromptComponent extends BaseEntity {
 
     // Add section header based on component type
     if (type != null) {
-      formatted.append('<').append(type.name()).append('>').append('\n');
+      formatted.append('<').append(type.name()).append('\n').append(type).append('>').append(text).append('\n');
     }
-
-    // Add the main text
-    formatted.append(text.trim()).append('\n');
 
     // Close the section
     if (type != null) {
@@ -138,11 +135,10 @@ public class PromptComponent extends BaseEntity {
    * @param value Metadata value
    * @throws IllegalArgumentException if key is null
    */
-  public void addMetadata(String key, Object value) {
+  public void addMetadata(@NotBlank String key, Object value) {
     Objects.requireNonNull(key, "Metadata key cannot be null");
     metadata.put(key, value);
   }
-
 
 
 }

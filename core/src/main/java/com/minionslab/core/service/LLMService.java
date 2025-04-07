@@ -12,7 +12,6 @@ public interface LLMService {
     /**
      * Process a request using the provided prompt.
      *
-     * @param prompt  The prompt to use for processing the request
      * @param request The actual request to process
      * @return The response from the LLM
      */

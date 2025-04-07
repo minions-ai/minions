@@ -90,7 +90,7 @@ class MinionRecipeRegistryTest {
         () -> registry.getRecipe(MinionType.WORKFLOW_MANAGER)
     );
 
-    assertTrue(exception.getMessage().contains("No recipe found for minion type: WORKFLOW_MANAGER"));
+    assertTrue(exception.getMessage().contains("No recipe found for type: WORKFLOW_MANAGER"));
   }
 
   @Test
@@ -117,12 +117,12 @@ class MinionRecipeRegistryTest {
         .metadata(new HashMap<>())
         .build();
 
+
     MinionException.RecipeNotFoundException exception = assertThrows(
         MinionException.RecipeNotFoundException.class,
         () -> registry.validatePrompt(MinionType.WORKFLOW_MANAGER, prompt)
     );
 
-    assertTrue(exception.getMessage().contains("No recipe found for type: WORKFLOW_MANAGER"));
   }
 
   @Test

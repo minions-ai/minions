@@ -56,15 +56,12 @@ public class MinionRegistry {
   /**
    * Get an agent by its ID
    *
-   * @param agentId The ID of the agent to retrieve
+   * @param minionId The ID of the agent to retrieve
    * @return The agent instance, or null if not found
    */
-  public Minion getMinion(String agentId) {
-    Minion agent = minionsById.get(agentId);
-    if (agent == null) {
-      log.warn("Agent not found: {}", agentId);
-    }
-    return agent;
+  public Minion getMinion(String minionId) {
+    return Optional.ofNullable(minionsById.get(minionId))
+        .orElseThrow(() -> new MinionException.MinionNotFoundException("Minion not found: " + minionId));
   }
 
   /**
@@ -146,26 +143,9 @@ public class MinionRegistry {
     return String.format("%s-%d", type.toLowerCase(), nameCounter.incrementAndGet());
   }
 
-  /**
-   * Gets a minion by its ID.
-   *
-   * @param id The ID of the minion to get
-   * @return The minion or null if not found
-   */
-  public Minion getMinionById(String id) {
-    return Optional.ofNullable(minionsById.get(id))
-        .orElseThrow(() -> new MinionException.MinionNotFoundException("Minion not found: " + id));
-  }
 
-  /**
-   * Gets a minion by its minionType.
-   *
-   * @param type The minionType of the minion to get
-   * @return The minion or null if not found
-   */
-  public Minion getMinionByType(String type) {
-    return null;
-  }
+
+
 
 
   private String generateRegistryId(String userId, String tenantId, String promptName, String promptVersion) {

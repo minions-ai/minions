@@ -1,67 +1,85 @@
 package com.minionslab.core.service.impl;
 
-import com.minionslab.core.api.dto.CreatePromptRequest;
-import com.minionslab.core.api.dto.PromptComponentRequest;
-import com.minionslab.core.api.dto.PromptResponse;
-import com.minionslab.core.api.dto.UpdatePromptRequest;
 import com.minionslab.core.common.exception.PromptException;
-import com.minionslab.core.domain.MinionContext;
-import com.minionslab.core.domain.MinionContextHolder;
+import com.minionslab.core.common.util.ContextUtils;
 import com.minionslab.core.domain.MinionPrompt;
 import com.minionslab.core.domain.PromptComponent;
+import com.minionslab.core.domain.enums.PromptType;
 import com.minionslab.core.repository.PromptRepository;
 import com.minionslab.core.service.PromptService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Validator;
 import org.springframework.validation.annotation.Validated;
 
 /**
- * Service interface for managing system prompts
+ * Service implementation for managing system prompts
  */
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Validated
 public class PromptServiceImpl implements PromptService {
 
-  private static final Logger log = LoggerFactory.getLogger(PromptServiceImpl.class);
-
-
   private final PromptRepository promptRepository;
-
-  @Autowired
-  private Validator validator;
-
+  private final Validator validator;
 
   /**
    * Creates a new prompt with the given components.
    *
-   * @param request The request containing the prompt details
+   * @param entityId      The unique identifier for the prompt
+   * @param description   The description of the prompt
+   * @param version       The version of the prompt
+   * @param components    The components of the prompt
+   * @param metadata      Additional metadata for the prompt
+   * @param effectiveDate The date when this prompt should become effective
+   * @param expiryDate    The date when this prompt should expire
    * @return The created prompt
    */
-  @Transactional @Override public MinionPrompt createPrompt(@Valid CreatePromptRequest request) {
-    try {
-
-      MinionPrompt minionPrompt = request.toMinionPrompt();
-
-      return promptRepository.save(minionPrompt);
-    } catch (PromptException e) {
-      log.error("Failed to create prompt: {}", e.getMessage());
-      throw e;
-    } catch (Exception e) {
-      log.error("Unexpected error while creating prompt", e);
-      throw new PromptException("Failed to create prompt: " + e.getMessage());
+  @Override
+  @Transactional
+  public MinionPrompt createPrompt(
+      @NotBlank String entityId,
+      @NotBlank String description,
+      @NotBlank String version,
+      @NotNull Map<PromptType, PromptComponent> components,
+      Map<String, Object> metadata,
+      Instant effectiveDate,
+      Instant expiryDate) {
+    if (entityId == null || entityId.isBlank()) {
+      throw new PromptException("Entity ID cannot be blank");
     }
-  }
+    if (description == null || description.isBlank()) {
+      throw new PromptException("Description cannot be blank");
+    }
+    if (version == null || version.isBlank()) {
+      throw new PromptException("Version cannot be blank");
+    }
 
+    String tenantId = ContextUtils.getRequiredTenantId();
+
+    MinionPrompt prompt = MinionPrompt.builder()
+        .entityId(entityId)
+        .description(description)
+        .version(version)
+        .components(components)
+        .metadata(metadata)
+        .effectiveDate(effectiveDate)
+        .expiryDate(expiryDate)
+        .tenantId(tenantId)
+        .build();
+
+    return promptRepository.save(prompt);
+  }
 
   /**
    * Gets the active version of a prompt at the given point in time.
@@ -70,10 +88,14 @@ public class PromptServiceImpl implements PromptService {
    * @param pointInTime The point in time to check
    * @return The active prompt at the given point in time
    */
-  @Override public PromptResponse getActiveVersion(String entityId, Instant pointInTime) {
-    MinionPrompt prompt = promptRepository.findActiveVersion(entityId, pointInTime, getCurrentTenantId())
+  @Override
+  @Transactional(readOnly = true)
+  public MinionPrompt getActiveVersionAt(@NotBlank String entityId, Instant pointInTime) {
+
+    String tenantId = ContextUtils.getRequiredTenantId();
+
+    return promptRepository.findActiveVersion(entityId, pointInTime)
         .orElseThrow(() -> new PromptException("No active version found for prompt: " + entityId));
-    return convertToResponse(prompt);
   }
 
   /**
@@ -82,8 +104,9 @@ public class PromptServiceImpl implements PromptService {
    * @param promptId The ID of the prompt to retrieve
    * @return The currently active prompt
    */
-  @Override public PromptResponse getActiveVersion(String promptId) {
-    return getActiveVersion(promptId, Instant.now());
+  @Override
+  public MinionPrompt getActiveVersionAt(@NotBlank String promptId) {
+    return getActiveVersionAt(promptId, Instant.now());
   }
 
   /**
@@ -92,35 +115,13 @@ public class PromptServiceImpl implements PromptService {
    * @param entityId The ID of the prompt to retrieve
    * @return List of all versions of the prompt
    */
-  @Override public List<PromptResponse> getAllVersions(String entityId) {
-    return promptRepository.findAllVersions(entityId, getCurrentTenantId())
-        .stream()
-        .map(this::convertToResponse)
-        .toList();
-  }
+  @Override
+  @Transactional(readOnly = true)
+  public List<MinionPrompt> getAllVersions(@NotBlank String entityId) {
 
-  private String getCurrentTenantId() {
-    MinionContext context = MinionContextHolder.getContext();
+    String tenantId = ContextUtils.getRequiredTenantId();
 
-    return context.getTenantId();
-  }
-
-
-  @Override public Optional<MinionPrompt> getPromptByEntityIdAndVersion(String name, String version) {
-
-    return promptRepository.findByEntityIdAndVersionAndTenantId(name, version, getCurrentTenantId());
-  }
-
-  @Override public Optional<MinionPrompt> getActivePromptAt(String entityId, Instant effectiveDate) {
-
-    return promptRepository.findActiveVersion(entityId, effectiveDate, getCurrentTenantId());
-  }
-
-  /**
-   * Converts a MinionPrompt to a PromptResponse
-   */
-  private PromptResponse convertToResponse(MinionPrompt prompt) {
-    return PromptResponse.fromMinionPrompt(prompt);
+    return promptRepository.findAllVersions(entityId);
   }
 
 
@@ -128,65 +129,139 @@ public class PromptServiceImpl implements PromptService {
     return promptRepository.findById(promptId);
   }
 
-  @Transactional @Override public PromptResponse updatePrompt(String promptId, UpdatePromptRequest request,
-      boolean incrementVersionIfNeeded) {
-    log.info("Updating prompt: {}", promptId);
-
-    Instant updatedEffectiveDate = request.getEffectiveDate() != null ? request.getEffectiveDate() : Instant.now();
-    MinionPrompt currentPrompt = getPromptForUpdate(promptId, updatedEffectiveDate, incrementVersionIfNeeded);
-
-    currentPrompt = request.updateMinionPrompt(currentPrompt);
-
-    return convertToResponse(promptRepository.save(currentPrompt));
-  }
-
-  private MinionPrompt getPromptForUpdate(String promptId, Instant updateEffectiveDate, boolean incrementVersionIfNeeded) {
-    MinionPrompt prompt = getPrompt(promptId).orElseThrow(
-        () -> new PromptException.PromptNotFoundException("No active version found for prompt: " + promptId));
-
-    if (prompt.isLocked()) {
-      if (incrementVersionIfNeeded) {
-        prompt = prompt.createNewVersion(updateEffectiveDate);
-      } else {
-        throw new PromptException.PromptIsLockedException(
-            "Cannot update component without version increment. Set the incrementVersionIfNeeded parameter to true. Promot id: "
-                + promptId);
-      }
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<MinionPrompt> getPromptByEntityIdAndVersion(String entityId, String version) {
+    if (entityId == null || entityId.isBlank()) {
+      throw new PromptException("Entity ID cannot be blank");
     }
-    return prompt;
+    if (version == null || version.isBlank()) {
+      throw new PromptException("Version cannot be blank");
+    }
+
+    String tenantId = ContextUtils.getRequiredTenantId();
+
+    return promptRepository.findByEntityIdAndVersion(entityId, version);
   }
 
+  /**
+   * Updates an existing prompt.
+   *
+   * @param promptId                 The ID of the prompt to update
+   * @param description              The new description
+   * @param components               The new components
+   * @param metadata                 The new metadata
+   * @param effectiveDate            The new effective date
+   * @param expiryDate               The new expiry date
+   * @param incrementVersionIfNeeded Whether to increment the version if the prompt is locked
+   * @return The updated prompt
+   */
+  @Override
+  @Transactional
+  public MinionPrompt updatePrompt(
+      String promptId,
+      String description,
+      Map<PromptType, PromptComponent> components,
+      Map<String, Object> metadata,
+      Instant effectiveDate,
+      Instant expiryDate,
+      boolean incrementVersionIfNeeded) {
+    if (promptId == null || promptId.isBlank()) {
+      throw new PromptException("Prompt ID cannot be blank");
+    }
 
-  @Override public MinionPrompt savePrompt(MinionPrompt samplePrompt) {
-    return promptRepository.save(samplePrompt);
+    String tenantId = ContextUtils.getRequiredTenantId();
+
+    MinionPrompt currentPrompt = promptRepository.findById(promptId)
+        .orElseThrow(() -> new PromptException("Prompt not found"));
+
+    if (currentPrompt.isLocked()) {
+      if (!incrementVersionIfNeeded) {
+        throw new PromptException("Prompt is locked and cannot be updated");
+      }
+      currentPrompt.setExpiryDate(effectiveDate);
+      promptRepository.save(currentPrompt);
+      currentPrompt = currentPrompt.createNewVersion(effectiveDate);
+    }
+
+    if (description != null && !description.isBlank()) {
+      currentPrompt.setDescription(description);
+    }
+    if (components != null && !components.isEmpty()) {
+      currentPrompt.setComponents(components);
+    }
+    if (metadata != null) {
+      currentPrompt.setMetadata(metadata);
+    }
+    if (effectiveDate != null) {
+      currentPrompt.setEffectiveDate(effectiveDate);
+    }
+    if (expiryDate != null) {
+      currentPrompt.setExpiryDate(expiryDate);
+    }
+
+    return promptRepository.save(currentPrompt);
   }
 
-  @Override public List<MinionPrompt> getPrompts() {
-    List<MinionPrompt> allByTenantId = promptRepository.findAllByTenantId(getCurrentTenantId());
-    return allByTenantId;
+  @Override
+  public MinionPrompt savePrompt(@Valid MinionPrompt prompt) {
+    return promptRepository.save(prompt);
   }
 
-  @Override public Optional<MinionPrompt> getPromptByEntityId(String entityId) {
-    return promptRepository.findLatestByEntityIdAndTenantId(entityId, getCurrentTenantId());
+  @Override
+  public List<MinionPrompt> getPrompts() {
+
+    return promptRepository.findAll();
   }
 
-  @Override public void deletePrompt(String promptId) {
+  @Override
+  public Optional<MinionPrompt> getPromptByEntityId(String entityId) {
+    String tenantId = ContextUtils.getRequiredTenantId();
+    return promptRepository.findLatestByEntityId(entityId);
+  }
+
+  @Override
+  public void deletePrompt(String promptId) {
+    String tenantId = ContextUtils.getRequiredTenantId();
     promptRepository.deleteById(promptId);
   }
 
-  @Transactional @Override public PromptResponse updateComponent(String promptId, Instant updateEffectiveDate,
-      PromptComponentRequest request,
+  /**
+   * Updates a component of a prompt.
+   *
+   * @param promptId                 The ID of the prompt
+   * @param updateEffectiveDate      The new effective date
+   * @param componentType            The type of component to update
+   * @param componentText            The new component text
+   * @param componentMetadata        The new component metadata
+   * @param incrementVersionIfNeeded Whether to increment the version if the prompt is locked
+   * @return The updated prompt
+   */
+  @Override
+  @Transactional
+  public MinionPrompt updateComponent(
+      String promptId,
+      Instant updateEffectiveDate,
+      PromptType componentType,
+      String componentText,
+      Map<String, Object> componentMetadata,
       boolean incrementVersionIfNeeded) {
-    log.info("Updating component {} for prompt: {}", request.getType(), promptId);
-    MinionPrompt currentPrompt = getPromptForUpdate(promptId, updateEffectiveDate, incrementVersionIfNeeded);
+    if (promptId == null || promptId.isBlank()) {
+      throw new PromptException("Prompt ID cannot be blank");
+    }
+
+    String tenantId = ContextUtils.getRequiredTenantId();
+
+    MinionPrompt currentPrompt = promptRepository.findById(promptId)
+        .orElseThrow(() -> new PromptException("Prompt not found"));
 
     PromptComponent newComponent = PromptComponent.builder()
-        .type(request.getType())
-        .text(request.getContent())
-        .metadata(request.getMetadatas())
+        .type(componentType)
+        .text(componentText)
+        .metadata(componentMetadata != null ? componentMetadata : Map.of())
         .build();
 
     currentPrompt.getComponents().put(newComponent.getType(), newComponent);
-    return convertToResponse(promptRepository.save(currentPrompt));
+    return promptRepository.save(currentPrompt);
   }
 }

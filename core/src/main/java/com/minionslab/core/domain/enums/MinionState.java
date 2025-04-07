@@ -11,5 +11,5 @@ public enum MinionState {
     WAITING,
     ERROR,
     SHUTTING_DOWN,
-    SHUTDOWN
+    STARTED, STOPPED, SHUTDOWN
 } 

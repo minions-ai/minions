@@ -1,25 +1,27 @@
 package com.minionslab.core.service.impl;
 
-import com.minionslab.core.api.dto.CreateMinionRequest;
 import com.minionslab.core.common.exception.MinionException;
 import com.minionslab.core.common.exception.MinionException.ContextCreationException;
-import com.minionslab.core.common.exception.MinionException.MinionNotFoundException;
+import com.minionslab.core.common.exception.MinionException.MinionCreationException;
 import com.minionslab.core.domain.Minion;
-import com.minionslab.core.domain.MinionFactory;
 import com.minionslab.core.domain.MinionPrompt;
 import com.minionslab.core.domain.MinionRecipe;
 import com.minionslab.core.domain.MinionRecipeRegistry;
 import com.minionslab.core.domain.MinionRegistry;
 import com.minionslab.core.domain.enums.MinionType;
 import com.minionslab.core.repository.MinionRepository;
-import com.minionslab.core.service.ContextService;
+import com.minionslab.core.repository.PromptRepository;
+import com.minionslab.core.service.MinionCreationService;
 import com.minionslab.core.service.MinionService;
 import com.minionslab.core.service.PromptService;
 import com.minionslab.core.service.impl.llm.LLMServiceFactory;
-import com.minionslab.core.service.impl.llm.model.LLMRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,11 +36,14 @@ public class MinionServiceImpl implements MinionService {
 
   private final MinionFactory minionFactory;
   private final MinionRegistry minionRegistry;
-  private final ContextService contextService;
+
   private final MinionRecipeRegistry recipeRegistry;
   private final MinionRepository minionRepository;
+  private final PromptRepository promptRepository;
   private final PromptService promptService;
   private final LLMServiceFactory llmServiceFactory;
+
+  private final MinionCreationService minionCreationService;
 
   /**
    * Create a new minion based on the creation request
@@ -48,7 +53,8 @@ public class MinionServiceImpl implements MinionService {
    * @param prompt     The prompt to use for the minion
    * @return The created minion
    */
-  public Minion createMinion(MinionType minionType, Map<String, Object> metadata, MinionPrompt prompt) throws MinionException {
+  public Minion createMinion(@NotNull MinionType minionType, Map<String, Object> metadata, @Valid MinionPrompt prompt)
+      throws MinionException {
     try {
       validateCreateMinionInputs(minionType, prompt);
 
@@ -57,9 +63,6 @@ public class MinionServiceImpl implements MinionService {
 
       // Validate the prompt against the recipe
       recipe.validatePrompt(prompt);
-
-      // Create context
-      contextService.createContext();
 
       // Merge metadata with defaults
       Map<String, Object> finalMetadata = new HashMap<>();
@@ -80,7 +83,7 @@ public class MinionServiceImpl implements MinionService {
 
     } catch (ContextCreationException e) {
       log.error("Failed to create minion: {}", minionType, e);
-      throw new MinionException.CreationException("Failed to create minion: " + e.getMessage(), e);
+      throw new MinionCreationException("Failed to create minion: " + e.getMessage(), e);
     }
   }
 
@@ -94,56 +97,58 @@ public class MinionServiceImpl implements MinionService {
   }
 
   public Minion getMinionById(String minionId) {
-    return minionRegistry.getMinionById(minionId);
+    return minionRegistry.getMinion(minionId);
   }
 
   @Override
   @Transactional
-  public Minion createMinion(CreateMinionRequest minionRequest) {
-
-    // Validate that the prompt exists
-    Instant effectiveDate = minionRequest.getEffectiveDate() != null ? minionRequest.getEffectiveDate() : Instant.now();
-    MinionPrompt prompt = promptService.getActivePromptAt(minionRequest.getPromptEntityId(), effectiveDate)
-        .orElseThrow(() -> new IllegalArgumentException("Prompt not found: " + minionRequest.getPromptEntityId()));
-
-    Minion minion = minionFactory.createMinion(minionRequest.getMinionType(), minionRequest.getMetadata(), prompt);
-
-
-
-/*
-    todo: Figure out whether a minion should be saved
-// Save the minion
-    Minion savedMinion = minionRepository.save(minion);
-    log.debug("Created minion: {}", savedMinion.getId());*/
-
-    return minion;
+  public Minion createMinion(
+      @NotNull MinionType minionType,
+      Map<String, Object> metadata,
+      @NotBlank String promptEntityId,
+      Instant effectiveDate,
+      Instant expiryDate) {
+        
+    try {
+      // Get the prompt
+      Optional<MinionPrompt> promptOpt = promptService.getPrompt(promptEntityId);
+      MinionPrompt prompt = promptOpt.orElseThrow(() -> 
+          new MinionCreationException("Prompt not found: " + promptEntityId));
+      
+      // Create the minion
+      Minion minion = minionCreationService.createMinion(minionType, metadata, prompt);
+      
+      // Save to repository
+      minionRepository.save(minion);
+      
+      log.info("Created new minion with ID: {}", minion.getMinionId());
+      return minion;
+      
+    } catch (ContextCreationException e) {
+      log.error("Failed to create minion: {}", minionType, e);
+      throw new MinionCreationException("Failed to create minion: " + e.getMessage(), e);
+    }
   }
 
   @Override
   @Transactional(readOnly = true)
-  public String processRequest(String minionId, String request) {
-    log.debug("Processing request for minion: {}", minionId);
-
-    // Get the minion
+  public String processRequest(@NotBlank String minionId, @NotBlank String request, Map<String, Object> context) {
     Minion minion = getMinion(minionId);
-
-/*    // Get the current prompt version
-    MinionPrompt prompt = promptService.getPrompt(minion.getPromptId())
-        .orElseThrow(() -> new IllegalArgumentException("Prompt not found: " + minion.getPromptId()));*/
-
-    // Process the request using the LLM service
-    LLMRequest llmRequest = new LLMRequest().setPrompt(minion.getMinionPrompt()).setUserRequest(request);
-    return llmServiceFactory.getLLMService()
-        .processRequest(llmRequest)
-        .getResponseText();
+    if (minion == null) {
+      throw new MinionException.MinionNotFoundException(minionId);
+    }
+    
+    try {
+      return minion.processPrompt(request, context);
+    } catch (Exception e) {
+      log.error("Failed to process request for minion: {}", minionId, e);
+      throw new MinionException.ProcessingException("Failed to process request", e);
+    }
   }
 
   @Override
   @Transactional(readOnly = true)
-  public Minion getMinion(String minionId) {
-    log.debug("Retrieving minion: {}", minionId);
-
-    return minionRepository.findById(minionId)
-        .orElseThrow(() -> new MinionNotFoundException("Minion not found: " + minionId));
+  public Minion getMinion(@NotBlank String minionId) {
+    return minionRegistry.getMinion(minionId);
   }
 }
