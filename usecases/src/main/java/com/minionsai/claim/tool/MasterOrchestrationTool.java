@@ -18,7 +18,7 @@ public class MasterOrchestrationTool implements Function<MasterOrchestrationTool
       return new Response("failed","RequestId cannot be null");
     }
     if(request.nextAgentName == null) {
-      return new Response("failed","nextAgentName cannot be null. Please provide the exact agent name without any space in the name");
+      return new Response("failed","nextAgentName cannot be null. Please provide the exact agent toolName without any space in the toolName");
     }
     Minion nextAgent = claimAgentManager.getOrCreateAgent(request.requestId, request.nextAgentName);
     nextAgent.processPrompt(request.taskDetails);

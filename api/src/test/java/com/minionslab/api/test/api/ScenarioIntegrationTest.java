@@ -126,7 +126,7 @@ public class ScenarioIntegrationTest extends BaseControllerIntegrationTest {
   }
 
   /*
-  todo: Figure out how to lock a prompt
+  todo: Figure out how to lock a messages
    */
 //  @Test
   @WithMockMinionUser(roles = {"ADMIN"})
@@ -136,7 +136,7 @@ public class ScenarioIntegrationTest extends BaseControllerIntegrationTest {
     ResponseEntity<PromptResponse> createResponse = POST(createRequest, "/api/v1/prompts", PromptResponse.class, HIGH);
     String promptId = createResponse.getBody().getId();
 
-    // Lock the prompt
+    // Lock the messages
     ResponseEntity<Void> lockResponse = POST(null, "/api/v1/prompts/" + promptId + "/lock", Void.class, HIGH);
     assertThat(lockResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 
@@ -289,7 +289,7 @@ public class ScenarioIntegrationTest extends BaseControllerIntegrationTest {
   }
 
   /*
-  todo: We need a way to lock a prompt and then run this test. Currently there is no way to lock a prompt externally.
+  todo: We need a way to lock a messages and then run this test. Currently there is no way to lock a messages externally.
    */
 //  @Test
   @WithMockMinionUser(roles = {"ADMIN"})
@@ -300,7 +300,7 @@ public class ScenarioIntegrationTest extends BaseControllerIntegrationTest {
     ResponseEntity<PromptResponse> createResponse = POST(createRequest, "/api/v1/prompts", PromptResponse.class, HIGH);
     String promptId = createResponse.getBody().getId();
 
-    // Lock the prompt
+    // Lock the messages
     ResponseEntity<Void> lockResponse = POST(null, "/api/v1/prompts/" + promptId + "/lock", Void.class, HIGH);
     assertThat(lockResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 

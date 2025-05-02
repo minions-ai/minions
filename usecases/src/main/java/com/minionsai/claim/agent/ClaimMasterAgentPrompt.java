@@ -18,8 +18,8 @@ public class ClaimMasterAgentPrompt extends MasterAgentPrompt {
     try {
       return Files.readString(systemPrompt.getFile().toPath(), StandardCharsets.UTF_8);
     } catch (IOException e) {
-      log.error("Failed to load system prompt from master_agent.txt", e);
-      throw new RuntimeException("Could not load system prompt", e); // Fail fast instead of returning ""
+      log.error("Failed to load system messages from master_agent.txt", e);
+      throw new RuntimeException("Could not load system messages", e); // Fail fast instead of returning ""
     }
   }
 }

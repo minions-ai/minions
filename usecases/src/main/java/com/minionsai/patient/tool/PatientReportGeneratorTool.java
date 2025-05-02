@@ -33,7 +33,7 @@ public class PatientReportGeneratorTool implements Function<PatientReportGenerat
   private String generatePatientReportPDF(Request req) {
     try {
       Files.createDirectories(Paths.get(OUTPUT_DIR));
-      // Construct a unique file name for the PDF
+      // Construct a unique file toolName for the PDF
       String report_name = "Patient_Report_" + sanitizeFileName(req.patientName()) + ".pdf";
       String filePath = OUTPUT_DIR + report_name;
 

@@ -20,9 +20,9 @@ public final class TestConstants {
   public static final String TEST_ROLE_ADMIN = "ADMIN";
   public static final String TEST_ROLE_USER = "USER";
   // Prompt
-  public static final String TEST_PROMPT_ENTITY_ID = "test-prompt";
-  public static final String TEST_PROMPT_ID = "test-prompt-id";
-  public static final String TEST_PROMPT_DESCRIPTION = "Test prompt description";
+  public static final String TEST_PROMPT_ENTITY_ID = "test-messages";
+  public static final String TEST_PROMPT_ID = "test-messages-id";
+  public static final String TEST_PROMPT_DESCRIPTION = "Test messages description";
   public static final String TEST_PROMPT_UPDATED_DESCRIPTION = "Updated Description";
   public static final String TEST_PROMPT_VERSION = "1.0";
   public static final String TEST_PROMPT_CONTENT = "Test content";
@@ -36,12 +36,12 @@ public final class TestConstants {
   public static final double TEST_COMPONENT_ORDER = 1.0;
   public static final PromptType TEST_COMPONENT_TYPE = PromptType.SYSTEM;
   // Component Types and Texts
-  public static final String GUIDELINES_TEXT = "This is a guideline prompt text";
-  public static final String CONTEXT_TEXT = "This is a context prompt text";
-  public static final String REFLECTION_TEXT = "This is a reflection policy prompt text";
-  public static final String POLICY_TEXT = "This is a prompt text";
-  public static final String TASK_SPECIFIC_TEXT = "This is a task specific prompt text";
-  public static final String USER_TEMPLATE_TEXT = "This is a user template specific prompt text";
+  public static final String GUIDELINES_TEXT = "This is a guideline messages text";
+  public static final String CONTEXT_TEXT = "This is a context messages text";
+  public static final String REFLECTION_TEXT = "This is a reflection policy messages text";
+  public static final String POLICY_TEXT = "This is a messages text";
+  public static final String TASK_SPECIFIC_TEXT = "This is a task specific messages text";
+  public static final String USER_TEMPLATE_TEXT = "This is a user template specific messages text";
   // Metadata
   public static final String TEST_METADATA_KEY = "key1";
   public static final String TEST_METADATA_VALUE = "value1";
@@ -53,7 +53,7 @@ public final class TestConstants {
   public static final String ERROR_CONTENT_REQUIRED = "Content is required";
   public static final String ERROR_PROMPT_TYPE_REQUIRED = "PromptType is required";
   public static final String ERROR_PROMPT_NULL = "Prompt cannot be null";
-  public static final String ERROR_PROMPT_NAME_EMPTY = "Prompt name cannot be empty";
+  public static final String ERROR_PROMPT_NAME_EMPTY = "Prompt toolName cannot be empty";
   public static final String ERROR_PROMPT_TYPE_NULL = "Prompt type cannot be null";
   public static final String ERROR_PROMPT_VERSION_EMPTY = "Prompt version cannot be empty";
   public static final String ERROR_METADATA_KEY_NULL = "Metadata key cannot be null";

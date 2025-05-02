@@ -23,7 +23,7 @@ public class SessionController {
 
     // Request payload to mint an ephemeral token
     JSONObject body = new JSONObject();
-    body.put("model", "gpt-4o-realtime-preview-2024-12-17");
+    body.put("modelId", "gpt-4o-realtime-preview-2024-12-17");
     body.put("voice", "verse");
 
     HttpEntity<String> request = new HttpEntity<>(body.toString(), headers);

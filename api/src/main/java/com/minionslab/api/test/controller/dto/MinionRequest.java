@@ -10,8 +10,8 @@ import lombok.experimental.Accessors;
 public class MinionRequest {
     private String userId;
     private String tenantId;
-    @NotNull(message = "User prompt is required")
-    private String userPrompt;    // The actual user prompt/request
-    private Map<String, Object> parameters; // Additional parameters for the prompt
+    @NotNull(message = "User messages is required")
+    private String userPrompt;    // The actual user messages/request
+    private Map<String, Object> parameters; // Additional parameters for the messages
 
 }

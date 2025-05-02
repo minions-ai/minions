@@ -42,7 +42,7 @@ public class PromptController {
   private final PromptService promptService;
 
   @PostMapping
-  @Operation(summary = "Create a new prompt", description = "Creates a new prompt with optional components. The prompt will be created with version 1.0.0 by default.")
+  @Operation(summary = "Create a new messages", description = "Creates a new messages with optional components. The messages will be created with version 1.0.0 by default.")
   @ApiResponse(responseCode = "201", description = "Prompt created successfully")
 //  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<PromptResponse> createPrompt(
@@ -70,7 +70,7 @@ public class PromptController {
   }
 
   @GetMapping("/{id}")
-  @Operation(summary = "Get a prompt by ID", description = "Retrieves the latest version of a prompt by its ID.")
+  @Operation(summary = "Get a messages by ID", description = "Retrieves the latest version of a messages by its ID.")
   public ResponseEntity<PromptResponse> getPrompt(
       @Parameter(description = "Prompt ID") @PathVariable String id) {
     return ResponseEntity.ok(promptService.getPrompt(id).map(PromptResponse::fromMinionPrompt)
@@ -78,7 +78,7 @@ public class PromptController {
   }
 
   @GetMapping("/{entityId}/{version}")
-  @Operation(summary = "Get a specific version of a prompt")
+  @Operation(summary = "Get a specific version of a messages")
   public ResponseEntity<PromptResponse> getPromptByEntityIdAndVersion(@PathVariable String entityId, @PathVariable String version) {
     return ResponseEntity.ok(promptService.getPromptByEntityIdAndVersion(entityId, version).map(PromptResponse::fromMinionPrompt).get());
   }
@@ -86,18 +86,18 @@ public class PromptController {
 
   @PutMapping("/{id}")
   @Operation(
-      summary = "Update an existing prompt",
-      description = "Updates a prompt's metadata and components. If the prompt is deployed (in production), " +
+      summary = "Update an existing messages",
+      description = "Updates a messages's metadata and components. If the messages is deployed (in production), " +
           "setting incrementVersionIfNeeded=true will create a new version. Updates to expired prompts are not allowed."
   )
   @ApiResponse(responseCode = "200", description = "Prompt updated successfully")
-  @ApiResponse(responseCode = "400", description = "Cannot update expired prompt")
-  @ApiResponse(responseCode = "409", description = "Cannot update deployed prompt without version increment")
+  @ApiResponse(responseCode = "400", description = "Cannot update expired messages")
+  @ApiResponse(responseCode = "409", description = "Cannot update deployed messages without version increment")
 //  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<PromptResponse> updatePrompt(
       @Parameter(description = "Prompt ID") @PathVariable String id,
       @Valid @RequestBody UpdatePromptRequest request,
-      @Parameter(description = "If true, creates a new version when updating a deployed prompt")
+      @Parameter(description = "If true, creates a new version when updating a deployed messages")
       @RequestParam(defaultValue = "false") boolean incrementVersionIfNeeded) {
 
     Map<PromptType, PromptComponent> components = request.getComponents().stream()
@@ -122,20 +122,20 @@ public class PromptController {
   @PutMapping("/{id}/components/{componentType}")
   @Operation(
       summary = "Update a specific component",
-      description = "Updates a specific component of a prompt. If the prompt is deployed (in production), " +
+      description = "Updates a specific component of a messages. If the messages is deployed (in production), " +
           "setting incrementVersionIfNeeded=true will create a new version. Updates to expired prompts are not allowed."
   )
   @ApiResponse(responseCode = "200", description = "Component updated successfully")
-  @ApiResponse(responseCode = "400", description = "Cannot update expired prompt")
+  @ApiResponse(responseCode = "400", description = "Cannot update expired messages")
   @ApiResponse(responseCode = "404", description = "Prompt or component not found")
-  @ApiResponse(responseCode = "409", description = "Cannot update deployed prompt without version increment")
+  @ApiResponse(responseCode = "409", description = "Cannot update deployed messages without version increment")
   public ResponseEntity<PromptResponse> updateComponent(
       @Parameter(description = "Prompt ID") @PathVariable String id,
       @Parameter(description = "Type of component to update") @PathVariable PromptType componentType,
       @Valid @RequestBody PromptComponentRequest request,
-      @Parameter(description = "If true, creates a new version when updating a deployed prompt")
+      @Parameter(description = "If true, creates a new version when updating a deployed messages")
       @RequestParam(defaultValue = "false") boolean incrementVersionIfNeeded) {
-    log.debug("Updating component {} for prompt: {}", componentType, id);
+    log.debug("Updating component {} for messages: {}", componentType, id);
 
     MinionPrompt updatedPrompt = promptService.updateComponent(
         id,
@@ -150,7 +150,7 @@ public class PromptController {
   }
 
   @DeleteMapping("/{promptId}")
-  @Operation(summary = "Delete an existing prompt")
+  @Operation(summary = "Delete an existing messages")
 //  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> deletePrompt(@PathVariable String promptId) {
     promptService.deletePrompt(promptId);

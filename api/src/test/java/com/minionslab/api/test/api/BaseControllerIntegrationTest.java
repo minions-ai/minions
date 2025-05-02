@@ -121,7 +121,7 @@ public abstract class BaseControllerIntegrationTest {
   protected TestContext createTestContext() {
     TestContext context = new TestContext();
 
-    // Create test prompt
+    // Create test messages
     MinionPrompt testPrompt = MinionPrompt.builder()
         .description(TEST_PROMPT_DESCRIPTION)
         .tenantId(TEST_TENANT_ID)
@@ -131,7 +131,7 @@ public abstract class BaseControllerIntegrationTest {
         .build();
     context.put(MinionPrompt.class, testPrompt);
 
-    // Create prompt components
+    // Create messages components
     List<PromptComponent> promptComponents = List.of(
         PromptComponent.builder().type(PromptType.GUIDELINES).text(GUIDELINES_TEXT).build(),
         PromptComponent.builder().type(PromptType.CONTEXT).text(CONTEXT_TEXT).build(),
@@ -147,7 +147,7 @@ public abstract class BaseControllerIntegrationTest {
     CreatePromptRequest createRequest = CreatePromptRequest.builder()
         .entityId(TEST_PROMPT_ENTITY_ID)
         .description(TEST_PROMPT_DESCRIPTION)
-        .metadata(Map.of("model", "test"))
+        .metadata(Map.of("modelId", "test"))
         .build();
 
     for (PromptComponent promptComponent : promptComponents) {

@@ -1,0 +1,47 @@
+{
+  "stepId": {
+    "type": "string",
+    "description": "The unique identifier of the step being completed.",
+    "required": true
+  },
+  "result": {
+    "type": "string",
+    "description": "The result, answer, or summary for the step.",
+    "required": false
+  },
+  "cannotFinish": {
+    "type": "boolean",
+    "description": "Indicates the LLM/agent cannot finish the step.",
+    "required": false
+  },
+  "unrecoverableError": {
+    "type": "boolean",
+    "description": "Indicates an unrecoverable error occurred.",
+    "required": false
+  },
+  "reason": {
+    "type": "string",
+    "description": "Explanation if the step cannot be finished or an error occurred.",
+    "required": false
+  },
+  "timestamp": {
+    "type": "string",
+    "description": "When the step was marked as completed (ISO 8601).",
+    "required": false
+  },
+  "metadata": {
+    "type": "object",
+    "description": "Additional structured data for extensibility.",
+    "required": false
+  },
+  "confidence": {
+    "type": "number",
+    "description": "Confidence score for the result.",
+    "required": false
+  },
+  "nextStepSuggestion": {
+    "type": "string",
+    "description": "Suggestion for what to do next if the step cannot be finished.",
+    "required": false
+  }
+}

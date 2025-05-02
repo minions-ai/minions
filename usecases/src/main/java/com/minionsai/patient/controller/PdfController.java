@@ -33,7 +33,7 @@ public class PdfController {
     // Read file into a ByteArrayResource
     ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(filePath));
 
-    // Set headers so the browser will prompt a download
+    // Set headers so the browser will messages a download
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_PDF);
     // For inline display, use `inline`

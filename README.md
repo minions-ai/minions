@@ -35,14 +35,14 @@ Add the following dependency to your `pom.xml`:
 ### Basic Usage
 
 ```java
-// Create a new prompt
+// Create a new messages
 MinionPrompt prompt = MinionPrompt.builder()
     .name("CustomerServicePrompt")
     .type(MinionType.USER_DEFINED_AGENT)
     .version("1.0.0")
     .build();
 
-// Add components to your prompt
+// Add components to your messages
 prompt.addComponent(PromptComponent.builder()
     .type(PromptType.INSTRUCTION)
     .text("Handle customer inquiries professionally")

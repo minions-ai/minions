@@ -16,7 +16,7 @@ public class Tool {
   @Builder.Default
   private String type = "function";
 
-  @JsonProperty("name")
+  @JsonProperty("toolName")
   @Builder.Default
   private String name = "get_weather";
 

@@ -22,8 +22,8 @@ public class RealtimeWebSocketClientFactory {
 
   private static final Logger logger = LoggerFactory.getLogger(RealtimeWebSocketClientFactory.class);
   private static final String API_TOKEN = "your_openai_api_token"; // Replace with your API token
-  private static final String MODEL = "gpt-4o-realtime-preview-2024-12-17"; // Choose an OpenAI model
-  private static final String WEBSOCKET_URL = "wss://api.openai.com/v1/realtime?model=" + MODEL;
+  private static final String MODEL = "gpt-4o-realtime-preview-2024-12-17"; // Choose an OpenAI modelId
+  private static final String WEBSOCKET_URL = "wss://api.openai.com/v1/realtime?modelId=" + MODEL;
   private static final String WEBSOCKET_HEADERS = "OpenAI-Beta: realtime=v1";
 
 

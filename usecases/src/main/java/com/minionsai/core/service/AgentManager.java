@@ -54,7 +54,7 @@ import org.springframework.stereotype.Service;
 
 
   /**
-   * Executes a prompt using the Master Agent.
+   * Executes a messages using the Master Agent.
    */
   public String executePrompt(String requestId, String requestText) {
     ChatMemory chatMemory = chatMemoryFactory.createDefaultChatMemory();

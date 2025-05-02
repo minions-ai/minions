@@ -20,7 +20,7 @@ import org.springframework.web.socket.WebSocketSession;
 public class OpenAIWebSocketService {
 
   public static final String MODEL_NAME = "gpt-4o-realtime-preview-2024-12-17";
-  private static final String OPENAI_WS_URL = "wss://api.openai.com/v1/realtime?model=" + MODEL_NAME;
+  private static final String OPENAI_WS_URL = "wss://api.openai.com/v1/realtime?modelId=" + MODEL_NAME;
   private static final String WEBSOCKET_HEADERS = "OpenAI-Beta: realtime=v1";
   @Value("spring.ai.openai.api-key")
   private static String OPENAI_API_KEY = "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"; // Replace with your key
@@ -80,10 +80,10 @@ public class OpenAIWebSocketService {
     payload.put("server_vad", serverVad);
 
     JSONObject system = new JSONObject();
-    system.put("prompt", "Continue helping the user based on previous parameters.");
+    system.put("messages", "Continue helping the user based on previous parameters.");
     JSONArray tools = new JSONArray();
   /*  JSONObject weatherTool = new JSONObject();
-    weatherTool.put("name", "weather");
+    weatherTool.put("toolName", "weather");
     weatherTool.put("description", "Get the current weather for a location.");
     JSONObject parameters = new JSONObject();
     parameters.put("location", "string");

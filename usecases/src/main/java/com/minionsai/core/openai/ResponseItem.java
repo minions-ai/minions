@@ -18,7 +18,7 @@ import lombok.experimental.Accessors;
 
   @JsonProperty("role") private String role;
 
-  @JsonProperty("name") private String name;
+  @JsonProperty("toolName") private String name;
 
   @JsonProperty("call_id") private String callId;
 

@@ -11,7 +11,7 @@ import lombok.experimental.Accessors;
 @Builder
 public class InputAudioTranscription {
 
-  @JsonProperty("model")
+  @JsonProperty("modelId")
   @Builder.Default
   private String model = "whisper-1";
 }
