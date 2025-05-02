@@ -23,7 +23,7 @@ public class OpenAIWebSocketService {
   private static final String OPENAI_WS_URL = "wss://api.openai.com/v1/realtime?modelId=" + MODEL_NAME;
   private static final String WEBSOCKET_HEADERS = "OpenAI-Beta: realtime=v1";
   @Value("spring.ai.openai.api-key")
-  private static String OPENAI_API_KEY = "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"; // Replace with your key
+  private static String OPENAI_API_KEY = """"; // Replace with your key
   // Map client session IDs to persistent OpenAI WebSocket connections.
   final ConcurrentHashMap<String, WebSocket> openAIConnections = new ConcurrentHashMap<>();
   private final OkHttpClient client = new OkHttpClient();
