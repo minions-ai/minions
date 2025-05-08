@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.Map;
+
 /**
  * Represents a tool invocation request in the Model Context Protocol.
  */
@@ -25,7 +27,8 @@ public class MCPToolCall {
                        '}';
     }
     
-    public record MCPToolCallRequest(String name, String parameters, String explanation) {
+    public record MCPToolCallRequest(String name, String input, Map<String,Object> parameters) {
+    
     }
     
     public record MCPToolCallResponse(String response, String error) {

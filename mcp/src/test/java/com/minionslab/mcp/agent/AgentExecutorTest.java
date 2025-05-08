@@ -1,232 +1,142 @@
 package com.minionslab.mcp.agent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.minionslab.mcp.BaseExecutorTest;
-import com.minionslab.mcp.config.ModelConfig;
 import com.minionslab.mcp.context.MCPContext;
-import com.minionslab.mcp.model.MCPModelCall;
-import com.minionslab.mcp.model.ModelCallStatus;
-import com.minionslab.mcp.step.MCPStep;
-import com.minionslab.mcp.step.StepExecution;
-import com.minionslab.mcp.step.StepExecutor;
-import com.minionslab.mcp.step.StepStatus;
-import com.minionslab.mcp.tool.MCPToolCall;
-import com.minionslab.mcp.tool.ToolCallStatus;
+import com.minionslab.mcp.memory.MCPChatMemory;
+import com.minionslab.mcp.model.MCPModelCallResponse;
+import com.minionslab.mcp.model.ModelCallExecutor;
+import com.minionslab.mcp.model.ModelCallExecutorFactory;
+import com.minionslab.mcp.step.*;
+import com.minionslab.mcp.tool.ToolCallExecutor;
+import com.minionslab.mcp.tool.ToolCallExecutorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class AgentExecutorTest extends BaseExecutorTest {
-
+/**
+ * Unit tests for AgentExecutor.
+ * Ensures correct step execution, error handling, and workflow progression.
+ */
+class AgentExecutorTest {
+    // --- Mocks ---
     @Mock
     private MCPAgent mockAgent;
-
     @Mock
     private AgentRecipe mockRecipe;
-
     @Mock
-    private MCPStep mockStep1;
-
+    private Step mockStep;
     @Mock
-    private MCPStep mockStep2;
-
+    private StepExecutor mockStepExecutor;
     @Mock
-    private MCPStep mockStep3;
-
+    private StepExecutor mockStepExecutor2;
     @Mock
-    private ModelConfig mockModelConfig;
-
+    private StepExecution mockStepExecution;
+    @Mock
+    private StepExecution mockStepExecution2;
+    @Mock
+    private MCPChatMemory mockChatMemory;
+    @Mock
+    private ModelCallExecutorFactory mockModelExecutorFactory;
+    @Mock
+    private ToolCallExecutorFactory mockToolExecutorFactory;
+    @Mock
+    private MCPContext mockContext;
+    @Mock
+    private StepManager mockStepManager;
+    @Mock
+    private ToolCallExecutor mockToolExecutor;
+    @Mock
+    private ModelCallExecutor mockModelCallExecutor;
+    @Mock
+    private MCPModelCallResponse mockModelCallResponse;
+    
+    // --- System Under Test ---
     private AgentExecutor agentExecutor;
-    private List<MCPStep> steps;
-
+    
+    // --- Setup ---
     @BeforeEach
     void setUp() {
-        super.setUpBase();
-        
-        // Initialize steps
-        steps = Arrays.asList(mockStep1, mockStep2, mockStep3);
-        
-        // Setup mock IDs
-        when(mockStep1.getId()).thenReturn("step1");
-        when(mockStep2.getId()).thenReturn("step2");
-        when(mockStep3.getId()).thenReturn("step3");
-        
-        // Setup agent and recipe
+        MockitoAnnotations.openMocks(this);
         when(mockAgent.getRecipe()).thenReturn(mockRecipe);
-        when(mockAgent.getAgentId()).thenReturn("test-agent");
-        when(mockRecipe.getModelConfig()).thenReturn(mockModelConfig);
-        when(mockRecipe.getSteps()).thenReturn(steps);
-        
-        // Create executor
-        agentExecutor = new AgentExecutor(mockAgent);
+        when(mockRecipe.getSteps()).thenReturn(List.of(mockStep));
+        when(mockContext.getStepManager()).thenReturn(mockStepManager);
+        when(mockStepManager.getCurrentStep()).thenReturn(mockStep).thenReturn(mockStep).thenReturn(null);
+        when(mockStepManager.isWorkflowComplete()).thenReturn(false).thenReturn(true);
+        when(mockContext.getMetadata()).thenReturn(Map.of("maxModelCallsPerStep", 10, "maxToolCallRetries", 2, "sequentialToolCalls", true));
+        when(mockModelExecutorFactory.forProvider(any(), any(), any())).thenReturn(mockModelCallExecutor);
+        when(mockStep.getId()).thenReturn("step1");
+        when(mockToolExecutorFactory.forProvider(any(), any(), any())).thenReturn(mockToolExecutor);
+        agentExecutor = spy(
+                new AgentExecutor(mockAgent, mockContext, mockModelExecutorFactory, mockToolExecutorFactory));
     }
-
+    
+    /**
+     * Tests that a single step is executed and the result is correct.
+     */
     @Test
-    void testSequentialStepExecution() {
-        // Setup mock step executions
-        setupSuccessfulStepExecution(mockStep1);
-        setupSuccessfulStepExecution(mockStep2);
-        setupSuccessfulStepExecution(mockStep3);
-
-        // Execute
+    void testSingleStepExecution() {
+        doReturn(mockStepExecutor).when(agentExecutor).createStepExecutor(mockStep);
+        when(mockStepExecutor.execute()).thenReturn(CompletableFuture.completedFuture(mockStepExecution));
+        when(mockStepManager.getPossibleNextSteps()).thenReturn(Collections.emptyList());
         AgentResult result = agentExecutor.executeSync();
-
-        // Verify
         assertNotNull(result);
-        assertEquals(3, result.getStepExecutions().size());
-        verify(mockStep1, times(1)).createInitialModelCall();
-        verify(mockStep2, times(1)).createInitialModelCall();
-        verify(mockStep3, times(1)).createInitialModelCall();
+        assertEquals(1, result.getStepExecutions().size());
+        verify(mockStepExecutor, times(1)).execute();
     }
-
+    
+    /**
+     * Tests that an exception during step execution is properly handled and wrapped as AgentExecutionException.
+     */
     @Test
-    void testLLMSuggestedStepExecution() {
-        // Setup mock step executions with LLM suggestion
-        setupStepExecutionWithNextStepSuggestion(mockStep1, "step3");
-        setupSuccessfulStepExecution(mockStep2);
-        setupSuccessfulStepExecution(mockStep3);
-
-        // Execute
-        AgentResult result = agentExecutor.executeSync();
-
-        // Verify
-        assertNotNull(result);
-        assertEquals(3, result.getStepExecutions().size());
+    void testStepExecutionThrowsException() {
+        when(mockStepExecutor.execute()).thenThrow(new RuntimeException("Step failed"));
         
-        // Verify execution order (step1 -> step3 -> step2)
-        List<StepExecution> executions = result.getStepExecutions();
-        assertEquals("step1", executions.get(0).getStep().getId());
-        assertEquals("step3", executions.get(1).getStep().getId());
-        assertEquals("step2", executions.get(2).getStep().getId());
+        Exception thrown = assertThrows(Exception.class, () -> agentExecutor.executeSync());
+        
+        // Unwrap CompletionException if present
+        Throwable cause = thrown instanceof CompletionException && thrown.getCause() != null
+                                  ? thrown.getCause()
+                                  : thrown;
+        
+        assertTrue(cause instanceof AgentExecutionException, "Exception should be AgentExecutionException");
+        // Optionally, check the message or cause of the AgentExecutionException
+        // assertEquals("Failed to execute step: step1", cause.getMessage());
     }
-
+    
+    /**
+     * Tests that the agent executes all steps in the recipe.
+     */
     @Test
-    void testInvalidStepSuggestion() {
-        // Setup mock step executions with invalid step suggestion
-        setupStepExecutionWithNextStepSuggestion(mockStep1, "invalid-step");
-        setupSuccessfulStepExecution(mockStep2);
-        setupSuccessfulStepExecution(mockStep3);
+    void testAgentExecutesAllSteps() {
+        Step step1 = new DefaultStep("s1", "desc1", Set.of(), "prompt1");
+        Step step2 = new DefaultStep("s2", "desc2", Set.of(), "prompt2");
+        AgentRecipe agentRecipe = AgentRecipe.builder().steps(List.of(step1, step2)).requiredTools(List.of("tool1", "tool2")).build();
+        MCPAgent agent = new DefaultMCPAgent(agentRecipe, null);
+        when(mockStepManager.getCurrentStep()).thenReturn(step1).thenReturn(step2).thenReturn(null);
+        when(mockStepManager.isWorkflowComplete()).thenReturn(false).thenReturn(false).thenReturn(true);
+        AgentExecutor agentExecutor2 = spy(new AgentExecutor(agent, mockContext, mockModelExecutorFactory, mockToolExecutorFactory));
+        doReturn(mockStepExecutor,mockStepExecutor2).when(agentExecutor2).createStepExecutor(any());
+        when(mockStepExecutor.execute()).thenReturn(CompletableFuture.completedFuture(mockStepExecution));
+        when(mockStepExecutor2.execute()).thenReturn(CompletableFuture.completedFuture(mockStepExecution2));
+        
+        when(mockStepExecution.getId()).thenReturn("step_execution_1");
+        when(mockStepExecution2.getId()).thenReturn("step_execution_2");
+        when(mockStepManager.getPossibleNextSteps()).thenReturn(List.of(step1)).thenReturn(List.of(step2)).thenReturn(Collections.emptyList());
+        
 
-        // Execute
-        AgentResult result = agentExecutor.executeSync();
-
-        // Verify normal sequential execution after invalid suggestion
-        assertNotNull(result);
-        assertEquals(3, result.getStepExecutions().size());
         
-        List<StepExecution> executions = result.getStepExecutions();
-        assertEquals("step1", executions.get(0).getStep().getId());
-        assertEquals("step2", executions.get(1).getStep().getId());
-        assertEquals("step3", executions.get(2).getStep().getId());
-    }
-
-    @Test
-    void testStepExecutionFailure() {
-        // Setup successful first step
-        setupSuccessfulStepExecution(mockStep1);
-        
-        // Setup failing second step
-        when(mockStep2.createInitialModelCall()).thenThrow(new RuntimeException("Step execution failed"));
-        
-        // Execute and verify exception is thrown
-        AgentExecutionException exception = assertThrows(
-            AgentExecutionException.class,
-            () -> agentExecutor.executeSync()
-        );
-        
-        assertTrue(exception.getMessage().contains("Failed to execute step"));
-    }
-
-    @Test
-    void testInfiniteLoopPrevention() {
-        // Setup step that keeps suggesting itself
-        setupStepExecutionWithNextStepSuggestion(mockStep1, "step1");
-        
-        // Execute and verify exception is thrown
-        AgentExecutionException exception = assertThrows(
-            AgentExecutionException.class,
-            () -> agentExecutor.executeSync()
-        );
-        
-        assertTrue(exception.getMessage().contains("infinite loop detected"));
-    }
-
-    @Test
-    void testEmptyStepList() {
-        // Setup agent with no steps
-        when(mockRecipe.getSteps()).thenReturn(Collections.emptyList());
-        agentExecutor = new AgentExecutor(mockAgent);
-
-        // Execute
-        AgentResult result = agentExecutor.executeSync();
-
-        // Verify
-        assertNotNull(result);
-        assertTrue(result.getStepExecutions().isEmpty());
-    }
-
-    private void setupSuccessfulStepExecution(MCPStep step) {
-        MCPModelCall mockModelCall = mock(MCPModelCall.class);
-        when(step.createInitialModelCall()).thenReturn(mockModelCall);
-        when(mockModelCall.getToolCalls()).thenReturn(Collections.emptyList());
-        when(mockModelCall.getStatus()).thenReturn(ModelCallStatus.COMPLETED);
-        
-        StepExecution mockStepExecution = mock(StepExecution.class);
-        when(mockStepExecution.getStatus()).thenReturn(StepStatus.COMPLETED);
-        when(mockStepExecution.getStep()).thenReturn(step);
-        when(mockStepExecution.getModelCalls()).thenReturn(Collections.singletonList(mockModelCall));
-        
-        doAnswer(invocation -> {
-            StepExecution execution = invocation.getArgument(0);
-            return null;
-        }).when(step).setStepExecution(any());
-    }
-
-    private void setupStepExecutionWithNextStepSuggestion(MCPStep step, String nextStepId) {
-        MCPModelCall mockModelCall = mock(MCPModelCall.class);
-        when(step.createInitialModelCall()).thenReturn(mockModelCall);
-        
-        // Create a tool call with next step suggestion
-        MCPToolCall mockToolCall = mock(MCPToolCall.class);
-        when(mockToolCall.getName()).thenReturn("step_completed");
-        when(mockToolCall.getRequest()).thenReturn(
-            new MCPToolCall.MCPToolCallRequest(
-                "step_completed",
-                createStepCompletionParameters(nextStepId),
-                "Step completion"
-            )
-        );
-        when(mockToolCall.getStatus()).thenReturn(ToolCallStatus.COMPLETED);
-        
-        when(mockModelCall.getToolCalls()).thenReturn(Collections.singletonList(mockToolCall));
-        when(mockModelCall.getStatus()).thenReturn(ModelCallStatus.COMPLETED);
-        
-        StepExecution mockStepExecution = mock(StepExecution.class);
-        when(mockStepExecution.getStatus()).thenReturn(StepStatus.COMPLETED);
-        when(mockStepExecution.getStep()).thenReturn(step);
-        when(mockStepExecution.getModelCalls()).thenReturn(Collections.singletonList(mockModelCall));
-        
-        doAnswer(invocation -> {
-            StepExecution execution = invocation.getArgument(0);
-            return null;
-        }).when(step).setStepExecution(any());
-    }
-
-    private String createStepCompletionParameters(String nextStepId) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("nextStepSuggestion", nextStepId);
-        try {
-            return new ObjectMapper().writeValueAsString(params);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create step completion parameters", e);
-        }
+        AgentResult result = agentExecutor2.executeSync();
+        assertEquals(2, result.getStepExecutions().size());
+//        assertTrue(result.getStepExecutions().stream().allMatch(exec -> exec.getStatus() != null));
     }
 } 

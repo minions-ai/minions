@@ -40,9 +40,9 @@ public abstract class MCPAgent {
         this.state = new AgentState();
         
         // Initialize context with system prompt
-        MCPContext context = new MCPContext(agentId, recipe);
-        context.addMessage(createSystemMessage(recipe.getSystemPrompt()));
-        this.state.setCurrentContext(context);
+/*        MCPContext context = new MCPContext(agentId, recipe);
+        context.addMessage(createSystemMessage(recipe.getSystemPrompt()));*/
+//        this.state.setCurrentContext(context);
         
         // Set initial state
         this.state.setStatus(AgentStatus.INITIALIZED);

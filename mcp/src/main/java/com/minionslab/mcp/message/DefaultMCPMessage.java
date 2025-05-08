@@ -21,7 +21,7 @@ public class DefaultMCPMessage implements MCPMessage {
     private Instant timestamp = Instant.now();
     @Builder.Default
     private Map<String, Object> metadata = new HashMap<>();
-    private List<MCPToolCall> toolCalls = new ArrayList<>();
+    private List<MCPToolCall.MCPToolCallRequest> toolCalls = new ArrayList<>();
     private String modelId;
     private int tokenCount;
     @Builder.Default

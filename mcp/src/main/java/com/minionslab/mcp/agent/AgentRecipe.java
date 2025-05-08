@@ -1,14 +1,12 @@
 package com.minionslab.mcp.agent;
 
 import com.minionslab.mcp.config.ModelConfig;
-import com.minionslab.mcp.step.MCPStep;
+import com.minionslab.mcp.step.Step;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.springframework.ai.chat.memory.ChatMemoryRepository;
-import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -38,9 +36,15 @@ public class AgentRecipe {
     private Map<String, Object> constraints = new HashMap<>();
     private SecurityPolicy securityPolicy;
     @Builder.Default
-    private List<MCPStep> steps = new ArrayList<>();
+    private List<Step> steps = new ArrayList<>();
     private List<String> requiredTools;
+    @Builder.Default
+    private String memoryType = "inMemory";
     
     @Builder.Default
-    private ChatMemoryRepository memoryRepository = new InMemoryChatMemoryRepository();
+    private Map<String, List<String>> stepGraph = new HashMap<>();
+    
+    /**
+     * stepGraph: maps stepId to possible next stepIds. If not set, can be built dynamically. Should be a DAG.
+     */
 }

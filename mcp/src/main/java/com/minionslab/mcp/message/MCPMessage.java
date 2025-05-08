@@ -48,7 +48,7 @@ public interface MCPMessage {
      *
      * @return The tool calls or null if not a tool message
      */
-    List<MCPToolCall> getToolCalls();
+//    List<MCPToolCall> getToolCalls();
     
     /**
      * Gets the model ID if this is a model message.

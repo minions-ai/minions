@@ -1,0 +1,152 @@
+---
+title: MCP Module Entity Diagram
+---
+
+classDiagram
+    %% AGENT LAYER
+    class MCPAgent {
+        - String agentId
+        - AgentRecipe recipe
+        - MCPContext context
+        + List<String> getAvailableTools()
+    }
+    class AgentRecipe {
+        - String id
+        - String systemPrompt
+        - ModelConfig modelConfig
+        - List~MCPStep~ steps
+        - List~String~ requiredTools
+        - Map~String, List~String~~ stepGraph
+    }
+    class SecurityPolicy
+
+    %% CONTEXT
+    class MCPContext {
+        - AgentRecipe recipe
+        - String agentId
+        - ModelConfig modelConfig
+        - List~MCPStep~ executionSteps
+        - List~MCPModelCall~ modelCalls
+        - List~MCPMessage~ messages
+        - Map~String, Object~ memory
+        - Map~String, Object~ metadata
+        - ModelCallExecutionContext modelCallExecutionContext
+        - ToolCallExecutionContext toolCallExecutionContext
+        - List~MCPStep.StepInstruction~ instructions
+        - MCPStep currentStep
+    }
+
+    %% STEP LAYER
+    class MCPStep {
+        <<interface>>
+        + String getId()
+        + Set~String~ getRequiredTools()
+        + String getDescription()
+        + MCPModelCall createInitialModelCall()
+        + MCPModelCall createFollowUpModelCall(MCPModelCall, List~MCPToolCall~)
+        + StepCompletionCriteria getCompletionCriteria()
+        + StepExecution getStepExecution()
+        + void setStepExecution(StepExecution)
+    }
+    class DefaultMCPStep
+    class StepExecution {
+        - MCPStep step
+        - List~MCPModelCall~ modelCalls
+        - List~MCPToolCall~ toolCalls
+        - StepStatus status
+        - StepCompletionCriteria completionCriteria
+    }
+    class StepExecutor
+    class StepCompletionCriteria {
+        <<interface>>
+        + boolean isComplete(StepExecution)
+        + boolean requiresMoreCalls(CallGroup)
+    }
+    class CallGroup
+    class CallExecution
+    class StepStatus
+    class CallType
+
+    %% MODEL LAYER
+    class MCPModelCall {
+        - MCPModelCallRequest request
+        - ModelCallStatus status
+        - MCPModelCallResponse response
+        - List~MCPToolCall~ toolCalls
+    }
+    class ModelCallExecutor
+    class ModelCallExecutionContext
+    class ModelConfig
+    class ModelCallStatus
+
+    %% TOOL LAYER
+    class MCPToolCall {
+        - String name
+        - MCPToolCallRequest request
+        - MCPToolCallResponse response
+        - ToolCallStatus status
+    }
+    class MCPToolCallExecutor
+    class ToolCallExecutionContext
+    class ToolCallStatus
+    class ToolDefinition
+
+    %% MESSAGE LAYER
+    class MCPMessage
+    class DefaultMCPMessage
+    class MessageRole
+
+    %% SERVICE LAYER
+    class MCPService
+    class ChatModelService
+
+    %% RELATIONSHIPS
+    MCPAgent --> AgentRecipe
+    MCPAgent --> MCPContext
+    AgentRecipe --> MCPStep
+    AgentRecipe --> ModelConfig
+    MCPContext --> AgentRecipe
+    MCPContext --> MCPStep
+    MCPContext --> MCPModelCall
+    MCPContext --> MCPMessage
+    MCPContext --> ModelCallExecutionContext
+    MCPContext --> ToolCallExecutionContext
+    MCPContext --> MCPStep_StepInstruction
+    MCPContext --> MCPStep
+
+    MCPStep <|.. DefaultMCPStep
+    MCPStep --> StepExecution
+    MCPStep --> StepCompletionCriteria
+    StepExecution --> MCPStep
+    StepExecution --> MCPModelCall
+    StepExecution --> MCPToolCall
+    StepExecution --> StepStatus
+    StepExecution --> StepCompletionCriteria
+    StepExecution --> CallGroup
+    StepExecution --> CallExecution
+
+    MCPModelCall --> MCPToolCall
+    MCPModelCall --> ModelCallStatus
+    MCPModelCall --> MCPMessage
+
+    MCPToolCall --> ToolCallStatus
+
+    StepExecutor --> MCPStep
+    StepExecutor --> MCPContext
+    StepExecutor --> StepExecution
+
+    MCPToolCallExecutor --> MCPToolCall
+    MCPToolCallExecutor --> ToolCallExecutionContext
+
+    DefaultMCPMessage --> MessageRole
+    MCPMessage --> MessageRole
+
+    ModelCallExecutor --> MCPModelCall
+    ModelCallExecutor --> MCPContext
+    ModelCallExecutor --> ModelCallExecutionContext
+
+    ToolDefinition --> MCPToolCall
+
+    MCPService --> MCPContext
+    ChatModelService --> ModelCallExecutionContext
+

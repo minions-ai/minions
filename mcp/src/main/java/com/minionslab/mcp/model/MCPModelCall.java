@@ -1,10 +1,10 @@
 package com.minionslab.mcp.model;
 
-import com.minionslab.mcp.config.ModelConfig;
 import com.minionslab.mcp.message.MCPMessage;
 import com.minionslab.mcp.tool.MCPToolCall;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import com.minionslab.mcp.model.MCPModelCallResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,10 +40,6 @@ public class MCPModelCall {
     
     
     public record MCPModelCallRequest(List<MCPMessage> messages, Map<String, Object> parameters) {
-    }
-    
-    public record MCPModelCallResponse(List<MCPMessage> messages) {
-
     }
     
     public record MCPModelCallError(MCPMessage error) {

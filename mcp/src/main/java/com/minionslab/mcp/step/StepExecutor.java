@@ -2,16 +2,14 @@ package com.minionslab.mcp.step;
 
 import com.minionslab.mcp.context.MCPContext;
 import com.minionslab.mcp.model.MCPModelCall;
-import com.minionslab.mcp.model.ModelCallExecutionContext;
-import com.minionslab.mcp.model.ModelCallExecutor;
+import com.minionslab.mcp.model.MCPModelCallResponse;
+import com.minionslab.mcp.model.ModelCallExecutorFactory;
 import com.minionslab.mcp.tool.MCPToolCall;
-import com.minionslab.mcp.tool.MCPToolCallExecutor;
-import com.minionslab.mcp.tool.ToolCallExecutionContext;
+import com.minionslab.mcp.tool.ToolCallExecutorFactory;
 import com.minionslab.mcp.tool.ToolCallStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -19,10 +17,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 /**
- * StepExecutor orchestrates the execution of a single MCPStep.
+ * StepExecutor orchestrates the execution of a single Step.
  *
  * <p>Execution Flow:</p>
  * <ol>
@@ -61,31 +58,36 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class StepExecutor {
-    private final MCPStep step;
-    private final ModelCallExecutionContext modelContext;
-    private final ToolCallExecutionContext toolContext;
+    private final Step step;
+    
     private final Executor executor;
     private final MCPContext context;
     private final int maxModelCalls;
     private final int maxToolRetries;
     private final boolean sequentialToolCalls;
-    private List<MCPStep.StepInstruction> followedInstructions = new ArrayList<>();
+    private final StepManager stepManager;
     
-    public StepExecutor(MCPStep step, MCPContext context) {
-        this(step, context, ForkJoinPool.commonPool());
+    private ModelCallExecutorFactory modelCallExecutorFactory;
+    private ToolCallExecutorFactory toolCallExecutorFactory;
+    
+    public StepExecutor(Step step, MCPContext context, ModelCallExecutorFactory modelCallExecutorFactory, ToolCallExecutorFactory toolCallExecutorFactory) {
+        this(step, context, ForkJoinPool.commonPool(), modelCallExecutorFactory, toolCallExecutorFactory);
     }
     
-    public StepExecutor(MCPStep step, MCPContext context, Executor executor) {
+    public StepExecutor(Step step, MCPContext context, Executor executor, ModelCallExecutorFactory modelCallExecutorFactory, ToolCallExecutorFactory toolCallExecutorFactory) {
         this.step = step;
         this.context = context;
-        this.modelContext = context.getModelCallExecutionContext();
-        this.toolContext = context.getToolCallExecutionContext();
+        
         this.executor = executor;
         maxModelCalls = context.getMetadata().getOrDefault("maxModelCallsPerStep", 10) instanceof Integer ?
                                 (Integer) context.getMetadata().get("maxModelCallsPerStep") : 10;
         maxToolRetries = context.getMetadata().getOrDefault("maxToolCallRetries", 2) instanceof Integer ?
                                  (Integer) context.getMetadata().get("maxToolCallRetries") : 2;
         sequentialToolCalls = Boolean.TRUE.equals(context.getMetadata().get("sequentialToolCalls"));
+        this.modelCallExecutorFactory = modelCallExecutorFactory;
+        this.toolCallExecutorFactory = toolCallExecutorFactory;
+        this.stepManager = context.getStepManager();
+        
     }
     
     /**
@@ -94,116 +96,231 @@ public class StepExecutor {
      * @return A future containing the step execution
      */
     public CompletableFuture<StepExecution> execute() {
+        
+        log.info("Starting execution for step: {}", step != null ? step.getId() : "null");
         return CompletableFuture.supplyAsync(this::doExecute, executor);
     }
     
+    /**
+     * Orchestrates the execution of a single step, including model calls, tool calls, instruction handling,
+     * and step completion logic. Uses helper methods for each logical block for clarity and maintainability.
+     *
+     * @return The completed StepExecution
+     */
     @NotNull
     StepExecution doExecute() {
-        StepExecution execution = new StepExecution(step, step.getCompletionCriteria());
-        step.setStepExecution(execution);
-        execution.setModelCalls(new ArrayList<>());
-        execution.setToolCalls(new ArrayList<>());
-        
-        
+        Step step = this.step;
+        if (step == null) {
+            throw new IllegalStateException("No current step set in context");
+        }
+        StepExecution execution = prepareStepExecution(step);
         AtomicInteger modelCallCount = new AtomicInteger(0);
         AtomicBoolean stepComplete = new AtomicBoolean(false);
-        
         try {
             MCPModelCall currentModelCall = step.createInitialModelCall();
             execution.getModelCalls().add(currentModelCall);
             modelCallCount.incrementAndGet();
-            
+            log.debug("Initial model call created for step: {}", step.getId());
             while (!stepComplete.get() && modelCallCount.get() <= maxModelCalls) {
-                // Execute model call
-                ModelCallExecutor.forCall(currentModelCall, context).execute().join();
-                
-                followInstructions(context);
-                
-                // Check for final_Answer tool call
-                List<MCPToolCall> toolCalls = currentModelCall.getToolCalls();
-                
-                
-                // Execute tool calls (parallel or sequential)
-                List<MCPToolCall> executedToolCalls = new ArrayList<>();
-                if (sequentialToolCalls) {
-                    for (MCPToolCall toolCall : toolCalls) {
-                        executeToolCallWithRetries(toolCall, maxToolRetries);
-                        executedToolCalls.add(toolCall);
-                    }
-                } else {
-                    List<CompletableFuture<Void>> futures = toolCalls.stream()
-                                                                     .map(tc -> CompletableFuture.runAsync(() -> executeToolCallWithRetries(tc, maxToolRetries), executor))
-                                                                     .collect(Collectors.toList());
-                    futures.forEach(CompletableFuture::join);
-                    executedToolCalls.addAll(toolCalls);
-                }
-                execution.getToolCalls().addAll(executedToolCalls);
-                
-                // Prepare follow-up model call with tool results
-                MCPModelCall followUpModelCall = step.createFollowUpModelCall(currentModelCall, executedToolCalls);
-                execution.getModelCalls().add(followUpModelCall);
-                currentModelCall = followUpModelCall;
-                modelCallCount.incrementAndGet();
-            }
-            
-            if (modelCallCount.get() > maxModelCalls) {
-                execution.setStatus(StepStatus.FAILED);
-                execution.setError("Maximum number of model calls per step exceeded");
-            } else {
-                execution.setStatus(StepStatus.COMPLETED);
-            }
-            execution.setCompletedAt(Instant.now());
-            
-        } catch (Exception e) {
-            log.error("Step execution failed: {}", e.getMessage(), e);
-            execution.setStatus(StepStatus.FAILED);
-            execution.setError(e.getMessage());
-            execution.setCompletedAt(Instant.now());
-        }
-        
-        return execution;
-    }
-    
-    private void followInstructions(MCPContext context) {
-        List<MCPStep.StepInstruction> instructions = context.getInstructions();
-        
-        for (MCPStep.StepInstruction instruction : instructions) {
-            if (instruction.stepId().equals(this.step.getId())) {
-                if (!followedInstructions.contains(instruction)) {
-                    MCPStep.StepOutcome outcome = instruction.outcome();
+                MCPModelCallResponse mcpModelCallResponse = executeModelCall(currentModelCall, step, modelCallCount);
+                Step.StepInstruction instruction = mcpModelCallResponse.getInstruction();
+                if (instruction != null) {
+                    
+                    
+                    boolean completed = false;
+                    Step.StepOutcome outcome = instruction.outcome();
+                    // Track the instruction in StepManager
+                    stepManager.addInstruction(instruction);
                     switch (outcome) {
                         case COMPLETED -> {
                             step.getStepExecution().complete();
-                            context.setNextStep(instruction.nextStepSuggestion());
+                            if (instruction.nextStepSuggestion() != null) {
+                                stepManager.setCurrentStepById(instruction.nextStepSuggestion());
+                            }
+                            completed = true;
                         }
                         case CAN_NOT_FINISH -> step.getStepExecution().fail(instruction.reason());
                         case UNRECOVERABLE_ERROR -> step.getStepExecution().fail(instruction.reason());
+                        case SKIPPED -> {
+                            step.getStepExecution().skip();
+                            if (instruction.nextStepSuggestion() != null) {
+                                stepManager.setCurrentStepById(instruction.nextStepSuggestion());
+                            }
+                            completed = true;
+                        }
+                        case AWAITING_TOOL_RESULTS, CONTINUE -> {
+                            // Do not mark as complete; continue execution
+                        }
                     }
+                    stepManager.removeInstructionToExecute(instruction);
+                    stepComplete.set(completed);
+                } else {
+                    stepComplete.set(handleInstructionsAndCheckComplete(context, mcpModelCallResponse, execution));
+                }
+                // Handle tool call requests from the response
+                List<MCPToolCall> toolCalls = mcpModelCallResponse.getToolCalls();
+                log.debug("Model call #{} for step: {} returned {} tool calls", modelCallCount.get(), step.getId(), toolCalls.size());
+                List<MCPToolCall> executedToolCalls = executeToolCalls(toolCalls, step);
+                execution.getToolCalls().addAll(executedToolCalls);
+                if (!stepComplete.get()) {
+                    currentModelCall = handleFollowUpModelCall(step, currentModelCall, executedToolCalls, execution, modelCallCount);
                 }
             }
+            finalizeStepExecution(execution, step, modelCallCount, stepComplete);
+        } catch (Exception e) {
+            handleStepExecutionError(e, execution, step);
         }
+        return execution;
+    }
+    
+    /**
+     * Prepares a new StepExecution for the given step.
+     */
+    private StepExecution prepareStepExecution(Step step) {
+        StepExecution execution = new StepExecution(step, step.getCompletionCriteria());
+        step.setStepExecution(execution);
+        execution.setModelCalls(new ArrayList<>());
+        execution.setToolCalls(new ArrayList<>());
+        return execution;
+    }
+    
+    /**
+     * Executes a model call for the step and increments the model call count.
+     *
+     * @return
+     */
+    private MCPModelCallResponse executeModelCall(MCPModelCall modelCall, Step step, AtomicInteger modelCallCount) {
+        log.info("Executing model call #{} for step: {}", modelCallCount.get(), step.getId());
+        String provider = context.getModelConfig() != null ? context.getModelConfig().getProvider() : "spring";
+        return modelCallExecutorFactory.forProvider(provider, modelCall, context).execute().join();
+    }
+    
+    /**
+     * Executes all tool calls for the step, either sequentially or in parallel, and returns the executed tool calls.
+     */
+    private List<MCPToolCall> executeToolCalls(List<MCPToolCall> toolCalls, Step step) {
+        List<MCPToolCall> executedToolCalls = new ArrayList<>();
+        if (sequentialToolCalls) {
+            for (MCPToolCall toolCall : toolCalls) {
+                log.info("Executing tool call {} (sequential) for step: {}", toolCall.getName(), step.getId());
+                executeToolCallWithRetries(toolCall, maxToolRetries);
+                executedToolCalls.add(toolCall);
+            }
+        } else {
+            List<CompletableFuture<Void>> futures = toolCalls.stream()
+                                                             .map(tc -> CompletableFuture.runAsync(() -> {
+                                                                 log.info("Executing tool call {} (parallel) for step: {}", tc.getName(), step.getId());
+                                                                 executeToolCallWithRetries(tc, maxToolRetries);
+                                                             }, executor))
+                                                             .toList();
+            futures.forEach(CompletableFuture::join);
+            executedToolCalls.addAll(toolCalls);
+        }
+        return executedToolCalls;
     }
     
     private void executeToolCallWithRetries(MCPToolCall toolCall, int maxRetries) {
         int attempt = 0;
         boolean success = false;
+        String provider = context.getModelConfig() != null ? context.getModelConfig().getProvider() : "spring";
         while (attempt <= maxRetries && !success) {
             try {
-                MCPToolCallExecutor.forCall(toolCall, toolContext).execute().join();
+                log.debug("Attempt {} for tool call {} in step {}", attempt + 1, toolCall.getName(), step.getId());
+                toolCallExecutorFactory.forProvider(provider, toolCall, context).execute().join();
                 if (toolCall.getStatus() == ToolCallStatus.COMPLETED) {
                     success = true;
+                    log.info("Tool call {} completed successfully in step {} on attempt {}", toolCall.getName(), step.getId(), attempt + 1);
                 } else {
                     attempt++;
+                    log.warn("Tool call {} did not complete successfully in step {} on attempt {}", toolCall.getName(), step.getId(), attempt);
                 }
             } catch (Exception e) {
-                log.error("Tool call execution failed (attempt {}): {}", attempt, e.getMessage());
+                log.error("Tool call execution failed (attempt {}) for tool call {} in step {}: {}", attempt + 1, toolCall.getName(), step.getId(), e.getMessage(), e);
                 attempt++;
-                if (attempt > maxRetries) {
-                    // Send error message to LLM as a model call (could be implemented as needed)
-                    toolCall.setStatus(ToolCallStatus.FAILED);
-                    toolCall.setResponse(new MCPToolCall.MCPToolCallResponse(null, e.getMessage()));
-                }
             }
         }
+        if (!success) {
+            log.error("Tool call {} failed after {} attempts in step {}", toolCall.getName(), maxRetries + 1, step.getId());
+        }
+    }
+    
+    /**
+     * Handles the creation and execution of a follow-up model call after tool calls, if the step is not complete.
+     */
+    private MCPModelCall handleFollowUpModelCall(Step step, MCPModelCall currentModelCall, List<MCPToolCall> executedToolCalls, StepExecution execution,
+                                                 AtomicInteger modelCallCount) {
+        MCPModelCall followUpModelCall = step.createFollowUpModelCall(currentModelCall, executedToolCalls);
+        execution.getModelCalls().add(followUpModelCall);
+        modelCallCount.incrementAndGet();
+        return followUpModelCall;
+    }
+    
+    /**
+     * Finalizes the step execution by setting status, error, and advancing the current step in the context.
+     */
+    private void finalizeStepExecution(StepExecution execution, Step step, AtomicInteger modelCallCount, AtomicBoolean stepComplete) {
+        if (modelCallCount.get() > maxModelCalls) {
+            execution.fail("Maximum number of model calls per step exceeded");
+            log.error("Step {} failed: maximum number of model calls per step exceeded", step.getId());
+        } else if (stepComplete.get()) {
+            execution.complete();
+            log.info("Step {} completed successfully", step.getId());
+        } else {
+            execution.complete();
+            log.info("Step {} completed (default path)", step.getId());
+        }
+        // After completion, set currentStep to the next step if any
+        List<Step> possibleNextSteps = context.getStepManager().getPossibleNextSteps();
+        if (possibleNextSteps.size() == 1) {
+            context.getStepManager().setCurrentStep(possibleNextSteps.get(0));
+        } else {
+            context.getStepManager().setCurrentStepToNull(); // Let agent logic or model choose next
+        }
+    }
+    
+    /**
+     * Handles errors during step execution by logging and updating the execution status and error.
+     */
+    private void handleStepExecutionError(Exception e, StepExecution execution, Step step) {
+        log.error("Step execution failed for step {}: {}", step.getId(), e.getMessage(), e);
+        execution.fail(e.getMessage());
+    }
+    
+    /**
+     * Handles LLM instructions and returns true if the step should be considered complete.
+     */
+    private boolean handleInstructionsAndCheckComplete(MCPContext context, MCPModelCallResponse mcpModelCallResponse, StepExecution execution) {
+        List<Step.StepInstruction> instructions = context.getStepManager().getInstructionsToExecute();
+        boolean completed = false;
+        for (Step.StepInstruction instruction : new ArrayList<>(instructions)) { // avoid concurrent modification
+            Step currentStep = context.getStepManager().getCurrentStep();
+            Step.StepOutcome outcome = instruction.outcome();
+            // Track the instruction in StepManager
+            context.getStepManager().addInstruction(instruction);
+            switch (outcome) {
+                case COMPLETED -> {
+                    currentStep.getStepExecution().complete();
+                    if (instruction.nextStepSuggestion() != null) {
+                        context.getStepManager().setCurrentStepById(instruction.nextStepSuggestion());
+                    }
+                    completed = true;
+                }
+                case CAN_NOT_FINISH -> currentStep.getStepExecution().fail(instruction.reason());
+                case UNRECOVERABLE_ERROR -> currentStep.getStepExecution().fail(instruction.reason());
+                case SKIPPED -> {
+                    currentStep.getStepExecution().skip();
+                    if (instruction.nextStepSuggestion() != null) {
+                        context.getStepManager().setCurrentStepById(instruction.nextStepSuggestion());
+                    }
+                    completed = true;
+                }
+                case AWAITING_TOOL_RESULTS, CONTINUE -> {
+                    // Do not mark as complete; continue execution
+                }
+            }
+            context.getStepManager().removeInstructionToExecute(instruction);
+        }
+        return completed;
     }
 }
+ 

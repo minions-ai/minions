@@ -1,0 +1,60 @@
+flowchart TD
+    subgraph Client Layer
+        Client[Client]
+    end
+
+    subgraph Service Layer
+        AgentService[AgentService]
+    end
+
+    subgraph Orchestration Layer
+        AgentExecutor[AgentExecutor]
+        StepExecutor[StepExecutor]
+    end
+
+subgraph Context & State
+MCPContext[MCPContext]
+StepManager[StepManager]
+MCPChatMemory[MCPChatMemory]
+end
+
+subgraph Execution Factories
+ModelCallExecutorFactory[ModelCallExecutorFactory]
+ToolCallExecutorFactory[ToolCallExecutorFactory]
+end
+
+subgraph Provider Implementations
+SpringAIModelCallExecutor[SpringAIModelCallExecutor]
+SpringAIToolCallExecutor[SpringAIToolCallExecutor]
+OtherModelCallExecutor[OtherModelCallExecutor]
+OtherToolCallExecutor[OtherToolCallExecutor]
+end
+
+Client --> AgentService
+AgentService --> MCPContext
+AgentService --> AgentExecutor
+
+AgentExecutor --> StepExecutor
+AgentExecutor --> StepManager
+AgentExecutor --> MCPContext
+
+StepExecutor --> ModelCallExecutorFactory
+StepExecutor --> ToolCallExecutorFactory
+StepExecutor --> StepManager
+StepExecutor --> MCPContext
+
+
+ModelCallExecutorFactory --> OtherModelCallExecutor
+ToolCallExecutorFactory --> OtherToolCallExecutor
+
+ToolCallExecutorFactory --> SpringAIToolCallExecutor
+ModelCallExecutorFactory --> SpringAIModelCallExecutor
+
+
+MCPContext --> StepManager
+MCPContext --> MCPChatMemory
+
+SpringAIModelCallExecutor --> MCPChatMemory
+SpringAIToolCallExecutor --> MCPChatMemory
+
+StepManager -->|Manages| StepExecutor

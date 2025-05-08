@@ -35,3 +35,4 @@ build/
 /src/main/frontend/generated/
 
 /core/logs/*.*
+/mcp/src/main/resources/application-local.properties

@@ -12,11 +12,5 @@ public interface StepCompletionCriteria {
      */
     boolean isComplete(StepExecution execution);
 
-    /**
-     * Determines if more calls are needed after the current call group.
-     *
-     * @param lastGroup The last executed call group
-     * @return true if more calls are needed, false otherwise
-     */
-    boolean requiresMoreCalls(CallGroup lastGroup);
+
 } 

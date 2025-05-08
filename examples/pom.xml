@@ -14,7 +14,6 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>job-search</module>
         <!-- Add more example modules here -->
     </modules>
 

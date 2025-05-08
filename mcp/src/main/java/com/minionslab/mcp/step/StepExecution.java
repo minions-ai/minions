@@ -1,7 +1,6 @@
 package com.minionslab.mcp.step;
 
 import com.minionslab.mcp.model.MCPModelCall;
-import com.minionslab.mcp.model.ModelCallStatus;
 import com.minionslab.mcp.tool.MCPToolCall;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -19,7 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class StepExecution {
     private final String id = UUID.randomUUID().toString();
-    private final MCPStep step;
+    private final Step step;
     private final Instant startedAt;
     private final StepCompletionCriteria completionCriteria;
     private Instant completedAt;
@@ -30,7 +29,7 @@ public class StepExecution {
     private List<MCPModelCall> modelCalls = new ArrayList<>();
     private List<MCPToolCall> toolCalls = new ArrayList<>();
 
-    public StepExecution(MCPStep step, StepCompletionCriteria criteria) {
+    public StepExecution(Step step, StepCompletionCriteria criteria) {
         this.step = step;
         this.startedAt = Instant.now();
         this.status = StepStatus.IN_PROGRESS;
@@ -63,8 +62,7 @@ public class StepExecution {
      * Marks this step execution as completed.
      */
     public void complete() {
-        this.completedAt = Instant.now();
-        this.status = StepStatus.COMPLETED;
+        setCompleted();
     }
 
     /**
@@ -73,6 +71,29 @@ public class StepExecution {
      * @param error The error message
      */
     public void fail(String error) {
+        failWithError(error);
+    }
+
+    /**
+     * Marks this step execution as skipped.
+     */
+    public void skip() {
+        this.completedAt = Instant.now();
+        this.status = StepStatus.SKIPPED;
+    }
+
+    /**
+     * Internal: set status to COMPLETED and update completedAt.
+     */
+    public void setCompleted() {
+        this.completedAt = Instant.now();
+        this.status = StepStatus.COMPLETED;
+    }
+
+    /**
+     * Internal: set status to FAILED, update completedAt, and set error.
+     */
+    public void failWithError(String error) {
         this.completedAt = Instant.now();
         this.status = StepStatus.FAILED;
         this.error = error;

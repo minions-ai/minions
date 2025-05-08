@@ -1,0 +1,32 @@
+version: '3.9'
+
+networks:
+  net:
+    driver: bridge
+services:
+  server:
+    image: ghcr.io/chroma-core/chroma:latest
+    environment:
+      - IS_PERSISTENT=TRUE
+    volumes:
+      - chroma-data:/chroma/chroma/
+    ports:
+      - 8000:8000
+    networks:
+      - net
+  pgvector:
+    image: ankane/pgvector:latest
+    container_name: pgvector
+    environment:
+      POSTGRES_DB: pgvectordb
+      POSTGRES_USER: pgvectoruser
+      POSTGRES_PASSWORD: pgvectorpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgvector-data:/var/lib/postgresql/data
+
+volumes:
+  chroma-data:
+    driver: local
+  pgvector-data: 

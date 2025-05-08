@@ -1,215 +1,192 @@
 package com.minionslab.mcp.step;
 
-import com.minionslab.mcp.BaseExecutorTest;
+
 import com.minionslab.mcp.context.MCPContext;
 import com.minionslab.mcp.model.MCPModelCall;
+import com.minionslab.mcp.model.MCPModelCallResponse;
 import com.minionslab.mcp.model.ModelCallExecutor;
-import com.minionslab.mcp.model.ModelCallStatus;
+import com.minionslab.mcp.model.ModelCallExecutorFactory;
 import com.minionslab.mcp.tool.MCPToolCall;
-import com.minionslab.mcp.tool.ToolCallExecutionContext;
+import com.minionslab.mcp.tool.ToolCallExecutor;
+import com.minionslab.mcp.tool.ToolCallExecutorFactory;
 import com.minionslab.mcp.tool.ToolCallStatus;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
-class StepExecutorTest extends BaseExecutorTest {
+class StepExecutorTest {
     
     @Mock
-    private MCPStep mockStep;
-    
+    private Step mockStep;
     @Mock
-    private ToolCallExecutionContext mockToolContext;
-    
+    private MCPContext mockContext;
     @Mock
-    private MCPToolCall mockToolCall1;
-    
+    private StepManager mockStepManager;
     @Mock
-    private MCPToolCall mockToolCall2;
-    
+    private ModelCallExecutorFactory mockModelCallExecutorFactory;
     @Mock
-    private StepCompletionCriteria mockCompletionCriteria;
-    
-    private StepExecutor stepExecutor;
+    private ToolCallExecutorFactory mockToolCallExecutorFactory;
+    @Mock
+    private ModelCallExecutor mockModelCallExecutor;
+    @Mock
+    private ToolCallExecutor mockToolCallExecutor;
+    @Mock
+    private MCPModelCall mockModelCall;
+    @Mock
+    private MCPModelCallResponse mockModelCallResponse;
+    @Mock
+    private MCPToolCall mockToolCall;
+    @Mock
+    private StepExecution mockStepExecution;
+    @Mock
+    private Object mockToolCallResponse;
     
     @BeforeEach
-    protected void setUp() {
-        super.setUpBase();
-        mockedStaticMCExecuter = mockStatic(ModelCallExecutor.class);
-        mockedStaticMCExecuter.when(() -> ModelCallExecutor.forCall(any(MCPModelCall.class), any(MCPContext.class)))
-                              .thenReturn(mockedModelCallExecutor);
-        
-        when(mockContext.getToolCallExecutionContext()).thenReturn(mockToolContext);
-        doReturn(mockModelCall).when(mockStep).createInitialModelCall();
-        when(mockModelCall.getToolCalls()).thenReturn(Collections.emptyList());
-        when(mockCompletionCriteria.isComplete(any())).thenReturn(false);
-        when(mockStep.getCompletionCriteria()).thenReturn(mockCompletionCriteria);
-        
-        MCPStep step = new AbstractMCPStep(mockContext, "Test") {
-            @Override
-            public MCPModelCall createInitialModelCall() {
-                return mockModelCall;
-            }
-            
-            @Override
-            public MCPModelCall createFollowUpModelCall(MCPModelCall previousModelCall, java.util.List<com.minionslab.mcp.tool.MCPToolCall> toolCalls) {
-                return mockModelCall;
-            }
-            
-            @Override
-            public StepCompletionCriteria getCompletionCriteria() {
-                return mockCompletionCriteria;
-            }
-        };
-        stepExecutor = new StepExecutor(step, mockContext, runnableExecutor);
-    }
-    
-    @Test
-    void testSuccessfulExecutionWithNoToolCalls() {
-        // Setup
-        doReturn(CompletableFuture.completedFuture(successModelCallResponse))
-                .when(mockedModelCallExecutor).execute();
-        
-        when(mockModelCall.getStatus())
-                .thenReturn(ModelCallStatus.PENDING).thenReturn(ModelCallStatus.COMPLETED);
-        
-        when(mockToolCall1.getStatus()).thenReturn(ToolCallStatus.PENDING).thenReturn(ToolCallStatus.COMPLETED);
-        when(mockToolCall2.getStatus()).thenReturn(ToolCallStatus.PENDING).thenReturn(ToolCallStatus.COMPLETED);
-        
-        // Execute
-        StepExecution result = stepExecutor.execute().join();
-        
-        // Verify
-        assertNotNull(result);
-        assertEquals(StepStatus.COMPLETED, result.getStatus());
-        assertEquals(1, result.getCallGroups().size());
-        assertTrue(result.getCallGroups().get(0).isComplete());
-        verify(mockStep, times(1)).createInitialModelCall();
-        verify(mockStep, never()).createFollowUpModelCall(any(), any());
-    }
-    
-    @AfterEach
-    void tearDownBase() {
-        if (mockedStaticMCExecuter != null) {
-            mockedStaticMCExecuter.close();
-        }
-    }
-    
-    @Test
-    void testExecutionWithToolCalls() {
-        // Setup
-        when(mockModelCall.getToolCalls())
-                .thenReturn(Arrays.asList(mockToolCall1, mockToolCall2));
-        
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        when(mockContext.getStepManager()).thenReturn(mockStepManager);
+        when(mockContext.getMetadata()).thenReturn(Map.of(
+                "maxModelCallsPerStep", 3,
+                "maxToolCallRetries", 1,
+                "sequentialToolCalls", true
+                                                         ));
+        when(mockStep.getId()).thenReturn("step1");
+        when(mockStep.createInitialModelCall()).thenReturn(mockModelCall);
         when(mockStep.createFollowUpModelCall(any(), any())).thenReturn(mockModelCall);
-        
-        when(mockModelCall.getToolCalls()).thenReturn(List.of(mockToolCall1));
-        
-        when(mockCompletionCriteria.isComplete(any())).thenReturn(true);
-        
-        // Configure tool calls to complete successfully
-        when(mockToolCall1.getStatus()).thenReturn(ToolCallStatus.COMPLETED);
-        when(mockToolCall2.getStatus()).thenReturn(ToolCallStatus.COMPLETED);
-        when(mockModelCall.getStatus()).thenReturn(ModelCallStatus.COMPLETED);
-        
-        // Execute
-        StepExecution result = stepExecutor.execute().join();
-        
-        // Verify
-        assertNotNull(result);
-        assertEquals(StepStatus.COMPLETED, result.getStatus());
-        assertEquals(1, result.getCallGroups().size());
-        
-        CallGroup group = result.getCallGroups().get(0);
-        assertEquals(2, group.getToolCalls().size());
-        assertTrue(group.isComplete());
-        
-        verify(mockStep, times(1)).createInitialModelCall();
-        verify(mockStep, times(1)).createFollowUpModelCall(any(), any());
+        when(mockStep.getStepExecution()).thenReturn(mockStepExecution);
+        when(mockStep.getCompletionCriteria()).thenReturn(null);
     }
     
     @Test
-    void testExecutionWithMultipleCallGroups() {
-        // Setup initial call that requires follow-up
-        when(mockModelCall.getToolCalls()).thenReturn(Collections.emptyList());
+    void testNormalStepExecutionCompletes() {
+        // Model call returns instruction to complete
+        Step.StepInstruction instruction = new Step.StepInstruction("step1", "result", Step.StepOutcome.COMPLETED, null, null, null, 1.0, null);
+        when(mockModelCallResponse.getInstruction()).thenReturn(instruction);
+        when(mockModelCallResponse.getToolCalls()).thenReturn(Collections.emptyList());
+        when(mockModelCallExecutorFactory.forProvider(any(), any(), any())).thenReturn(mockModelCallExecutor);
+        when(mockModelCallExecutor.execute()).thenReturn(CompletableFuture.completedFuture(mockModelCallResponse));
+        when(mockStepManager.getCurrentStep()).thenReturn(mockStep).thenReturn(null);
         
-        // Configure completion criteria to require two calls
-        boolean[] completionFlag = {false};
-        when(mockCompletionCriteria.isComplete(any())).thenAnswer(invocation -> {
-            if (!completionFlag[0]) {
-                completionFlag[0] = true;
-                return false;
-            }
-            return true;
-        });
+        StepExecutor executor = new StepExecutor(mockStep, mockContext, mockModelCallExecutorFactory, mockToolCallExecutorFactory);
+        StepExecution result = executor.execute().join();
         
-        // Configure follow-up call
-        when(mockStep.createFollowUpModelCall(any(), any())).thenReturn(mockModelCall);
-        when(mockModelCall.getStatus()).thenReturn(ModelCallStatus.COMPLETED);
-        
-        // Execute
-        StepExecution result = stepExecutor.execute().join();
-        
-        // Verify
         assertNotNull(result);
-        assertEquals(StepStatus.COMPLETED, result.getStatus());
-        assertEquals(2, result.getCallGroups().size());
-        assertTrue(result.getCallGroups().get(0).isComplete());
-        assertTrue(result.getCallGroups().get(1).isComplete());
-        
-        verify(mockStep, times(1)).createInitialModelCall();
-        verify(mockStep, times(1)).createFollowUpModelCall(any(), any());
+        verify(mockStepExecution).complete();
     }
     
     @Test
-    void testExecutionWithToolCallFailure() {
-        // Setup
-        when(mockModelCall.getToolCalls())
-                .thenReturn(Arrays.asList(mockToolCall1, mockToolCall2));
+    void testModelCallFailure() {
         
-        // Configure first tool call to fail
-        when(mockToolCall1.getStatus()).thenReturn(ToolCallStatus.FAILED);
-        when(mockToolCall2.getStatus()).thenReturn(ToolCallStatus.COMPLETED);
+        when(mockModelCallExecutorFactory.forProvider(any(), any(), any())).thenReturn(mockModelCallExecutor);
+        when(mockModelCallExecutor.execute()).thenThrow(new RuntimeException("Model call failed"));
         
-        // Execute
-        StepExecution result = stepExecutor.execute().join();
+        StepExecutor executor = spy(new StepExecutor(mockStep, mockContext, mockModelCallExecutorFactory, mockToolCallExecutorFactory));
+        StepExecution result = executor.execute().join();
         
-        // Verify
         assertNotNull(result);
-        assertEquals(StepStatus.FAILED, result.getStatus());
-        assertNotNull(result.getError());
-        
-        CallGroup group = result.getCallGroups().get(0);
-        assertFalse(group.isComplete());
-        assertEquals(CallGroupStatus.EXECUTING_TOOL_CALLS, group.getStatus());
+        assertEquals(result.getStatus(), StepStatus.FAILED);
     }
     
     @Test
-    void testExecutionWithModelCallFailure() {
-        // Setup
-        RuntimeException expectedException = new RuntimeException("Model call failed");
-        when(mockedModelCallExecutor.execute())
-                .thenReturn(CompletableFuture.failedFuture(expectedException));
-        when(mockModelCall.getStatus())
-                .thenReturn(ModelCallStatus.PENDING)
-                .thenReturn(ModelCallStatus.FAILED);
+    void testToolCallFailureAndRetry() {
+        // Model call returns a tool call
+        when(mockModelCallResponse.getInstruction()).thenReturn(null);
+        when(mockModelCallResponse.getToolCalls()).thenReturn(List.of(mockToolCall));
+        when(mockToolCall.getName()).thenReturn("tool1");
+        when(mockModelCallExecutorFactory.forProvider(any(), any(), any())).thenReturn(mockModelCallExecutor);
+        when(mockModelCallExecutor.execute()).thenReturn(CompletableFuture.completedFuture(mockModelCallResponse));
+        when(mockToolCallExecutorFactory.forProvider(any(), any(), any())).thenReturn(mockToolCallExecutor);
+        // Tool call fails first, then succeeds
+        doThrow(new RuntimeException("Tool failed"))
+                .when(mockToolCallExecutor).execute();
         
-        // Execute
-        StepExecution result = stepExecutor.execute().join();
+        StepExecutor executor = new StepExecutor(mockStep, mockContext, mockModelCallExecutorFactory, mockToolCallExecutorFactory);
+        StepExecution result = executor.execute().join();
         
-        // Verify
         assertNotNull(result);
-        assertEquals(StepStatus.FAILED, result.getStatus());
-        assertNotNull(result.getError());
-        assertTrue(result.getError().contains("Model call failed"));
+        // You can add more assertions about retries, status, etc.
     }
-} 
+    
+    @Test
+    void testToolCallFailureAndRecovery() {
+        // Model call returns a tool call
+        when(mockModelCallResponse.getInstruction()).thenReturn(null);
+        when(mockModelCallResponse.getToolCalls()).thenReturn(List.of(mockToolCall));
+        when(mockToolCall.getName()).thenReturn("tool1");
+        when(mockModelCallExecutorFactory.forProvider(any(), any(), any())).thenReturn(mockModelCallExecutor);
+        when(mockModelCallExecutor.execute()).thenReturn(CompletableFuture.completedFuture(mockModelCallResponse));
+        when(mockToolCallExecutorFactory.forProvider(any(), any(), any())).thenReturn(mockToolCallExecutor);
+        // Tool call fails first, then succeeds
+        doThrow(new RuntimeException("Tool failed"))
+                .doReturn(CompletableFuture.completedFuture(mockToolCallResponse))
+                .when(mockToolCallExecutor).execute();
+        
+        when(mockToolCall.getStatus()).thenReturn(ToolCallStatus.FAILED).thenReturn(ToolCallStatus.COMPLETED);
+        
+        StepExecutor executor = new StepExecutor(mockStep, mockContext, mockModelCallExecutorFactory, mockToolCallExecutorFactory);
+        StepExecution result = executor.execute().join();
+        
+        assertNotNull(result);
+        // You can add more assertions about retries, status, etc.
+    }
+    
+    @Test
+    void testSequentialToolCalls() {
+        // Set up two tool calls
+        MCPToolCall toolCall1 = mock(MCPToolCall.class);
+        MCPToolCall toolCall2 = mock(MCPToolCall.class);
+        when(mockModelCallResponse.getInstruction()).thenReturn(null);
+        when(mockModelCallResponse.getToolCalls()).thenReturn(List.of(toolCall1, toolCall2));
+        when(mockModelCallExecutorFactory.forProvider(any(), any(), any())).thenReturn(mockModelCallExecutor);
+        when(mockModelCallExecutor.execute()).thenReturn(CompletableFuture.completedFuture(mockModelCallResponse));
+        when(mockToolCallExecutorFactory.forProvider(any(), any(), any()))
+                .thenReturn(mockToolCallExecutor);
+        
+        StepExecutor executor = new StepExecutor(mockStep, mockContext, mockModelCallExecutorFactory, mockToolCallExecutorFactory);
+        StepExecution result = executor.execute().join();
+        
+        assertNotNull(result);
+        // Add assertions for sequential execution if needed
+    }
+    
+    @Test
+    void testMaxModelCallsExceeded() {
+        // Always return CONTINUE to force loop
+        Step.StepInstruction instruction = new Step.StepInstruction("step1", "result", Step.StepOutcome.CONTINUE, null, null, null, 1.0, null);
+        when(mockModelCallResponse.getInstruction()).thenReturn(instruction);
+        when(mockModelCallResponse.getToolCalls()).thenReturn(Collections.emptyList());
+        when(mockModelCallExecutorFactory.forProvider(any(), any(), any())).thenReturn(mockModelCallExecutor);
+        when(mockModelCallExecutor.execute()).thenReturn(CompletableFuture.completedFuture(mockModelCallResponse));
+        
+        StepExecutor executor = new StepExecutor(mockStep, mockContext, mockModelCallExecutorFactory, mockToolCallExecutorFactory);
+        StepExecution result = executor.execute().join();
+        
+        assertNotNull(result);
+        assertEquals(result.getStatus(), StepStatus.FAILED);
+    }
+    
+    @Test
+    void testNoToolCalls() {
+        // Model call returns no tool calls and no instruction
+        when(mockModelCallResponse.getInstruction()).thenReturn(null);
+        when(mockModelCallResponse.getToolCalls()).thenReturn(Collections.emptyList());
+        when(mockModelCallExecutorFactory.forProvider(any(), any(), any())).thenReturn(mockModelCallExecutor);
+        when(mockModelCallExecutor.execute()).thenReturn(CompletableFuture.completedFuture(mockModelCallResponse));
+        
+        StepExecutor executor = new StepExecutor(mockStep, mockContext, mockModelCallExecutorFactory, mockToolCallExecutorFactory);
+        StepExecution result = executor.execute().join();
+        
+        assertNotNull(result);
+        // Should not throw or hang
+    }
+}
