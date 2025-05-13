@@ -1,8 +1,0 @@
-spring:
-  ai:
-    mcp:
-      client:
-        sse:
-          connections:
-            my-wether-server:
-              url: http://localhost:8580
