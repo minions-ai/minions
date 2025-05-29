@@ -1,118 +1,73 @@
 package com.minionslab.core.step;
 
+import com.minionslab.core.agent.AgentContext;
+import com.minionslab.core.agent.AgentRecipe;
+import com.minionslab.core.step.graph.StepGraph;
+import com.minionslab.core.step.graph.StepGraphCompletionStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-import com.minionslab.core.model.MessageBundle;
-import com.minionslab.core.message.DefaultMessage;
-import com.minionslab.core.message.MessageRole;
-import com.minionslab.core.message.MessageScope;
-
+@ExtendWith(MockitoExtension.class)
 class StepManagerTest {
-    
-    private Step step1;
-    private Step step2;
-    private Step step3;
-    private Step step4;
-    private List<Step> steps;
-    private Map<String, List<String>> stepGraphMap;
-    private DefaultStepGraph stepGraph;
+    @Mock(strictness = Mock.Strictness.LENIENT)
+    private StepGraph stepGraph;
+    @Mock(strictness = Mock.Strictness.LENIENT)
+    private StepGraphCompletionStrategy completionStrategy;
     private StepManager stepManager;
-    
+    @Mock
+    private Step step;
+    @Mock
+    private AgentContext agentContext;
+    @Mock
+    private AgentRecipe recipe;
     
     @BeforeEach
     void setUp() {
-        MessageBundle bundle1 = new MessageBundle();
-        bundle1.addMessage(DefaultMessage.builder()
-                .role(MessageRole.SYSTEM)
-                .scope(MessageScope.STEP)
-                .content("system 1")
-                .build());
-        MessageBundle bundle2 = new MessageBundle();
-        bundle2.addMessage(DefaultMessage.builder()
-                .role(MessageRole.SYSTEM)
-                .scope(MessageScope.STEP)
-                .content("system 2")
-                .build());
-        MessageBundle bundle3 = new MessageBundle();
-        bundle3.addMessage(DefaultMessage.builder()
-                .role(MessageRole.SYSTEM)
-                .scope(MessageScope.STEP)
-                .content("system 3")
-                .build());
-        MessageBundle bundle4 = new MessageBundle();
-        bundle4.addMessage(DefaultMessage.builder()
-                .role(MessageRole.SYSTEM)
-                .scope(MessageScope.STEP)
-                .content("system 4")
-                .build());
-        step1 = new DefaultStep("s1", bundle1, Set.of());
-        step2 = new DefaultStep("s2", bundle2, Set.of());
-        step3 = new DefaultStep("s3", bundle3, Set.of());
-        step4 = new DefaultStep("s4", bundle4, Set.of());
-        steps = List.of(step1, step2, step3);
-        stepGraphMap = new HashMap<>();
-        stepGraphMap.put("s1", List.of("s2", "s3"));
-        stepGraphMap.put("s2", List.of("s4"));
-        stepGraphMap.put("s3", List.of());
-        stepGraph = new DefaultStepGraph(steps, stepGraphMap, new NextStepDecisionChain());
-        stepManager = new StepManager(stepGraph);
+
+        when(stepGraph.getCurrentStep()).thenReturn(step);
+        when(completionStrategy.isComplete(any(), any(), any())).thenReturn(false);
+        when(recipe.getStepGraph()).thenReturn(stepGraph);
+        when(recipe.getCompletionStrategy()).thenReturn(completionStrategy);
+
+        stepManager = new StepManager(recipe);
     }
-    
+
     @Test
-    void testInitializationSetsFirstStep() {
-        assertEquals(step1, stepManager.getCurrentStep());
+    void testGetCurrentStep() {
+        assertEquals(step, stepManager.getCurrentStep());
+        verify(stepGraph,times(1)).getCurrentStep();
+    }
+
+    @Test
+    void testIsWorkflowCompleteFalse() {
+        when(completionStrategy.isComplete(any(), any(), any())).thenReturn(false);
         assertFalse(stepManager.isWorkflowComplete());
     }
-    
+
     @Test
-    void testSetCurrentStepByObject() {
-        stepManager.setCurrentStep(step2);
-        assertEquals(step2, stepManager.getCurrentStep());
-        assertFalse(stepManager.isWorkflowComplete());
+    void testIsWorkflowCompleteTrue() {
+        when(completionStrategy.isComplete(any(), any(), any())).thenReturn(true);
+        // Force workflowComplete to false so it checks again
+        StepManager manager = new StepManager(recipe);
+        assertTrue(manager.isWorkflowComplete());
     }
-    
+
     @Test
-    void testSetCurrentStepById() {
-        stepManager.setCurrentStep("s2");
-        assertEquals(step2, stepManager.getCurrentStep());
-        assertFalse(stepManager.isWorkflowComplete());
+    void testAdvanceToNextStep() {
+        stepManager.advanceToNextStep(agentContext);
+        verify(stepGraph).advanceToNextStep(agentContext);
     }
-    
-    @Test
-    void testSetCurrentStepToNullMarksComplete() {
-        stepManager.setCurrentStep((Step) null);
-        assertNull(stepManager.getCurrentStep());
-        assertTrue(stepManager.isWorkflowComplete());
-    }
-    
-    @Test
-    void testSetCurrentStepByIdInvalid() {
-        stepManager.setCurrentStep("invalid");
-        assertNull(stepManager.getCurrentStep());
-        assertTrue(stepManager.isWorkflowComplete());
-    }
-    
+
     @Test
     void testSetWorkflowComplete() {
         stepManager.setWorkflowComplete();
-        assertNull(stepManager.getCurrentStep());
+        verify(stepGraph).complete();
         assertTrue(stepManager.isWorkflowComplete());
     }
-    
-    @Test
-    void testReset() {
-        stepManager.setCurrentStep(step3);
-        stepManager.setWorkflowComplete();
-        stepManager = new StepManager(stepGraph);
-        assertEquals(step1, stepManager.getCurrentStep());
-        assertFalse(stepManager.isWorkflowComplete());
-    }
-}
+} 
