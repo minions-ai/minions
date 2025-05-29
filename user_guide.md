@@ -13,6 +13,7 @@
 8. [Extensibility Points](#extensibility-points)
 9. [Example: Custom Workflow](#example-custom-workflow)
 10. [Diagrams](#diagrams)
+11. [Full Agent Execution Sequence Diagram](#full-agent-execution-sequence-diagram)
 
 ---
 
@@ -205,6 +206,66 @@ flowchart TD
     B -- Not Complete --> D[Pattern Match]
     D -- Match --> C
     D -- No Match --> E[Next Link or Fail]
+```
+
+---
+
+## Full Agent Execution Sequence Diagram
+
+Below is a detailed sequence diagram showing how an `AgentExecutor` executes an agent with an `AgentRecipe`, including all major internal method calls and peripheral classes:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant AgentExecutor
+    participant Agent
+    participant AgentRecipe
+    participant AgentContext
+    participant StepManager
+    participant StepGraph
+    participant StepExecutor
+    participant ModelCallExecutor
+    participant ToolCallExecutor
+    participant ModelMemory
+    participant Tool
+    participant Model
+
+    User->>AgentExecutor: execute(recipeId)
+    AgentExecutor->>AgentRecipe: getRecipe(recipeId)
+    AgentExecutor->>Agent: new Agent(recipe)
+    AgentExecutor->>StepGraph: build StepGraph from recipe
+    AgentExecutor->>StepManager: new StepManager(stepGraph)
+    AgentExecutor->>ModelMemory: create ModelMemory
+    AgentExecutor->>AgentContext: new AgentContext(agent, stepManager, modelMemory)
+    AgentExecutor->>StepManager: getCurrentStep()
+    loop For each step
+        AgentExecutor->>StepExecutor: new StepExecutor(step, context, ...)
+        StepExecutor->>ModelMemory: getPromptMessages(conversationId)
+        StepExecutor->>Step: getGoal(), getSystemPrompt(), getMetadata()
+        StepExecutor->>ModelCallExecutor: execute(modelCall, context)
+        ModelCallExecutor->>ModelMemory: takeSnapshot(conversationId)
+        ModelCallExecutor->>Model: call(prompt)
+        Model-->>ModelCallExecutor: ModelCallResponse
+        ModelCallExecutor->>ModelMemory: saveChatResponse(conversationId, response)
+        ModelCallExecutor-->>StepExecutor: ModelCallResponse
+        alt Tool calls required
+            StepExecutor->>ToolCallExecutor: execute(toolCall, context)
+            ToolCallExecutor->>ModelMemory: takeSnapshot(conversationId)
+            ToolCallExecutor->>Tool: execute(request)
+            Tool-->>ToolCallExecutor: ToolCallResponse
+            ToolCallExecutor->>ModelMemory: saveToolResponse(conversationId, response)
+            ToolCallExecutor-->>StepExecutor: ToolCallResponse
+        end
+        StepExecutor->>StepManager: update StepExecution
+        StepExecutor->>DefaultStepCompletionChain: isComplete(execution)
+        DefaultStepCompletionChain->>StepCompletionLink: check(execution)
+        StepExecutor-->>AgentExecutor: StepExecution
+        AgentExecutor->>StepManager: advanceToNextStep(context, toolCallExecutorFactory)
+        StepManager->>StepGraph: getPossibleNextSteps(currentStep)
+        StepManager->>StepGraph: selectNextStep(...)
+        StepManager->>Step: setCurrentStep(nextStep)
+    end
+    AgentExecutor-->>User: AgentResult (all StepExecutions)
 ```
 
 ---

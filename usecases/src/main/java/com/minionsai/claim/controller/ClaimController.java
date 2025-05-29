@@ -50,7 +50,7 @@ public class ClaimController {
 
     if (future.isDone()) {
       try {
-        return ResponseEntity.ok(future.get()); // Return completed result
+        return ResponseEntity.ok(future.get()); // Return completed results
       } catch (Exception e) {
         return ResponseEntity.status(500).body(getErrorResponse("Error processing request"));
       }

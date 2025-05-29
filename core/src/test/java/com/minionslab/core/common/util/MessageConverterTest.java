@@ -1,0 +1,66 @@
+package com.minionslab.core.common.util;
+
+import com.minionslab.core.message.DefaultMessage;
+import com.minionslab.core.message.MessageRole;
+import com.minionslab.core.tool.ToolCall;
+import org.junit.jupiter.api.Test;
+import org.springframework.ai.chat.messages.*;
+import java.util.List;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class MessageConverterTest {
+    @Test
+    void testToMCPMessageSystemUserAssistant() {
+        SystemMessage sys = new SystemMessage("sys");
+        UserMessage user = new UserMessage("user");
+        AssistantMessage assistant = new AssistantMessage("assistant");
+        assertEquals(MessageRole.SYSTEM, MessageConverter.toMCPMessage(sys).getRole());
+        assertEquals(MessageRole.USER, MessageConverter.toMCPMessage(user).getRole());
+        assertEquals(MessageRole.ASSISTANT, MessageConverter.toMCPMessage(assistant).getRole());
+    }
+
+/*    @Test
+    void testToMCPMessageThrowsOnUnknownType() {
+        var unknown = mock(org.springframework.ai.chat.messages.Message.class);
+        when(unknown.getContent()).thenReturn("unknown");
+        assertThrows(IllegalArgumentException.class, () -> MessageConverter.toMCPMessage(unknown));
+    }*/
+
+    @Test
+    void testToSpringMessageCoversAllRoles() {
+        for (MessageRole role : MessageRole.values()) {
+            DefaultMessage msg = DefaultMessage.builder().role(role).content("c").build();
+            if (role == MessageRole.USER || role == MessageRole.ASSISTANT || role == MessageRole.SYSTEM || role == MessageRole.ERROR || role == MessageRole.TOOL || role == MessageRole.GOAL) {
+                assertNotNull(MessageConverter.toSpringMessage(msg));
+            } else {
+                assertThrows(IllegalArgumentException.class, () -> MessageConverter.toSpringMessage(msg));
+            }
+        }
+    }
+
+    @Test
+    void testCreateErrorMessage() {
+        Exception e = new RuntimeException("fail");
+        var msg = MessageConverter.createErrorMessage(e);
+        assertEquals(MessageRole.ERROR, msg.getRole());
+        assertTrue(msg.getContent().contains("fail"));
+    }
+
+    @Test
+    void testFromSpringToolCall() {
+        AssistantMessage.ToolCall toolCall = new AssistantMessage.ToolCall("id", "tool", null,null);
+        ToolCall result = MessageConverter.fromSpringToolCall(toolCall);
+        assertNotNull(result);
+        assertEquals("tool", result.getRequest().name());
+    }
+
+    @Test
+    void testToMCPMessagesAndToSpringMessages() {
+        List<org.springframework.ai.chat.messages.Message> springMsgs = List.of(new SystemMessage("sys"), new UserMessage("user"));
+        var mcpMsgs = MessageConverter.toMCPMessages(springMsgs);
+        assertEquals(2, mcpMsgs.size());
+        var springMsgs2 = MessageConverter.toSpringMessages(mcpMsgs);
+        assertEquals(2, springMsgs2.size());
+    }
+} 

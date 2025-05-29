@@ -4,6 +4,13 @@ import java.util.Map;
 
 /**
  * Defines the metadata and capabilities of a tool in the Model Context Protocol.
+ *
+ * <b>Extensibility:</b>
+ * <ul>
+ *   <li>Implement this interface to define new tool types, metadata, or parameter specifications.</li>
+ *   <li>Override methods to support advanced tool versioning, enablement, or description logic.</li>
+ * </ul>
+ * <b>Usage:</b> ToolDefinition describes the capabilities and metadata of a tool. Implement for custom tools in the framework.
  */
 public interface ToolDefinition {
     /**

@@ -1,103 +1,63 @@
 package com.minionslab.core.step;
 
+import com.minionslab.core.agent.AgentContext;
 import com.minionslab.core.agent.AgentRecipe;
-import com.minionslab.core.context.AgentContext;
-import lombok.Data;
-import lombok.experimental.Accessors;
+import com.minionslab.core.step.graph.StepGraph;
+import com.minionslab.core.step.graph.StepGraphCompletionStrategy;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Centralized step management for MCP workflows.
- * Owns step list, current step, step graph, instructions, and workflow completion state.
+ * StepManager orchestrates the execution and progression of steps in an agent workflow.
+ * <p>
+ * <b>Extensibility:</b>
+ * <ul>
+ *   <li>Extend StepManager to implement custom step progression, completion strategies, or workflow policies.</li>
+ *   <li>Override methods to add logging, metrics, or advanced orchestration logic.</li>
+ *   <li>Plug in custom {@link StepGraph} or {@link StepGraphCompletionStrategy} for advanced workflows.</li>
+ * </ul>
+ * <b>Usage:</b> Use StepManager to coordinate step execution, check workflow completion, and advance steps in agent orchestration.
  */
 @Slf4j
-@Data
-@Accessors(chain = true)
 public class StepManager {
     private final StepGraph stepGraph;
-    private Step currentStep;
-    private boolean workflowComplete = false;
+    private final StepGraphCompletionStrategy completionStrategy;
     
+    
+    private boolean workflowComplete;
+    
+    //todo complete the implementation of the completion strategies. In reality we should be using Completion Chain
     public StepManager(AgentRecipe recipe) {
-        this(recipe.getStepGraph());
+        this.stepGraph = recipe.getStepGraph();
+        this.completionStrategy = recipe.getCompletionStrategy();
+        
     }
     
-    public StepManager(StepGraph stepGraph) {
-        this.stepGraph = stepGraph;
-        this.currentStep = stepGraph.getSteps().get(0);
-        
-        
-    }
     
     public StepGraph getStepGraph() {
         return stepGraph;
     }
     
     public Step getCurrentStep() {
-        return currentStep;
+        return stepGraph.getCurrentStep();
     }
     
-    public void setCurrentStep(Step step) {
-        this.currentStep = step;
-        if (step == null) {
-            this.workflowComplete = true;
-            System.out.println("[StepManager] Workflow marked as complete (no more steps).");
-        } else {
-            this.workflowComplete = false;
-        }
-    }
-    
-    public void setCurrentStep(String stepId) {
-        List<Step> allSteps = stepGraph.getSteps();
-        allSteps.stream().filter(step -> step.getId().equals(stepId)).findFirst().ifPresentOrElse(
-                step -> {
-                    this.currentStep = step;
-                    this.workflowComplete = false;
-                },
-                () -> {
-                    this.currentStep = null;
-                    this.workflowComplete = true;
-                    System.out.println("[StepManager] Workflow marked as complete (no more steps).");
-                }
-                                                                                                 );
-    }
     
     public boolean isWorkflowComplete() {
+        if (!workflowComplete && stepGraph.getCurrentStep() != null) {
+            workflowComplete = completionStrategy.isComplete(stepGraph, stepGraph.getCurrentStep(), null);
+        }
         return workflowComplete;
     }
     
-    /**
-     * Advances to the next step using the StepGraph.
-     *
-     * @param context                 The AgentContext for model/tool execution
-     * @param toolCallExecutorFactory The factory to execute tool calls
-     */
-    public void advanceToNextStep(AgentContext context, com.minionslab.core.tool.ToolCallExecutorFactory toolCallExecutorFactory) {
-        List<Step> possibleNext = stepGraph.getPossibleNextSteps(currentStep);
-        Step nextStep = stepGraph.selectNextStep(currentStep, possibleNext, context, toolCallExecutorFactory);
-        if (nextStep != null) {
-            setCurrentStep(nextStep);
-        } else {
-            setWorkflowComplete();
-        }
+    public void advanceToNextStep(AgentContext context) {
+        stepGraph.advanceToNextStep(context);
     }
     
     public void setWorkflowComplete() {
-        this.currentStep = null;
+        stepGraph.complete();
         this.workflowComplete = true;
-        System.out.println("[StepManager] Workflow marked as complete (no more steps).");
+        log.info("[StepManager] Workflow marked as complete.");
     }
     
-    public List<StepExecution> getStepExecutions() {
-        List<StepExecution> executions = new ArrayList<>();
-        for (Step step : stepGraph.getSteps()) {
-            StepExecution exec = step.getStepExecution();
-            if (exec != null)
-                executions.add(exec);
-        }
-        return executions;
-    }
-} 
+    
+}

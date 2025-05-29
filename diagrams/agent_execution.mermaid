@@ -1,0 +1,42 @@
+sequenceDiagram
+    participant Client
+    participant AgentService
+    participant AgentRecipeRepository
+    participant DefaultAgent
+    participant StepManager
+    participant MemoryFactory
+    participant MemoryManager
+    participant AgentContext
+    participant ChainRegistry
+    participant Chain
+    participant AgentResult
+
+%% Entry point
+    Client->>AgentService: runAgent(recipeId)
+    AgentService->>AgentRecipeRepository: findById(recipeId)
+    AgentRecipeRepository-->>AgentService: AgentRecipe
+    alt Recipe not found
+        AgentService-->>Client: throw IllegalArgumentException
+    else Recipe found
+        AgentService->>AgentService: runAgent(AgentRecipe)
+        AgentService->>DefaultAgent: new DefaultAgent(recipe, userMessage)
+        DefaultAgent->>Agent: super(recipe, userMessage)
+        DefaultAgent-->>AgentService: DefaultAgent instance
+
+        AgentService->>StepManager: new StepManager(recipe)
+        StepManager-->>AgentService: StepManager instance
+
+        AgentService->>MemoryFactory: createMemories(recipe.memoryDefinitions)
+        MemoryFactory->>MemoryFactory: getMemoryDefinition for each name
+        MemoryFactory->>MemoryManager: new MemoryManager(memories)
+        MemoryManager-->>AgentService: MemoryManager instance
+
+        AgentService->>AgentContext: new AgentContext(agent, stepManager, memoryManager)
+        AgentContext-->>AgentService: AgentContext instance
+
+        AgentService->>ChainRegistry: process(agentContext)
+        ChainRegistry->>Chain: process(agentContext)
+        Chain-->>ChainRegistry: AgentResult
+        ChainRegistry-->>AgentService: AgentResult
+        AgentService-->>Client: AgentResult
+    end

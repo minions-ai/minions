@@ -1,6 +1,6 @@
 package com.minionslab.core.model;
 
-import com.minionslab.core.util.MessageConverter;
+import com.minionslab.core.common.util.MessageConverter;
 import lombok.experimental.Accessors;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.model.ChatModel;
@@ -9,6 +9,13 @@ import org.springframework.ai.model.tool.ToolCallingChatOptions;
 /**
  * Context for executing model calls, containing all necessary components
  * for message handling, model interaction, and tool call extraction.
+ *
+ * <b>Extensibility:</b>
+ * <ul>
+ *   <li>Extend ModelCallExecutionContext to add custom fields, adapters, or orchestration logic for model execution.</li>
+ *   <li>Use the builder to construct custom execution contexts for advanced scenarios.</li>
+ * </ul>
+ * <b>Usage:</b> ModelCallExecutionContext encapsulates all dependencies for executing a model call, including chat model, memory, and options.
  */
 
 @Accessors(chain = true)

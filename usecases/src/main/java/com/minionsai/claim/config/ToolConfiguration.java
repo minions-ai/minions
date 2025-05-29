@@ -25,7 +25,7 @@ import org.springframework.context.annotation.Description;
 public class ToolConfiguration {
 
   @Bean
-  @Description("Provides a list of available agents in the claims processing workflow, along with their responsibilities. This tool helps orchestrate claim processing by informing other components about which agents can handle specific tasks. It is essential for dynamic task assignment and workflow automation. IMPORTANT: ONLY USE THE AGENT NAME THAT YOU GET FROM availableAgentsTool. Any other toolName would not work and would result in an error.")
+  @Description("Provides a list of available agents in the claims processing workflow, along with their responsibilities. This tool helps orchestrate claim processing by informing other components about which agents can handle specific tasks. It is essential for dynamic task assignment and workflow automation. IMPORTANT: ONLY USE THE AGENT NAME THAT YOU GET FROM availableAgentsTool. Any other toolName would not work and would results in an error.")
   public Function<AvailableAgentsTool.Request, AvailableAgentsTool.Response> availableAgentsTool() {
     return new AvailableAgentsTool();
   }

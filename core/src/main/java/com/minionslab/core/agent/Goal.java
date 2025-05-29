@@ -9,6 +9,13 @@ import java.util.*;
 
 /**
  * Represents a goal that an MCP agent aims to achieve.
+ *
+ * <b>Extensibility:</b>
+ * <ul>
+ *   <li>Add fields for custom goal metadata, criteria, or subgoal logic.</li>
+ *   <li>Override {@link #isAchieved()} to implement advanced goal completion logic.</li>
+ * </ul>
+ * <b>Usage:</b> Use Goal to represent agent objectives, with support for subgoals and custom criteria.
  */
 @Data
 @Accessors(chain = true)
@@ -47,4 +54,6 @@ public class Goal {
         
         return true;
     }
+
+
 } 

@@ -1,0 +1,86 @@
+classDiagram
+%% Component Diagram for core.memory and core.memory.strategy
+
+%% Enums
+
+
+class MemoryOperationEnum enum
+class MemoryType enum
+class MemoryRole enum
+class OperationStatus enum
+
+%% Interfaces
+class MemoryContext
+class MemoryResult
+class Queryable
+class MemoryDefinition
+class MemoryChainCustomizer
+class MemoryStrategyRegistry
+class MemoryStrategy
+class MemoryFlushStrategy
+class MemoryQueryStrategy
+class Processor
+
+%% Classes
+class DefaultMemory
+class MemoryManager
+class DefaultMemoryContext
+class DefaultMemoryDefinition
+class MemoryOperationContext
+class MemoryOperationResult
+class MemorySnapshot
+class MessageNotFoundException
+class MemoryQuery
+class MemoryQueryUtils
+class ShortTermMemoryProcessor
+class AgentMemoryStrategy
+class ToolCallMemoryStrategy
+class ModelCallMemoryStrategy
+class StepMemoryQueryStrategy
+class ProcessContext
+class ProcessResult
+
+%% Relationships
+MemoryManager --> DefaultMemory : contains
+MemoryManager o-- Processor : chain of
+MemoryManager ..|> Memory : implements
+MemoryManager ..|> Processor : implements
+MemoryManager --> MemoryContext
+MemoryManager --> MemoryResult
+
+DefaultMemory ..|> Memory : implements
+DefaultMemory ..|> Processor : implements
+DefaultMemory --> MemoryStrategy : uses
+DefaultMemory --> DefaultMemoryContext
+
+DefaultMemoryContext ..|> MemoryContext : implements
+
+DefaultMemoryDefinition ..|> MemoryDefinition : implements
+
+MemoryOperationContext ..|> ProcessContext : implements
+MemoryOperationResult ..|> ProcessResult : implements
+
+MemoryStrategyRegistry --> MemoryStrategy : manages
+
+MemoryStrategy ..|> Processor : extends
+MemoryFlushStrategy ..|> MemoryStrategy : extends
+MemoryQueryStrategy ..|> MemoryStrategy : extends
+
+AgentMemoryStrategy ..|> MemoryQueryStrategy : implements
+ToolCallMemoryStrategy ..|> MemoryQueryStrategy : implements
+ModelCallMemoryStrategy ..|> MemoryQueryStrategy : implements
+StepMemoryQueryStrategy ..|> MemoryQueryStrategy : implements
+
+MemoryDefinition --> MemoryStrategy : references
+
+MemoryQueryUtils --> MemoryManager : uses
+MemoryQueryUtils --> MemoryQuery : uses
+
+%% Enums usage
+DefaultMemory --> MemoryRole
+MemoryManager --> MemoryOperationEnum
+MemoryManager --> MemoryType
+MemoryOperationResult --> OperationStatus
+
+%% Exceptions
+MessageNotFoundException ..|> RuntimeException

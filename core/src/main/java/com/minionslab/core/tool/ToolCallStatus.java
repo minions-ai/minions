@@ -2,6 +2,13 @@ package com.minionslab.core.tool;
 
 /**
  * Represents the status of a tool call in the Model Context Protocol.
+ *
+ * <b>Extensibility:</b>
+ * <ul>
+ *   <li>Add new statuses as needed for custom tool call lifecycle management.</li>
+ *   <li>Use ToolCallStatus to track and manage tool call state transitions.</li>
+ * </ul>
+ * <b>Usage:</b> Use ToolCallStatus to represent and manage the lifecycle of tool calls in the workflow.
  */
 public enum ToolCallStatus {
     /**

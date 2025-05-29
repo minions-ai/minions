@@ -16,6 +16,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * DefaultToolRegistry provides a thread-safe, pluggable implementation of ToolRegistry.
+ * <p>
+ * <b>Extensibility:</b>
+ * <ul>
+ *   <li>Extend DefaultToolRegistry to add custom tool registration, lookup, or orchestration logic.</li>
+ *   <li>Override methods to support advanced tool validation, parameter management, or execution policies.</li>
+ *   <li>Plug in custom tool callback providers or client integrations.</li>
+ * </ul>
+ * <b>Usage:</b> Use DefaultToolRegistry for production or testing, or extend for custom tool management needs.
+ */
 @Service
 public class DefaultToolRegistry implements ToolRegistry {
     
@@ -118,4 +129,5 @@ public class DefaultToolRegistry implements ToolRegistry {
         return registeredTools.keySet().stream().anyMatch(name -> name.contains(toolName));
     }
     
+
 }

@@ -11,6 +11,13 @@ import org.springframework.ai.tool.definition.ToolDefinition;
 /**
  * Orchestrates tool operations in the Model Context Protocol.
  * Handles tool registration, validation, and execution.
+ *
+ * <b>Extensibility:</b>
+ * <ul>
+ *   <li>Implement this interface to provide custom tool registration, lookup, or orchestration logic.</li>
+ *   <li>Override methods to support advanced tool validation, parameter management, or execution policies.</li>
+ * </ul>
+ * <b>Usage:</b> ToolRegistry orchestrates tool operations, registration, and validation. Implement for custom tool management in the framework.
  */
 public interface ToolRegistry {
     

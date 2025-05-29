@@ -1,0 +1,82 @@
+sequenceDiagram
+    participant User
+    participant AgentExecutor
+    participant Agent
+    participant AgentRecipe
+    participant AgentContext
+    participant StepManager
+    participant StepGraph
+    participant StepExecutor
+    participant ModelCallExecutor
+    participant ToolCallExecutor
+    participant MemoryManager
+    participant ShortTermMemory
+    participant EntityMemory
+    participant VectorStore
+    participant EpisodicMemory
+    participant Tool
+    participant Model
+
+    User->>AgentExecutor: execute(recipeId)
+    AgentExecutor->>AgentRecipe: getRecipe(recipeId)
+    AgentExecutor->>Agent: new Agent(recipe)
+    AgentExecutor->>StepGraph: build StepGraph from recipe
+    AgentExecutor->>StepManager: new StepManager(stepGraph)
+    AgentExecutor->>MemoryManager: initializeMemory(recipeId, agentId)
+    AgentExecutor->>AgentContext: new AgentContext(agent, stepManager, memoryManager)
+    AgentExecutor->>StepManager: getCurrentStep()
+
+    loop For each step
+        AgentExecutor->>StepExecutor: new StepExecutor(step, context, ...)
+        StepExecutor->>MemoryManager: getPromptMessages(conversationId, stepId)
+        MemoryManager->>ShortTermMemory: fetchMessages(stepId)
+        MemoryManager->>EntityMemory: fetchRelevantEntities(stepGoal)
+
+        StepExecutor->>ModelCallExecutor: execute(modelCall, context)
+        ModelCallExecutor->>MemoryManager: takeSnapshot(conversationId)
+        MemoryManager->>EpisodicMemory: saveSnapshot(conversationId)
+
+        ModelCallExecutor->>Model: call(prompt)
+        Model-->>ModelCallExecutor: ModelCallResponse
+
+        ModelCallExecutor->>MemoryManager: saveChatResponse(conversationId, response)
+        MemoryManager->>ShortTermMemory: storeAssistantMessage(response)
+        MemoryManager->>VectorStore: optionallyEmbed(response)
+
+        ModelCallExecutor-->>StepExecutor: ModelCallResponse
+
+        alt Tool calls required
+            StepExecutor->>ToolCallExecutor: execute(toolCall, context)
+            ToolCallExecutor->>MemoryManager: takeSnapshot(conversationId)
+            MemoryManager->>EpisodicMemory: saveSnapshot(conversationId)
+
+            ToolCallExecutor->>Tool: execute(request)
+            Tool-->>ToolCallExecutor: ToolCallResponse
+
+            ToolCallExecutor->>MemoryManager: saveToolResponse(conversationId, response)
+            MemoryManager->>ShortTermMemory: storeToolResult(response)
+            MemoryManager->>EntityMemory: extractAndStoreEntities(response)
+            MemoryManager->>VectorStore: optionallyEmbed(response)
+
+            ToolCallExecutor-->>StepExecutor: ToolCallResponse
+        end
+
+        StepExecutor->>StepManager: update StepExecution
+        MemoryManager->>EpisodicMemory: saveStepTrace(stepId, result)
+
+        StepExecutor->>DefaultStepCompletionChain: isComplete(execution)
+        DefaultStepCompletionChain->>MemoryManager: getEvaluationData(stepId)
+        MemoryManager->>ShortTermMemory: fetchStepContext()
+        DefaultStepCompletionChain->>StepCompletionLink: check(execution)
+
+        StepExecutor-->>AgentExecutor: StepExecution
+        AgentExecutor->>StepManager: advanceToNextStep(context)
+        StepManager->>StepGraph: getPossibleNextSteps(currentStep)
+        StepManager->>StepGraph: selectNextStep(...)
+        StepManager->>Step: setCurrentStep(nextStep)
+    end
+
+    AgentExecutor->>MemoryManager: finalizeEpisode(conversationId)
+    MemoryManager->>EpisodicMemory: storeEpisodeTrace(conversationId)
+
+    AgentExecutor-->>User: AgentResult (all StepExecutions)

@@ -14,7 +14,7 @@ import reactor.core.publisher.Flux;
             agentName + " is processing request...",
             agentName + " is analyzing: " + prompt,
             agentName + " is finalizing response...",
-            agentName + " result: " + prompt
+            agentName + " results: " + prompt
         ))
         .delayElements(Duration.ofSeconds(1));
   }

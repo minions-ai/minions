@@ -2,6 +2,13 @@ package com.minionslab.core.agent;
 
 /**
  * Represents the possible states of an MCP agent.
+ *
+ * <b>Extensibility:</b>
+ * <ul>
+ *   <li>Add new statuses as needed for custom agent lifecycle management.</li>
+ *   <li>Use AgentStatus to track and manage agent state transitions.</li>
+ * </ul>
+ * <b>Usage:</b> Use AgentStatus to represent and manage the lifecycle of agents in the framework.
  */
 public enum AgentStatus {
     /**

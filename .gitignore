@@ -36,3 +36,4 @@ build/
 
 /core/logs/*.*
 /mcp/src/main/resources/application-local.properties
+/core/src/main/resources/application-local.properties

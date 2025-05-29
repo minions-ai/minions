@@ -1,0 +1,74 @@
+
+sequenceDiagram
+    participant Client
+    participant MemoryManager
+    participant DefaultMemoryContext
+    participant Chain
+    participant DefaultMemory
+    participant MemoryStrategy
+    participant MemoryResult
+
+    %% store
+    Client->>MemoryManager: store(Message)
+    MemoryManager->>DefaultMemoryContext: new DefaultMemoryContext()
+    MemoryManager->>DefaultMemoryContext: addMessage(message)
+    MemoryManager->>DefaultMemoryContext: setOperation(STORE)
+    MemoryManager->>Chain: process(context)
+    Chain->>DefaultMemory: process(context)
+    DefaultMemory->>DefaultMemory: runStrategy(context)
+    DefaultMemory->>DefaultMemory.strategyChain: process(context)
+    DefaultMemory.strategyChain->>MemoryStrategy: process(context) (for each strategy)
+    MemoryStrategy-->>DefaultMemory.strategyChain: MemoryResult
+    DefaultMemory.strategyChain-->>DefaultMemory: MemoryResult
+    DefaultMemory-->>Chain: MemoryResult
+    Chain-->>MemoryManager: MemoryResult
+
+    %% retrieve
+    Client->>MemoryManager: retrieve(String id)
+    MemoryManager->>DefaultMemoryContext: new DefaultMemoryContext()
+    MemoryManager->>DefaultMemoryContext: setOperation(RETRIEVE)
+    MemoryManager->>DefaultMemoryContext: setMessageIdToRetrieve(id)
+    MemoryManager->>Chain: process(context)
+    Chain->>DefaultMemory: process(context)
+    DefaultMemory->>DefaultMemory: runStrategy(context)
+    DefaultMemory->>DefaultMemory.strategyChain: process(context)
+    DefaultMemory.strategyChain->>MemoryStrategy: process(context) (for each strategy)
+    MemoryStrategy-->>DefaultMemory.strategyChain: MemoryResult
+    DefaultMemory.strategyChain-->>DefaultMemory: MemoryResult
+    DefaultMemory-->>Chain: MemoryResult
+    Chain-->>MemoryManager: MemoryResult
+    MemoryManager->>MemoryResult: getRetrievedMessage()
+    MemoryResult-->>MemoryManager: Optional<Message>
+    MemoryManager-->>Client: Message
+
+    %% flush
+    Client->>MemoryManager: flush()
+    MemoryManager->>DefaultMemoryContext: new DefaultMemoryContext()
+    MemoryManager->>DefaultMemoryContext: setOperation(FLUSH)
+    MemoryManager->>Chain: process(context)
+    Chain->>DefaultMemory: process(context)
+    DefaultMemory->>DefaultMemory: runStrategy(context)
+    DefaultMemory->>DefaultMemory.strategyChain: process(context)
+    DefaultMemory.strategyChain->>MemoryStrategy: process(context) (for each strategy)
+    MemoryStrategy-->>DefaultMemory.strategyChain: MemoryResult
+    DefaultMemory.strategyChain-->>DefaultMemory: MemoryResult
+    DefaultMemory-->>Chain: MemoryResult
+    Chain-->>MemoryManager: MemoryResult
+
+    %% query
+    Client->>MemoryManager: query(MemoryQuery)
+    MemoryManager->>MemoryManager: execute(query)
+    MemoryManager->>DefaultMemoryContext: new DefaultMemoryContext()
+    MemoryManager->>DefaultMemoryContext: setQuery(query)
+    MemoryManager->>Chain: process(context)
+    Chain->>DefaultMemory: process(context)
+    DefaultMemory->>DefaultMemory: runStrategy(context)
+    DefaultMemory->>DefaultMemory.strategyChain: process(context)
+    DefaultMemory.strategyChain->>MemoryStrategy: process(context) (for each strategy)
+    MemoryStrategy-->>DefaultMemory.strategyChain: MemoryResult
+    DefaultMemory.strategyChain-->>DefaultMemory: MemoryResult
+    DefaultMemory-->>Chain: MemoryResult
+    Chain-->>MemoryManager: MemoryResult
+    MemoryManager->>MemoryResult: getRetrievedMessages()
+    MemoryResult-->>MemoryManager: List<Message>
+    MemoryManager-->>Client: List<Message>

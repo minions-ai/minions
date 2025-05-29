@@ -1,0 +1,19 @@
+
+sequenceDiagram
+    participant AgentService
+    participant MemoryFactory
+    participant MemoryDefinitionRegistry
+    participant MemoryStrategyRegistry
+    participant DefaultMemory
+    participant MemoryManager
+
+    AgentService->>MemoryFactory: createMemories(List<String> memoryNames)
+    MemoryFactory->>MemoryDefinitionRegistry: getMemoryDefinition(memoryName) (for each name)
+    MemoryDefinitionRegistry-->>MemoryFactory: MemoryDefinition
+    loop for each MemoryDefinition
+        MemoryFactory->>MemoryStrategyRegistry: getByName(strategyName) (for each strategy)
+        MemoryStrategyRegistry-->>MemoryFactory: MemoryStrategy
+        MemoryFactory->>DefaultMemory: new DefaultMemory(List<MemoryStrategy>)
+    end
+    MemoryFactory->>MemoryManager: new MemoryManager(List<DefaultMemory>)
+    MemoryFactory-->>AgentService: MemoryManager
