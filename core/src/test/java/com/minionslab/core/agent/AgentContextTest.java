@@ -6,7 +6,22 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for {@link AgentContext}.
+ * <p>
+ * Scenarios:
+ * <ul>
+ *   <li>Metadata and results management</li>
+ * </ul>
+ * <p>
+ * Setup: Mocks Agent, StepManager, and MemoryManager. Initializes AgentContext.
+ */
 class AgentContextTest {
+    /**
+     * Tests that metadata and results can be added and retrieved from AgentContext.
+     * Setup: Mocks Agent, StepManager, and MemoryManager. Adds metadata and checks values.
+     * Expected: Metadata and results are correctly stored and retrieved.
+     */
     @Test
     void testMetadataAndResults() {
         Agent agent = mock(Agent.class);

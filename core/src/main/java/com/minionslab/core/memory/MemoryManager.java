@@ -1,6 +1,9 @@
 package com.minionslab.core.memory;
 
 import com.minionslab.core.common.chain.Processor;
+import com.minionslab.core.memory.query.MemoryQuery;
+import com.minionslab.core.memory.query.QueryBuilder;
+import com.minionslab.core.memory.query.expression.Expr;
 import com.minionslab.core.message.Message;
 
 import java.util.Collections;
@@ -41,7 +44,7 @@ public class MemoryManager implements Memory, Processor<MemoryContext> {
     public Message retrieve(String id) {
         MemoryContext context = new MemoryContext();
         context.setOperation(MemoryOperation.RETRIEVE);
-        MemoryQuery query = MemoryQuery.builder().messageId(id).build();
+        MemoryQuery query = MemoryQuery.builder().expression(new QueryBuilder().id(id).build()).build();
         context.setMemoryRequest(new MemoryRequest(query, null));
         MemoryContext finalContext = context;
         memories.stream().forEach(memory -> memory.process(finalContext));
@@ -85,8 +88,8 @@ public class MemoryManager implements Memory, Processor<MemoryContext> {
      * @return the memory role string
      */
     @Override
-    public String getMemoryRole() {
-        return "memory_manager";
+    public MemorySubsystem getMemorySubsystem() {
+        return MemorySubsystem.MEMORY_MANAGER;
     }
     
     /**

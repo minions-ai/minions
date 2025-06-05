@@ -12,7 +12,7 @@ public class DefaultStepGraphDefinition implements StepGraphDefinition {
     private final List<Step> steps = new ArrayList<>();
     private final Map<String, List<String>> transitions = new HashMap<>();
     private Step startStep;
-    private TransitionStrategy transitionStrategy;
+    private TransitionStrategy transitionStrategy = new NextStepTransitionStrategy();
     
     public void addTransition(Step from, Step to) {
         transitions.computeIfAbsent(from.getId(), k -> new ArrayList<>()).add(to.getId());
@@ -44,7 +44,7 @@ public class DefaultStepGraphDefinition implements StepGraphDefinition {
     
     @Override
     public TransitionStrategy getTransitionStrategy() {
-        return null;
+        return transitionStrategy;
     }
     
 }

@@ -48,7 +48,7 @@ public class ToolCall implements ProcessContext {
     
     }
     
-    public record ToolCallRequest(String name, String input, Map<String,Object> parameters) {
+    public record ToolCallRequest(String input, Map<String,Object> parameters) {
     
     }
     

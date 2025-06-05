@@ -1,5 +1,6 @@
 package com.minionslab.core.memory;
 
+import com.minionslab.core.memory.query.Queryable;
 import com.minionslab.core.message.Message;
 
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.List;
  *
  * @param <T> the type of Message handled by this memory
  */
-public interface Memory<T extends Message> extends Queryable {
+public interface Memory<T extends Message> extends Queryable<T> {
     /**
      * Store a single message in memory.
      *
@@ -45,7 +46,7 @@ public interface Memory<T extends Message> extends Queryable {
      *
      * @return the memory role string
      */
-    String getMemoryRole();
+    MemorySubsystem getMemorySubsystem();
     /**
      * Store a list of messages in memory.
      *

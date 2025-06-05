@@ -1,5 +1,6 @@
 package com.minionslab.core.model;
 
+import com.minionslab.core.message.EntityMessage;
 import com.minionslab.core.message.Message;
 import com.minionslab.core.tool.ToolCall;
 import com.minionslab.core.common.util.MessageConverter;

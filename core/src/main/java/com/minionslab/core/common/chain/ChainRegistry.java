@@ -11,16 +11,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class ChainRegistry {
     
-    
     private final ObjectProvider<List<ChainCustomizer>> chainCustomizerProviders;
     private final ObjectProvider<List<ProcessorCustomizer>> processorCustomizerProviders;
     private final Map<String, Chain> chains = new ConcurrentHashMap<>();
     
     @Autowired
-    public ChainRegistry(ObjectProvider<List<ChainCustomizer>> chainCustomizerProviders, ObjectProvider<List<ProcessorCustomizer>> processorCustomizerProviders) {
-        
+    public ChainRegistry(ObjectProvider<List<ChainCustomizer>> chainCustomizerProviders, ObjectProvider<List<ProcessorCustomizer>> processorCustomizerProviders, Map<String, Chain> chains) {
         this.chainCustomizerProviders = chainCustomizerProviders;
         this.processorCustomizerProviders = processorCustomizerProviders;
+        chains.forEach(this::register);
     }
     
     public void register(String chainName, Chain chain) {
@@ -54,4 +53,8 @@ public class ChainRegistry {
         }
         throw new IllegalArgumentException("No chain found for context: " + (context == null ? "null" : context.getClass().getSimpleName()));
     }
-} 
+    
+    public Chain<Processor, ProcessContext> getChain(String chainName) {
+        return chains.get(chainName);
+    }
+}

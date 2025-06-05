@@ -22,10 +22,7 @@ import java.util.Optional;
 @Data
 @Accessors(chain = true)
 public class MemoryResult<T extends Message> extends ProcessResult<T> {
-    /**
-     * The list of messages resulting from the memory operation.
-     */
-    private List<T> results;
+
     /**
      * Constructs a MemoryResult with all fields.
      *

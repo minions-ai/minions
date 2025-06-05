@@ -7,7 +7,6 @@ import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * MemoryContext encapsulates the state and request for a memory operation in the MCP framework.
@@ -25,6 +24,7 @@ public class MemoryContext implements ProcessContext<MemoryResult<Message>> {
      * The memory request, including query and messages to store.
      */
     private MemoryRequest memoryRequest;
+    private ProcessContext sourceContext;
     /**
      * The type of memory operation (store, retrieve, query, etc.).
      */
@@ -33,7 +33,10 @@ public class MemoryContext implements ProcessContext<MemoryResult<Message>> {
      * The list of results accumulated during processing.
      */
     private List<MemoryResult<Message>> results = new ArrayList<>();
-
+    private List<Memory> memories;
+    private MemorySubsystem memorySubsystem;
+    
+    
     /**
      * Add a result to the context.
      *
@@ -43,4 +46,7 @@ public class MemoryContext implements ProcessContext<MemoryResult<Message>> {
     public void addResult(MemoryResult<Message> result) {
         results.add(result);
     }
+    
+    
+
 }

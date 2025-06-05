@@ -1,8 +1,11 @@
 package com.minionslab.core.memory.strategy;
 
+import com.minionslab.core.common.chain.ProcessContext;
 import com.minionslab.core.common.chain.Processor;
 import com.minionslab.core.memory.MemoryContext;
 import com.minionslab.core.memory.MemoryOperation;
+import com.minionslab.core.memory.MemoryResult;
+import com.minionslab.core.message.Message;
 
 import java.util.List;
 
@@ -14,7 +17,7 @@ import java.util.List;
  * Implementors can create custom strategies for different storage backends, policies,
  * or optimization goals. Strategies can be registered and discovered at runtime.
  */
-public interface MemoryStrategy extends Processor<MemoryContext>{
+public interface MemoryStrategy extends Processor<MemoryContext> {
     /**
      * Get the unique name of this strategy (for registration and lookup).
      *

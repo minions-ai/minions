@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,10 +28,10 @@ public class ModelCallService {
     private final Map<String, ModelInfo> modelInfoCache = new ConcurrentHashMap<>();
     
 
-    private List<AIModelProvider> modelCallProviders;
+    private List<AIModelProvider> modelCallProviders = new ArrayList<>();
     
     public ModelCallService(ObjectProvider<List<AIModelProvider>> providers) {
-        providers.ifAvailable(aIproviders-> this.modelCallProviders = aIproviders);
+        providers.ifAvailable(aIproviders-> this.modelCallProviders.addAll(aIproviders));
     }
     
     public Set<String> getModelNames() {

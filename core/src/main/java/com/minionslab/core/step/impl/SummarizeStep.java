@@ -12,8 +12,5 @@ public class SummarizeStep extends AbstractStep {
     private List<Message> sourceStepMessages;
     private String summaryTemplate;
     
-    @Override
-    public String getType() {
-        return "summarize";
-    }
+    
 }

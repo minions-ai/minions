@@ -1,20 +1,21 @@
 package com.minionslab.core.step;
 
+import com.minionslab.core.common.chain.ChainRegistry;
 import com.minionslab.core.common.chain.ProcessContext;
 import com.minionslab.core.common.chain.ProcessResult;
+import com.minionslab.core.config.ModelConfig;
 import com.minionslab.core.memory.MemoryManager;
+import com.minionslab.core.message.Message;
 import com.minionslab.core.model.ModelCall;
 import com.minionslab.core.model.ModelCallStatus;
 import com.minionslab.core.model.Prompt;
 import com.minionslab.core.tool.ToolCall;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -30,23 +31,30 @@ import java.util.stream.Collectors;
 @Accessors(chain = true)
 public class StepContext implements ProcessContext {
     private final Step step;
+    private final ChainRegistry chainRegistry;
     
     
     // StepExecution fields
     private final String id = UUID.randomUUID().toString();
     private final Instant startedAt;
-    private StepCompletionOutputInstructions.StepCompletionInstruction completionResult;
+    private StepCompletionOutputInstructions completionResult;
     private Instant completedAt;
     private StepStatus status;
     private String error;
     private List<ModelCall> modelCalls = new ArrayList<>();
     private List<ToolCall> toolCalls = new ArrayList<>();
     private List<ProcessResult> results;
-    private Map<String, Object> metadata = new java.util.HashMap<>();
+    private Map<String, Object> metadata = new HashMap<>();
     private int modelCallNumbers;
+    private Message userRequest;
+    private ModelConfig modelCallConfig;
+    @NotNull
+    private MemoryManager memoryManager;
     
-    public StepContext(Step step) {
+    public StepContext(Message userRequest,Step step, ChainRegistry chainRegistry) {
+        this.userRequest = userRequest;
         this.step = step;
+        this.chainRegistry = chainRegistry;
         this.startedAt = Instant.now();
         this.status = StepStatus.IN_PROGRESS;
         this.results = new ArrayList<>();
@@ -54,13 +62,9 @@ public class StepContext implements ProcessContext {
     }
     
     
-    public MemoryManager getMemoryManager() {
-        return null;
-    }
+
     
-    public void setPrompt(Prompt prompt) {
-        
-    }
+
     
     
     public Map<String, Object> getMetadata() {
@@ -91,4 +95,7 @@ public class StepContext implements ProcessContext {
     public void addResult(ProcessResult result) {
     
     }
+    
+    
+
 }

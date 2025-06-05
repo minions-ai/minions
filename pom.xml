@@ -32,9 +32,8 @@
         <module>orchestration/planning</module>
         <module>orchestration/meta</module>
         <module>orchestration/workflow</module>
-        <module>usecases/claim</module>
-        <module>usecases/patient</module>
         <module>api</module>
+        <module>agents/smart_home</module>
         <!-- Add other modules here -->
     </modules>
     <dependencies>
@@ -343,7 +342,6 @@
             </snapshots>
         </pluginRepository>
     </pluginRepositories>
-
 
 
 </project>

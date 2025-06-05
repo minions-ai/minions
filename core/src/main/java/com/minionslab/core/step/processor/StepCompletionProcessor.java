@@ -1,20 +1,19 @@
 package com.minionslab.core.step.processor;
 
-import com.minionslab.core.common.chain.ChainRegistry;
 import com.minionslab.core.common.chain.Processor;
 import com.minionslab.core.step.StepContext;
+import com.minionslab.core.step.StepService;
 import org.springframework.stereotype.Component;
 
 @Component
 public class StepCompletionProcessor implements Processor<StepContext> {
     
     
-    private final ChainRegistry chainRegistry;
+    private final StepService stepService;
     
-    public StepCompletionProcessor(ChainRegistry chainRegistry) {
-        this.chainRegistry = chainRegistry;
+    public StepCompletionProcessor(StepService stepService) {
+        this.stepService = stepService;
     }
-    
     
     @Override
     public boolean accepts(StepContext input) {
@@ -23,7 +22,8 @@ public class StepCompletionProcessor implements Processor<StepContext> {
     
     @Override
     public StepContext process(StepContext input) {
-        StepContext process = (StepContext) chainRegistry.process(input);
+//        StepContext processed = stepService.executeStep(input);
+        //todo this step processor is not implemented properly. Calling stepService from here causes an infitie call loop and a stack overflow
         return input;
     }
 }

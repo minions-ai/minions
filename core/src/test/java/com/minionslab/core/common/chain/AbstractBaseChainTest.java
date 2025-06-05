@@ -23,6 +23,21 @@ class AbstractBaseChainTest {
         protected void registerProcessors() {
             // no-op for test
         }
+        
+        /**
+         * Returns true if any processor in the chain accepts the given context.
+         *
+         * @param context the context to check
+         * @return true if any processor accepts, false otherwise
+         */
+        @Override
+        public boolean accepts(ProcessContext context) {
+            boolean accepted = false;
+            for(Processor processor: processors){
+                accepted = accepted || processor.accepts(context);
+            }
+            return accepted;
+        }
     }
     
     @BeforeEach

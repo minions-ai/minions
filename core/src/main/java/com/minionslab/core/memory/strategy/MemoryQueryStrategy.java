@@ -1,8 +1,6 @@
 package com.minionslab.core.memory.strategy;
 
-import com.minionslab.core.memory.MemoryContext;
-import com.minionslab.core.memory.MemoryQuery;
-import com.minionslab.core.message.Message;
+import com.minionslab.core.memory.MemoryOperation;
 
 import java.util.List;
 
@@ -13,20 +11,9 @@ import java.util.List;
  * Implementors can create custom query strategies for different storage backends, policies,
  * or optimization goals. Strategies can be registered and discovered at runtime.
  */
-public interface MemoryQueryStrategy extends MemoryStrategy {
-    /**
-     * Returns true if this strategy accepts the given context for querying.
-     *
-     * @param context the memory context
-     * @return true if accepted
-     */
-    boolean accepts(MemoryContext context);
+public interface MemoryQueryStrategy extends MemoryStrategy{
     
-    /**
-     * Query memory using the given context.
-     *
-     * @param context the memory context
-     * @return the list of messages matching the query
-     */
-    List<Message> query(MemoryContext context);
+    default List<MemoryOperation> getOperationsSupported() {
+        return List.of(MemoryOperation.QUERY);
+    }
 }

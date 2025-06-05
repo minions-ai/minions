@@ -1,19 +1,15 @@
 package com.minionslab.core.agent;
 
 import com.minionslab.core.common.logging.LoggingTopics;
-import com.minionslab.core.message.DefaultMessage;
 import com.minionslab.core.message.Message;
 import com.minionslab.core.message.MessageRole;
 import com.minionslab.core.message.MessageScope;
+import com.minionslab.core.message.SimpleMessage;
 import com.minionslab.core.model.MessageBundle;
-import lombok.Data;
-import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * Abstract base class for MCP-based agents. Defines the core functionality, lifecycle,
@@ -28,14 +24,12 @@ import java.util.UUID;
  * </ul>
  * <b>Usage:</b> To create a new agent type, extend this class and implement required methods. Agents are designed to be highly extensible and pluggable, supporting custom goals, memory, and execution flows.
  */
-@Data
-@Accessors(chain = true)
 @Slf4j(topic = LoggingTopics.AGENT)
 public abstract class Agent {
     /**
      * Unique agent ID for traceability and context management.
      */
-    protected final String agentId = UUID.randomUUID().toString();
+    protected final String agentId;
     /**
      * The current state of the agent (goals, context, status, etc.).
      */
@@ -47,7 +41,7 @@ public abstract class Agent {
     /**
      * The initial user message for this agent session.
      */
-    protected Message userMessage;
+    protected Message userRequest;
     /**
      * The bundle of messages (history, context, etc.) for this agent.
      */
@@ -57,13 +51,19 @@ public abstract class Agent {
      * Constructs an agent with the given recipe and user message.
      *
      * @param recipe the agent configuration
-     * @param userMessage the initial user message
+     * @param userRequest the initial user message
      */
-    public Agent(AgentRecipe recipe, Message userMessage) {
+    public Agent(AgentRecipe recipe, Message userRequest) {
+        this.agentId = generateAgentId();
         this.recipe = recipe;
-        this.messageBundle = new MessageBundle(recipe.getMessageBundle());
-        this.messageBundle.addMessage(userMessage);
-        this.userMessage = userMessage;
+        MessageBundle bundle = recipe.getMessageBundle();
+        if (bundle != null) {
+            this.messageBundle = new MessageBundle(bundle);
+        } else {
+            this.messageBundle = new MessageBundle();
+        }
+        this.messageBundle.addMessage(userRequest);
+        this.userRequest = userRequest;
         initialize(recipe);
     }
 
@@ -77,9 +77,15 @@ public abstract class Agent {
         this.state = new AgentState();
         // Set initial state
         this.state.setStatus(AgentStatus.INITIALIZED);
-        this.state.setAgentId(generateAgentId());
-        List<String> requiredTools = new ArrayList<>(recipe.getRequiredTools());
-        requiredTools.addAll(getAvailableTools());
+        this.state.setAgentId(this.agentId);
+        List<String> requiredTools = new ArrayList<>();
+        if (recipe.getRequiredTools() != null) {
+            requiredTools.addAll(recipe.getRequiredTools());
+        }
+        List<String> availableTools = getAvailableTools();
+        if (availableTools != null) {
+            requiredTools.addAll(availableTools);
+        }
     }
 
     /**
@@ -115,14 +121,22 @@ public abstract class Agent {
      * @return a message
      */
     protected Message createMessage(String content, MessageRole messageRole) {
-        return new DefaultMessage(MessageScope.AGENT, messageRole, content, Map.of());
+        // Use builder to set only the required fields
+        return SimpleMessage.builder()
+                .content(content)
+                .role(messageRole)
+                .scope(MessageScope.AGENT)
+                .metadata(new java.util.HashMap<>())
+                .build();
     }
 
     /**
      * Performs cleanup and releases resources. Subclasses can override for custom shutdown logic.
      */
     public void shutdown() {
-        state.setStatus(AgentStatus.SHUTDOWN);
+        if (state != null) {
+            state.setStatus(AgentStatus.SHUTDOWN);
+        }
     }
 
     /**
@@ -144,6 +158,34 @@ public abstract class Agent {
     }
 
     /**
+     * Gets the agent's configuration/recipe.
+     */
+    public AgentRecipe getRecipe() {
+        return recipe;
+    }
+
+    /**
+     * Sets the agent's configuration/recipe.
+     */
+    public void setRecipe(AgentRecipe recipe) {
+        this.recipe = recipe;
+    }
+
+    /**
+     * Gets the agent's user message.
+     */
+    public Message getUserRequest() {
+        return userRequest;
+    }
+
+    /**
+     * Sets the agent's user message.
+     */
+    public void setUserRequest(Message userRequest) {
+        this.userRequest = userRequest;
+    }
+
+    /**
      * Checks if the current goal has been achieved.
      *
      * @return true if the goal is achieved
@@ -159,8 +201,11 @@ public abstract class Agent {
      * @return the current goal, or null if none
      */
     public Goal getCurrentGoal() {
+        if (state == null || state.getGoals() == null || state.getGoals().isEmpty()) {
+            return null;
+        }
         List<Goal> goals = state.getGoals();
-        return goals.isEmpty() ? null : goals.get(goals.size() - 1);
+        return goals.get(goals.size() - 1);
     }
 
     /**
@@ -169,7 +214,7 @@ public abstract class Agent {
      * @return the current agent context
      */
     public AgentContext getContext() {
-        return state.getCurrentContext();
+        return state != null ? state.getCurrentContext() : null;
     }
 
     /**
@@ -178,7 +223,9 @@ public abstract class Agent {
      * @param context the new agent context
      */
     public void updateContext(AgentContext context) {
-        state.setCurrentContext(context);
+        if (state != null) {
+            state.setCurrentContext(context);
+        }
     }
 
     /**
@@ -197,5 +244,12 @@ public abstract class Agent {
      */
     public void setMessageBundle(MessageBundle messageBundle) {
         this.messageBundle = messageBundle;
+    }
+
+    /**
+     * Gets the agent's ID.
+     */
+    public String getAgentId() {
+        return agentId;
     }
 }

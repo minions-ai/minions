@@ -1,7 +1,7 @@
 package com.minionslab.core.step.processor;
 
 import com.minionslab.core.memory.MemoryManager;
-import com.minionslab.core.memory.MemoryQueryUtils;
+import com.minionslab.core.memory.query.MemoryQueryUtils;
 import com.minionslab.core.message.Message;
 import com.minionslab.core.model.ModelCall;
 import com.minionslab.core.step.StepContext;
@@ -13,12 +13,26 @@ import java.util.List;
 import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
 
+/**
+ * Unit tests for {@link SummarizeStepProcessor}.
+ * <p>
+ * Scenarios:
+ * <ul>
+ *   <li>Accepts always returns true</li>
+ * </ul>
+ * <p>
+ * Setup: Mocks StepContext. Initializes SummarizeStepProcessor.
+ */
 @ExtendWith(MockitoExtension.class)
 class SummarizeStepProcessorTest {
     @Mock StepContext context;
     @Mock MemoryManager memoryManager;
+    /**
+     * Tests that accepts always returns true for any context.
+     * Setup: Mocks StepContext.
+     * Expected: accepts returns true.
+     */
     @Test
     void testAcceptsAlwaysTrue() {
         SummarizeStepProcessor proc = new SummarizeStepProcessor();

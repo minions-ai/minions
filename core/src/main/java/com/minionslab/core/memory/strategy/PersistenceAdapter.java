@@ -1,6 +1,6 @@
 package com.minionslab.core.memory.strategy;
 
-import com.minionslab.core.memory.MemoryQuery;
+import com.minionslab.core.memory.query.MemoryQuery;
 import com.minionslab.core.message.Message;
 
 import java.util.List;

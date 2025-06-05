@@ -11,16 +11,16 @@ import java.util.stream.Collectors;
 @Component
 public class MemoryDefinitionRegistry {
     
-    private final @NotNull Map<String, MemoryDefinition> defintionMap;
+    private final @NotNull Map<MemorySubsystem, MemoryDefinition> defintionMap;
     
     private List<MemoryDefinition> definitions;
     
     @Autowired
     public MemoryDefinitionRegistry(List<MemoryDefinition> definitions) {
-        defintionMap = definitions.stream().collect(Collectors.toMap(MemoryDefinition::getMemoryName, def -> def));
+        defintionMap = definitions.stream().collect(Collectors.toMap(MemoryDefinition::getMemorySubsystem, def -> def));
     }
     
-    public MemoryDefinition getMemoryDefinition(String name) {
-        return defintionMap.get(name);
+    public MemoryDefinition getMemoryDefinition(MemorySubsystem subsystem) {
+        return defintionMap.get(subsystem);
     }
 }

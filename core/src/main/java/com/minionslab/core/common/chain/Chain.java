@@ -1,5 +1,8 @@
 package com.minionslab.core.common.chain;
 
+import com.minionslab.core.step.StepContext;
+
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -79,7 +82,7 @@ public interface Chain<T extends Processor, R extends ProcessContext> {
      * @param context the context to check
      * @return true if any processor accepts, false otherwise
      */
-    boolean accepts(R context);
+    boolean accepts(ProcessContext context);
 
     /**
      * Processes the input asynchronously through the chain. Default implementation uses a thread pool.
@@ -90,4 +93,6 @@ public interface Chain<T extends Processor, R extends ProcessContext> {
     default java.util.concurrent.CompletableFuture<R> processAsync(R input) {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> process(input));
     }
+    
+
 }

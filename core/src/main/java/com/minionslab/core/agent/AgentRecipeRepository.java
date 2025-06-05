@@ -17,20 +17,5 @@ import java.util.concurrent.ConcurrentHashMap;
 public interface AgentRecipeRepository {
     AgentRecipe findById(String agentId);
 
-    /**
-     * Simple in-memory implementation for demonstration/testing.
-     */
-    @Repository
-    class InMemoryAgentConfigRepository implements AgentRecipeRepository {
-        private final Map<String, AgentRecipe> configMap = new ConcurrentHashMap<>();
 
-        @Override
-        public AgentRecipe findById(String agentId) {
-            return configMap.get(agentId);
-        }
-
-        public void save(String agentId, AgentRecipe config) {
-            configMap.put(agentId, config);
-        }
-    }
 } 

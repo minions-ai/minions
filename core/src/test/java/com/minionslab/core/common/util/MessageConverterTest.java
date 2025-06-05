@@ -1,13 +1,16 @@
 package com.minionslab.core.common.util;
 
-import com.minionslab.core.message.DefaultMessage;
 import com.minionslab.core.message.MessageRole;
+import com.minionslab.core.message.SimpleMessage;
 import com.minionslab.core.tool.ToolCall;
 import org.junit.jupiter.api.Test;
-import org.springframework.ai.chat.messages.*;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
+
 import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class MessageConverterTest {
     @Test
@@ -30,7 +33,7 @@ class MessageConverterTest {
     @Test
     void testToSpringMessageCoversAllRoles() {
         for (MessageRole role : MessageRole.values()) {
-            DefaultMessage msg = DefaultMessage.builder().role(role).content("c").build();
+            SimpleMessage msg = SimpleMessage.builder().role(role).content("c").build();
             if (role == MessageRole.USER || role == MessageRole.ASSISTANT || role == MessageRole.SYSTEM || role == MessageRole.ERROR || role == MessageRole.TOOL || role == MessageRole.GOAL) {
                 assertNotNull(MessageConverter.toSpringMessage(msg));
             } else {
@@ -49,10 +52,10 @@ class MessageConverterTest {
 
     @Test
     void testFromSpringToolCall() {
-        AssistantMessage.ToolCall toolCall = new AssistantMessage.ToolCall("id", "tool", null,null);
+        AssistantMessage.ToolCall toolCall = new AssistantMessage.ToolCall("id", "tool", "tool",null);
         ToolCall result = MessageConverter.fromSpringToolCall(toolCall);
         assertNotNull(result);
-        assertEquals("tool", result.getRequest().name());
+        assertEquals("tool", result.getName());
     }
 
     @Test

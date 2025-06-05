@@ -1,5 +1,6 @@
 package com.minionslab.core.memory;
 
+import com.minionslab.core.memory.query.MemoryQuery;
 import com.minionslab.core.message.Message;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -14,6 +15,8 @@ import java.util.List;
 public class MemoryRequest {
     private MemoryQuery query;
     private List<Message> messagesToStore;
+    private List<String> messagesIdsToDelete;
+    
     
     public MemoryRequest() {
     }

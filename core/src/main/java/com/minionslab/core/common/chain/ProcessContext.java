@@ -1,5 +1,7 @@
 package com.minionslab.core.common.chain;
 
+import com.minionslab.core.agent.AgentConfig;
+
 import java.util.List;
 
 /**
@@ -18,14 +20,13 @@ public interface ProcessContext<T extends ProcessResult> {
      * @return the list of results
      */
     List<T> getResults();
+    
+    default void addResult(T result) {
+        this.getResults().add(result);
+    }
+    
 
-    /**
-     * Adds a result to the context.
-     *
-     * @param result the result to add
-     */
-    void addResult(T result);
-
+    
     /**
      * Represents a snapshot of the context for auditing or debugging.
      */

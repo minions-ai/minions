@@ -1,10 +1,13 @@
 package com.minionslab.core.common.util;
 
-import com.minionslab.core.message.DefaultMessage;
+import com.minionslab.core.message.SimpleMessage;
 import com.minionslab.core.message.Message;
 import com.minionslab.core.message.MessageRole;
 import com.minionslab.core.tool.ToolCall;
-import org.springframework.ai.chat.messages.*;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.ToolResponseMessage;
+import org.springframework.ai.chat.messages.UserMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +48,7 @@ public class MessageConverter {
         } else {
             throw new IllegalArgumentException("Unsupported message type: " + springMessage.getClass());
         }
-        return DefaultMessage.builder()
+        return SimpleMessage.builder()
                              .role(role)
                              .content(springMessage.getText())
                              .build();
@@ -55,7 +58,7 @@ public class MessageConverter {
         List<ToolResponseMessage.ToolResponse> result = new ArrayList<>();
         if (toolCalls != null) {
             for (ToolCall toolCall : toolCalls) {
-                String name = toolCall.getRequest() != null ? toolCall.getRequest().name() : null;
+                String name = toolCall.getRequest() != null ? toolCall.getName() : null;
                 String response = toolCall.getResponse() != null ? toolCall.getResponse().response() : null;
                 ToolResponseMessage.ToolResponse toolResponse = new ToolResponseMessage.ToolResponse(
                         UUID.randomUUID().toString(), name, response);
@@ -100,11 +103,11 @@ public class MessageConverter {
     }
     
     public static com.minionslab.core.message.Message createErrorMessage(Exception e) {
-        return DefaultMessage.builder()
+        return SimpleMessage.builder()
                              .role(MessageRole.ERROR)
                              .content("Error: " + e.getMessage() + "\n" +
-                                                 "Type: " + e.getClass().getSimpleName() + "\n" +
-                                                 (e.getCause() != null ? "Cause: " + e.getCause().getMessage() : ""))
+                                              "Type: " + e.getClass().getSimpleName() + "\n" +
+                                              (e.getCause() != null ? "Cause: " + e.getCause().getMessage() : ""))
                              .build();
     }
     
@@ -112,11 +115,11 @@ public class MessageConverter {
         if (toolCall == null)
             return null;
         return ToolCall.builder()
+                       .name(toolCall.name())
                        .request(new ToolCall.ToolCallRequest(
-                                  toolCall.name(),
-                                  toolCall.arguments() != null ? toolCall.arguments().toString() : null, null
-                          ))
+                               toolCall.arguments() != null ? toolCall.arguments().toString() : null, null
+                       ))
                        .build();
     }
-
+    
 }

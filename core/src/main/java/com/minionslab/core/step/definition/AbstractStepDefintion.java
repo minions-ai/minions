@@ -10,23 +10,22 @@ import lombok.experimental.Accessors;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
-@Accessors(chain = true)
+@Accessors
 public abstract class AbstractStepDefintion<T extends Step> implements StepDefinition<T> {
     
     private String id;
     private Message goal;
-    private String promptTemplate;
-    private Message systemPrompt;
+    private String type;
     
     // Getters and setters
     
     public void configureStep(AbstractStep step) {
         step.setId(id);
         step.setGoal(goal);
-        step.setPromptTemplate(promptTemplate);
-        step.setSystemPrompt(systemPrompt);
+
     }
     
     
+
 }
 

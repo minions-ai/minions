@@ -1,9 +1,9 @@
 package com.minionslab.core.agent;
 
+import com.minionslab.core.common.chain.ChainRegistry;
 import com.minionslab.core.common.chain.ProcessContext;
 import com.minionslab.core.common.chain.ProcessResult;
 import com.minionslab.core.common.logging.LoggingTopics;
-import com.minionslab.core.config.ModelConfig;
 import com.minionslab.core.memory.MemoryManager;
 import com.minionslab.core.step.StepManager;
 import lombok.AllArgsConstructor;
@@ -35,7 +35,8 @@ import java.util.Map;
  *   <li>Override or extend methods to support custom context management or result aggregation.</li>
  *   <li>Use the builder pattern to construct custom AgentContext instances for advanced scenarios.</li>
  * </ul>
- * <b>Usage:</b> AgentContext is the primary carrier for information as agent processors, chains, and steps are executed. It is designed to be extended for advanced agent orchestration and tracking.
+ * <b>Usage:</b> AgentContext is the primary carrier for information as agent processors, chains, and steps are executed. It is designed to be extended for advanced agent
+ * orchestration and tracking.
  */
 @Data
 @Accessors(chain = true)
@@ -43,6 +44,8 @@ import java.util.Map;
 @AllArgsConstructor
 @Slf4j(topic = LoggingTopics.AGENT)
 public class AgentContext implements ProcessContext {
+    
+    private static final ThreadLocal<AgentConfig> configHolder = new ThreadLocal<>();
     /**
      * The agent's configuration/recipe.
      */
@@ -55,10 +58,7 @@ public class AgentContext implements ProcessContext {
      * The agent instance for this context.
      */
     private final Agent agent;
-    /**
-     * The model configuration for this agent session.
-     */
-    private final ModelConfig modelConfig;
+    
     /**
      * The memory manager for this agent session.
      */
@@ -83,18 +83,19 @@ public class AgentContext implements ProcessContext {
      * Map of results, keyed by timestamp.
      */
     private Map<Instant, ProcessResult> result = new HashMap<>();
+    private ChainRegistry chainRegistry;
     
     /**
      * Constructs an AgentContext for the given agent, step manager, and memory manager.
      *
-     * @param agent the agent instance
-     * @param stepManager the step manager
+     * @param agent         the agent instance
+     * @param stepManager   the step manager
      * @param memoryManager the memory manager
      */
     public AgentContext(Agent agent, StepManager stepManager, MemoryManager memoryManager) {
         this.recipe = agent.getRecipe();
         this.agent = agent;
-        this.modelConfig = recipe.getModelConfig();
+        
         this.memoryManager = memoryManager;
         this.createdAt = Instant.now();
         this.lastUpdatedAt = Instant.now();
@@ -112,10 +113,22 @@ public class AgentContext implements ProcessContext {
         metadata.putIfAbsent("sequentialToolCalls", false);
     }
     
+    public static AgentConfig getConfig() {
+        return configHolder.get();
+    }
+    
+    public static void setConfig(AgentConfig config) {
+        configHolder.set(config);
+    }
+    
+    public static void clear() {
+        configHolder.remove();
+    }
+    
     /**
      * Add a metadata key/value pair to this context.
      *
-     * @param key the metadata key
+     * @param key   the metadata key
      * @param value the metadata value
      */
     public void addMetadata(String key, Object value) {

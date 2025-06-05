@@ -1,6 +1,7 @@
 package com.minionslab.core.agent;
 
 import com.minionslab.core.config.ModelConfig;
+import com.minionslab.core.memory.MemorySubsystem;
 import com.minionslab.core.model.MessageBundle;
 import com.minionslab.core.step.graph.StepGraph;
 import com.minionslab.core.step.graph.StepGraphCompletionStrategy;
@@ -88,7 +89,7 @@ public class AgentRecipe {
     @Builder.Default
     private Map<String, List<String>> stepGraphDefinition = new HashMap<>();
     private MessageBundle messageBundle;
-    private List<String> memoryDefinitions;
+    private List<MemorySubsystem> memoryDefinitions;
     private StepGraphCompletionStrategy completionStrategy;
     
     /**
@@ -112,10 +113,9 @@ public class AgentRecipe {
         this.stepGraphDefinition = stepGraphDefinition;
     }
     
-    public List<String> getMemoryDefintions() {
+    public List<MemorySubsystem> getMemoryDefintions() {
         return memoryDefinitions;
     }
     
     
-
 }

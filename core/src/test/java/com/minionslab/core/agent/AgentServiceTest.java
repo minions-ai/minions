@@ -12,6 +12,16 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for {@link AgentService}.
+ * <p>
+ * Scenarios:
+ * <ul>
+ *   <li>Run agent by ID fetches recipe and delegates to runAgent</li>
+ * </ul>
+ * <p>
+ * Setup: Mocks AgentRecipeRepository, ModelCallService, ChainRegistry, MemoryFactory, AgentRecipe, and Message.
+ */
 class AgentServiceTest {
     private AgentRecipeRepository recipeRepository;
     private ModelCallService modelCallService;
@@ -21,6 +31,11 @@ class AgentServiceTest {
     private AgentRecipe recipe;
     private Message message;
 
+    /**
+     * Sets up the test environment before each test.
+     * Mocks dependencies and initializes AgentService.
+     * Expected: AgentService is ready for use in each test.
+     */
     @BeforeEach
     void setUp() {
         recipeRepository = mock(AgentRecipeRepository.class);
@@ -35,6 +50,11 @@ class AgentServiceTest {
         when(recipe.getMessageBundle()).thenReturn(messageBundle);
     }
 
+    /**
+     * Tests that runAgentById fetches the recipe and delegates to runAgent.
+     * Setup: Mocks recipeRepository to return a recipe for a given ID.
+     * Expected: runAgent is called with the recipe and the correct context is returned.
+     */
     @Test
     void testRunAgentByIdFetchesRecipeAndDelegates() {
         when(recipeRepository.findById("id")).thenReturn(recipe);

@@ -4,10 +4,14 @@ import com.minionslab.core.common.chain.ChainRegistry;
 import com.minionslab.core.common.chain.ProcessResult;
 import com.minionslab.core.common.chain.Processor;
 import com.minionslab.core.common.logging.LoggingTopics;
+import com.minionslab.core.message.Message;
 import com.minionslab.core.step.Step;
 import com.minionslab.core.step.StepContext;
+import com.minionslab.core.step.StepService;
 import com.minionslab.core.step.graph.StepGraph;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -22,19 +26,13 @@ import java.util.List;
  * AgentProcessor coordinates step execution, error handling, and memory management for agents.
  */
 @Slf4j(topic = LoggingTopics.AGENT)
+@Component
 public class AgentProcessor implements Processor<AgentContext> {
-    /**
-     * The chain registry for step and agent processing.
-     */
-    private final ChainRegistry chainRegistry;
+    private final StepService stepService;
 
-    /**
-     * Constructs an AgentProcessor with the given chain registry.
-     *
-     * @param chainRegistry the chain registry
-     */
-    public AgentProcessor(ChainRegistry chainRegistry) {
-        this.chainRegistry = chainRegistry;
+    @Autowired
+    public AgentProcessor(StepService stepService) {
+        this.stepService = stepService;
     }
 
     /**
@@ -50,12 +48,12 @@ public class AgentProcessor implements Processor<AgentContext> {
         input.getMemoryManager().snapshot();
         return input;
     }
-
+    
     /**
      * Error handling hook. Restores memory snapshot on error.
      *
      * @param input the agent context
-     * @param e the exception thrown
+     * @param e     the exception thrown
      * @return the (possibly modified) agent context
      */
     @Override
@@ -65,7 +63,7 @@ public class AgentProcessor implements Processor<AgentContext> {
         input.getMemoryManager().restoreLatestSnapshot();
         return input;
     }
-
+    
     /**
      * Post-processing hook. Flushes memory after processing.
      *
@@ -80,7 +78,7 @@ public class AgentProcessor implements Processor<AgentContext> {
         input.getMemoryManager().flush();
         return input;
     }
-
+    
     /**
      * Determines if this processor accepts the given agent context.
      *
@@ -91,9 +89,9 @@ public class AgentProcessor implements Processor<AgentContext> {
     public boolean accepts(AgentContext input) {
         return input != null;
     }
-
+    
     /**
-     * Main process loop for agent execution. Orchestrates step execution using the chain registry.
+     * Main process loop for agent execution. Orchestrates step execution using StepService.
      *
      * @param input the agent context
      * @return the processed agent context
@@ -105,23 +103,24 @@ public class AgentProcessor implements Processor<AgentContext> {
         List<ProcessResult> agentResult = input.getResults();
         AgentRecipe recipe = input.getRecipe();
         StepGraph stepGraph = recipe.getStepGraph();
-        Step nextStep = stepGraph.getNextStep(input);
-        while (nextStep != null) {
-            StepContext stepContext = createStepContext(nextStep);
-            StepContext process = (StepContext) chainRegistry.process(stepContext);
-            nextStep = stepGraph.getNextStep(input);
+        Step currentStep = stepGraph.getCurrentStep();
+        while (currentStep != null) {
+            StepContext stepContext = createStepContext(agent.userRequest, currentStep,input.getChainRegistry());
+            StepContext process = stepService.executeStep(stepContext);
+            currentStep = stepGraph.getNextStep(input);
         }
         log.info("[AgentProcessor] Agent workflow completed for agent: {}", input.getAgent().getAgentId());
         return input;
     }
-
+    
     /**
      * Creates a StepContext for the given step. Subclasses can override for custom context logic.
      *
-     * @param nextStep the next step
+     * @param userRequest
+     * @param nextStep    the next step
      * @return the step context
      */
-    private StepContext createStepContext(Step nextStep) {
-        return new StepContext(nextStep);
+    private StepContext createStepContext(Message userRequest, Step nextStep, ChainRegistry chainRegistry) {
+        return new StepContext(userRequest,nextStep,chainRegistry);
     }
 }

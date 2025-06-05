@@ -1,5 +1,7 @@
 package com.minionslab.core.step.processor;
 
+import com.minionslab.core.common.chain.AbstractProcessor;
+import com.minionslab.core.common.chain.ProcessResult;
 import com.minionslab.core.common.chain.Processor;
 import com.minionslab.core.config.ModelConfig;
 import com.minionslab.core.message.Message;
@@ -14,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class ModelCallStepProcessor implements Processor<StepContext> {
+public class ModelCallStepProcessor extends AbstractProcessor<StepContext,String> implements StepProcessor {
     
     private final ModelCallService modelService;
     
@@ -27,24 +29,10 @@ public class ModelCallStepProcessor implements Processor<StepContext> {
         return !input.getUnfinishedModelCalls().isEmpty();
     }
     
-    @Override
-    public StepContext process(StepContext input) {
-        ModelCallStep step = (ModelCallStep) input.getStep();
-        input.getUnfinishedModelCalls().forEach(modelCall -> {
-            List<Message> messages = modelCall.getRequest().messages();
-            Map<String, Object> parameters = modelCall.getRequest().parameters();
-            ModelConfig modelConfig = modelCall.getModelConfig();
-            modelCall = modelService.call(modelCall);
-            modelCall.setStatus(ModelCallStatus.COMPLETED);
-            input.increaseModelCalls();
-        });
-        return input;
-    }
-    
     
     @Override
     public StepContext afterProcess(StepContext input) {
-        Processor.super.afterProcess(input);
+        
         input.getModelCalls().forEach(modelCall -> {
             List<ToolCall> toolCalls = modelCall.getToolCalls();
             input.getToolCalls().addAll(toolCalls);
@@ -54,6 +42,21 @@ public class ModelCallStepProcessor implements Processor<StepContext> {
     
     @Override
     public StepContext onError(StepContext input, Exception e) {
-        return Processor.super.onError(input, e);
+        return super.onError(input, e);
+    }
+    
+    @Override
+    protected String doProcess(StepContext input) throws Exception {
+
+        input.getUnfinishedModelCalls().forEach(modelCall -> {
+            List<Message> messages = modelCall.getRequest().messages();
+            Map<String, Object> parameters = modelCall.getRequest().parameters();
+            ModelConfig modelConfig = modelCall.getModelConfig();
+            modelCall = modelService.call(modelCall);
+            modelCall.setStatus(ModelCallStatus.COMPLETED);
+            input.increaseModelCalls();
+        });
+        return "completed";
+        
     }
 }

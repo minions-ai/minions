@@ -4,6 +4,7 @@ import com.minionslab.core.common.chain.Processor;
 import com.minionslab.core.memory.strategy.MemoryQueryStrategy;
 import com.minionslab.core.memory.strategy.MemoryStrategy;
 import com.minionslab.core.memory.strategy.MemoryStrategyRegistry;
+import com.minionslab.core.memory.strategy.persistence.inmemory.InMemoryPersistenceStrategy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -52,10 +53,10 @@ public class MemoryFactory {
      * @return a configured MemoryManager
      * @throws IllegalArgumentException if a memory name is null, blank, or not found
      */
-    public MemoryManager createMemories(List<String> memoryNames) {
+    public MemoryManager createMemories(List<MemorySubsystem> memoryNames) {
         List<MemoryDefinition> definitions = new ArrayList<>();
-        for (String memoryName : memoryNames) {
-            if (memoryName == null || memoryName.isBlank()) {
+        for (MemorySubsystem memoryName : memoryNames) {
+            if (memoryName == null ) {
                 throw new IllegalArgumentException("Memory name is null or blank");
             }
             MemoryDefinition def = memoryDefinitionRegistry.getMemoryDefinition(memoryName);
@@ -72,46 +73,11 @@ public class MemoryFactory {
         List<Processor<MemoryContext>> memories = new ArrayList<>();
         
         for (MemoryDefinition definition : definitions) {
-            List<MemoryQueryStrategy> queryRecords = new ArrayList<>();
-            DefaultMemory defaultMemory = buildMemoryFromDefinition(definition, queryRecords);
-            memories.add(defaultMemory);
+            // TODO: Replace with proper registry/lookup by name using definition.getPersistStrategy()
+            com.minionslab.core.memory.strategy.MemoryPersistenceStrategy persistenceStrategy = new InMemoryPersistenceStrategy();
+            AbstractMemory abstractMemory = definition.buildMemory(registry, persistenceStrategy);
+            memories.add(abstractMemory);
         }
         return new MemoryManager(memories);
-    }
-    
-    private @NotNull DefaultMemory buildMemoryFromDefinition(@NotNull MemoryDefinition definition, List<MemoryQueryStrategy> queryRecords) {
-        List<MemoryStrategy> definitionStrategies = new ArrayList<>(queryRecords);
-        
-        for (String strategyName : definition.getAllStrategyNames()) {
-            if (strategyName == null || strategyName.isBlank()) {
-                throw new IllegalArgumentException("Strategy name in definition '" + definition.getMemoryName() + "' is null or blank");
-            }
-            MemoryStrategy strategy = registry.getByName(strategyName);
-            if (strategy == null) {
-                throw new IllegalArgumentException("Strategy '" + strategyName + "' not found in registry for memory definition '" + definition.getMemoryName() + "'");
-            }
-            definitionStrategies.add(strategy);
-        }
-        // Ensure all MemoryOperation values are covered
-        Set<MemoryOperation> presentOps = definitionStrategies.stream()
-                                                              .flatMap(s -> s.getOperationsSupported().stream())
-                                                              .collect(java.util.stream.Collectors.toSet());
-        Set<MemoryOperation> allOps = EnumSet.allOf(MemoryOperation.class);
-        allOps.removeAll(presentOps);
-        for (MemoryOperation missingOp : allOps) {
-            MemoryStrategy defaultStrategy = registry.getDefaultForOperation(missingOp);
-            if (defaultStrategy != null) {
-                definitionStrategies.add(defaultStrategy);
-            } else {
-                throw new IllegalStateException("No strategy found for required operation: " + missingOp);
-            }
-        }
-        
-        EnumSet<MemoryOperation> supportedOps = EnumSet.noneOf(MemoryOperation.class);
-        List<MemoryStrategy> fallbackStrategies = new ArrayList<>();
-        supportedOps.forEach(op -> fallbackStrategies.add(registry.getDefaultForOperation(op)));
-        
-        
-        return new DefaultMemory(definition.getMemoryRole(), definitionStrategies, fallbackStrategies);
     }
 }

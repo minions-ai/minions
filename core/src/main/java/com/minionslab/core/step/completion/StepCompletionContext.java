@@ -30,12 +30,4 @@ public class StepCompletionContext<T extends ProcessResult> implements ProcessCo
     private boolean memoryUpdateFailed;
     private Throwable error;
     private boolean goalAchieved;
-    
-    
-    @Override
-    public void addResult(T result) {
-    
-    }
-    
-
 }

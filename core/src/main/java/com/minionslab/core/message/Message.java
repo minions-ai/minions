@@ -1,29 +1,34 @@
 package com.minionslab.core.message;
 
+import com.minionslab.core.memory.strategy.MemoryItem;
+
 import java.time.Instant;
 import java.util.Map;
 
-/**
- * Represents a message in the Model Context Protocol.
- * Messages are the fundamental unit of communication in MCP.
- */
-public interface Message {
-    
-    
-    String getId();
+
+public interface Message extends MemoryItem {
+    String getContent();
     
     MessageRole getRole();
     
-    String getContent();
     
-    Instant getTimestamp();
-    
-    Map<String, Object> getMetadata();
+    MessageScope getScope();
     
     
     int getTokenCount();
     
-    MessageScope getScope();
     
     String toPromptString();
-} 
+    
+    /**
+     * Dynamically retrieves a field value, supporting both static and derived fields.
+     */
+    Object getFieldValue(String field);
+    
+    
+    Map<String, Object> getMetadata();
+    
+    String getId();
+    
+    Instant getTimestamp();
+}

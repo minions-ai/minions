@@ -1,7 +1,9 @@
 package com.minionslab.core.step.definition;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.minionslab.core.step.Step;
 
 /**
@@ -14,17 +16,17 @@ import com.minionslab.core.step.Step;
  * </ul>
  * <b>Usage:</b> Use StepDefinition to enable dynamic, configurable workflows and step instantiation.
  */
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type"
+)
+@JsonIgnoreProperties({"description", "type"})
 public interface StepDefinition<T extends Step> {
     T buildStep();
-    
-    default String getType() {
-        StepDefinitionType ann = this.getClass().getAnnotation(StepDefinitionType.class);
-        return ann != null ? ann.type() : this.getClass().getSimpleName();
-    }
-    
-    default String getDescription() {
-        StepDefinitionType ann = this.getClass().getAnnotation(StepDefinitionType.class);
-        return ann != null ? ann.description() : "No description";
-    }
+    @JsonProperty("type")
+    String getType();
+    @JsonProperty("description")
+    String getDescription();
 }
 

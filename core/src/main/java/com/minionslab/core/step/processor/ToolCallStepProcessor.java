@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class ToolCallStepProcessor implements Processor<StepContext> {
+public class ToolCallStepProcessor implements StepProcessor {
     private ToolCallService toolCallService;
     
     public ToolCallStepProcessor(ToolCallService toolCallService) {

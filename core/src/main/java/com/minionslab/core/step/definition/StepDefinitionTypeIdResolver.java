@@ -30,12 +30,11 @@ public class StepDefinitionTypeIdResolver implements TypeIdResolver {
         Set<Class<?>> subTypes = reflections.getSubTypesOf((Class<Object>) baseType.getRawClass());
         for (Class<?> clazz : subTypes) {
             if (StepDefinition.class.isAssignableFrom(clazz)) {
-                StepDefinitionType annotation = clazz.getAnnotation(StepDefinitionType.class);
-                if (annotation != null) {
-                    String type = annotation.type();
-                    //noinspection unchecked
+                try {
+                    StepDefinition<?> instance = (StepDefinition<?>) clazz.getDeclaredConstructor().newInstance();
+                    String type = instance.getType();
                     registry.put(type, (Class<? extends StepDefinition<?>>) clazz);
-                }
+                } catch (Exception ignored) {}
             }
         }
     }

@@ -1,6 +1,9 @@
 package com.minionslab.core.memory;
 
 
+import com.minionslab.core.memory.strategy.MemoryPersistenceStrategy;
+import com.minionslab.core.memory.strategy.MemoryStrategyRegistry;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -15,6 +18,36 @@ import java.util.stream.Stream;
  * memory managers and chains.
  */
 public interface MemoryDefinition {
+    /**
+     * Get the memory role (for identification or routing).
+     *
+     * @return the memory role string
+     */
+    String getMemoryRole();
+    
+    /**
+     * Build a concrete AbstractMemory instance for this definition.
+     *
+     * @param registry            the memory strategy registry
+     * @param persistenceStrategy the persistence strategy for this memory
+     * @return a concrete AbstractMemory instance
+     */
+    default AbstractMemory buildMemory(
+            MemoryStrategyRegistry registry,
+            MemoryPersistenceStrategy persistenceStrategy
+                                      ) {
+        
+        // Return a DefaultMemory (concrete subclass of AbstractMemory)
+        return new DefaultMemory(getMemorySubsystem(), persistenceStrategy);
+    }
+    
+    /**
+     * Get the memory subsystem (for identification or routing).
+     *
+     * @return the memory subsystem
+     */
+    MemorySubsystem getMemorySubsystem();
+    
     /**
      * Get all strategy names used by this memory (query, persist, flush).
      *
@@ -48,18 +81,9 @@ public interface MemoryDefinition {
     String getFlushStrategy();
     
     /**
-     * Get the memory role (for identification or routing).
-     *
-     * @return the memory role string
-     */
-    String getMemoryRole();
-    
-    /**
      * Get the memory name (for registration or lookup).
      *
      * @return the memory name string
      */
     String getMemoryName();
-    
-    
 }

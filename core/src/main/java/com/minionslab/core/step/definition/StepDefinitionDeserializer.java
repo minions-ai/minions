@@ -5,18 +5,18 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.annotation.Lazy;
 
 import java.io.IOException;
 
 public class StepDefinitionDeserializer extends JsonDeserializer<StepDefinition<?>> {
     
     private final StepDefinitionRegistry registry;
-    private final ObjectMapper mapper;
     
     
-    public StepDefinitionDeserializer(StepDefinitionRegistry registry, ObjectMapper mapper) {
+    public StepDefinitionDeserializer(StepDefinitionRegistry registry) {
         this.registry = registry;
-        this.mapper = mapper;
+
     }
     
     @Override
@@ -36,6 +36,6 @@ public class StepDefinitionDeserializer extends JsonDeserializer<StepDefinition<
             throw new IllegalArgumentException("Unknown step type: " + type);
         }
         
-        return mapper.treeToValue(node, clazz);
+        return p.getCodec().treeToValue(node, clazz);
     }
 }

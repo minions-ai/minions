@@ -1,6 +1,6 @@
 package com.minionslab.core.common.chain;
 
-import com.minionslab.core.step.processor.StepCompletionProcessor;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.ArrayList;
@@ -35,20 +35,14 @@ public abstract class AbstractBaseChain<T extends Processor, R extends ProcessCo
      * Constructs a new AbstractBaseChain with optional providers for processors and customizers.
      * Subclasses can use these providers to inject dependencies or discover available processors.
      *
-     * @param processorProviders provider for the initial list of processors
+     * @param processorProviders  provider for the initial list of processors
      * @param customizerProviders provider for the initial list of processor customizers
      */
     public AbstractBaseChain(ObjectProvider<List<T>> processorProviders, ObjectProvider<List<ProcessorCustomizer>> customizerProviders) {
-        processorProviders.ifAvailable(processorList -> this.processors.addAll(processorList));
+//        processorProviders.ifAvailable(processorList -> this.processors.addAll(processorList));
         customizerProviders.ifAvailable(customizerList -> this.customizers.addAll(customizerList));
-        registerProcessors();
+        
     }
-    
-    /**
-     * Subclasses must implement this method to register the initial set of processors in the chain.
-     * This is the main extension point for defining custom processing logic.
-     */
-    protected abstract void registerProcessors();
     
     /**
      * Adds a processor to the start of the chain, applying all customizers first.
@@ -92,7 +86,7 @@ public abstract class AbstractBaseChain<T extends Processor, R extends ProcessCo
      * Adds a processor before a target processor in the chain, applying all customizers first.
      * If the target is not found, adds to the start.
      *
-     * @param target the processor to insert before
+     * @param target    the processor to insert before
      * @param processor the processor to add
      * @return this chain instance for fluent API
      */
@@ -112,7 +106,7 @@ public abstract class AbstractBaseChain<T extends Processor, R extends ProcessCo
      * Adds a processor after a target processor in the chain, applying all customizers first.
      * If the target is not found or is the last, adds to the end.
      *
-     * @param target the processor to insert after
+     * @param target    the processor to insert after
      * @param processor the processor to add
      * @return this chain instance for fluent API
      */
@@ -159,6 +153,8 @@ public abstract class AbstractBaseChain<T extends Processor, R extends ProcessCo
      */
     @Override
     public R process(R input) {
+        if (processors == null || processors.isEmpty())
+            registerProcessors();
         for (T processor : processors) {
             if (!processor.accepts(input))
                 continue;
@@ -174,17 +170,10 @@ public abstract class AbstractBaseChain<T extends Processor, R extends ProcessCo
     }
     
     /**
-     * Returns true if any processor in the chain accepts the given context.
-     *
-     * @param context the context to check
-     * @return true if any processor accepts, false otherwise
+     * Subclasses must implement this method to register the initial set of processors in the chain.
+     * This is the main extension point for defining custom processing logic.
      */
-    @Override
-    public boolean accepts(R context) {
-        boolean accepted = false;
-        for(T processor: processors){
-            accepted = accepted || processor.accepts(context);
-        }
-        return accepted;
-    }
+    @PostConstruct
+    protected abstract void registerProcessors();
+    
 }

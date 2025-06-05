@@ -2,10 +2,11 @@ package com.minionslab.core.agent;
 
 import com.minionslab.core.common.chain.ChainRegistry;
 import com.minionslab.core.memory.MemoryFactory;
+
 import com.minionslab.core.memory.MemoryManager;
-import com.minionslab.core.message.DefaultMessage;
 import com.minionslab.core.message.Message;
 import com.minionslab.core.message.MessageRole;
+import com.minionslab.core.message.SimpleMessage;
 import com.minionslab.core.service.ModelCallService;
 import com.minionslab.core.step.StepManager;
 import io.micrometer.core.instrument.MockClock;
@@ -80,7 +81,7 @@ public class AgentService {
      * @return The results of the agent execution
      */
     public AgentContext runAgent(AgentRecipe recipe) {
-        return runAgent(recipe, DefaultMessage.builder().content("You are the agent, run your recipe").role(MessageRole.USER).build());
+        return runAgent(recipe, SimpleMessage.builder().content("You are the agent, run your recipe").role(MessageRole.USER).build());
     }
     
     /**
@@ -108,6 +109,7 @@ public class AgentService {
         // Build dependencies
         StepManager stepManager = new StepManager(agent.getRecipe());
         MemoryManager memoryManager = memoryFactory.createMemories(agent.recipe.getMemoryDefintions());
+        
         return new AgentContext(agent, stepManager, memoryManager);
     }
     
@@ -119,6 +121,6 @@ public class AgentService {
      * @return The results of the agent execution
      */
     public AgentContext runAgent(AgentRecipe recipe, String userMessage) {
-        return runAgent(recipe, DefaultMessage.builder().content(userMessage).role(MessageRole.USER).build());
+        return runAgent(recipe, SimpleMessage.builder().content(userMessage).role(MessageRole.USER).build());
     }
 }

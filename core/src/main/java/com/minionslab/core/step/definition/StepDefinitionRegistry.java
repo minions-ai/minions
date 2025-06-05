@@ -1,5 +1,6 @@
 package com.minionslab.core.step.definition;
 
+import com.minionslab.core.step.StepException;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -13,18 +14,19 @@ public class StepDefinitionRegistry {
     
     public StepDefinitionRegistry(List<StepDefinition<?>> beans) {
         for (StepDefinition<?> step : beans) {
-            StepDefinitionType meta = step.getClass().getAnnotation(StepDefinitionType.class);
-            if (meta != null) {
-                typeMap.put(meta.type(), (Class<? extends StepDefinition<?>>) step.getClass());
-            }
+            typeMap.put(step.getType(), (Class<? extends StepDefinition<?>>) step.getClass());
         }
     }
     
     public Class<? extends StepDefinition<?>> getByType(String type) {
         Class<? extends StepDefinition<?>> clazz = typeMap.get(type);
         if (clazz == null) {
-            throw new UnknownStepTypeException("Unknown step type: " + type);
+            throw new StepException.UnknownStepTypeException("Unknown step type: " + type);
         }
         return clazz;
+    }
+    
+    public List<Class<? extends StepDefinition<?>>> getAllDefinitions() {
+        return typeMap.values().stream().toList();
     }
 }

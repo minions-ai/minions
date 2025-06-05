@@ -1,8 +1,8 @@
-# MCP Framework Developer Guide
+# Minions Framework Developer Guide
 
 ## Overview
 
-The MCP (Model Context Protocol) framework is a modular, extensible Java framework for orchestrating agent workflows, memory management, step execution, model/tool calls, and advanced AI-driven automation. It is designed for:
+The minions framework is a modular, extensible Java framework for orchestrating agent workflows, memory management, step execution, model/tool calls, and advanced AI-driven automation. It is designed for:
 - **Extensibility:** Plug in new agents, steps, memory strategies, models, and tools.
 - **Testability:** Modular design with clear interfaces and test points.
 - **Orchestration:** Chain-of-responsibility and strategy patterns for flexible workflows.
@@ -203,7 +203,7 @@ sequenceDiagram
 
 # Tutorial: Creating a Custom Agent
 
-This tutorial walks you through creating a new agent using the MCP framework. You'll learn how to define a custom step, create an agent recipe, implement (optionally) a custom agent, and run your agent in a workflow.
+This tutorial walks you through creating a new agent using the minions framework. You'll learn how to define a custom step, create an agent recipe, implement (optionally) a custom agent, and run your agent in a workflow.
 
 ## 1. Define a Custom Step
 

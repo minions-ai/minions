@@ -1,0 +1,93 @@
+classDiagram
+    class Chain {
+        +addToStart(processor)
+        +addToEnd(processor)
+        +addBefore(target, processor)
+        +addAfter(target, processor)
+        +remove(processor)
+        +getProcessors()
+        +process(input)
+        +processAsync(input)
+        +accepts(context)
+    }
+
+    class AbstractBaseChain {
+        -List~Processor~ processors
+        -List~ProcessorCustomizer~ customizers
+        +registerProcessors()
+        +process(input)
+        +addToStart(processor)
+        +addToEnd(processor)
+        +addBefore(target, processor)
+        +addAfter(target, processor)
+        +remove(processor)
+        +getProcessors()
+    }
+
+    class Processor {
+        +accepts(input)
+        +process(input)
+        +processAsync(input)
+        +beforeProcess(input)
+        +afterProcess(input)
+        +onError(input, e)
+        +getPriority()
+        +getDescription()
+    }
+
+    class AbstractProcessor {
+        +process(input)
+        +doProcess(input)
+        +accepts(input)
+    }
+
+    class ProcessContext {
+        +getResults()
+        +addResult(result)
+    }
+
+    class ProcessResult {
+        +processorId
+        +handled
+        +results
+        +error
+        +startedAt
+        +endedAt
+    }
+
+    class ChainRegistry {
+        -Map~String, Chain~ chains
+        +register(name, chain)
+        +unregisterChain(chain)
+        +unregisterChain(name)
+        +canProcess(context)
+        +process(context)
+        +getChain(name)
+    }
+
+    class ChainCustomizer {
+        +customize(chain)
+        +accepts(chain)
+    }
+
+    class ProcessorCustomizer {
+        +customize(processor)
+        +accepts(processor)
+    }
+
+    class ChainDefinition {
+        +getName()
+        +build()
+    }
+
+    Chain <|-- AbstractBaseChain
+    AbstractBaseChain o-- Processor : contains
+    AbstractBaseChain o-- ProcessorCustomizer : uses
+    ChainRegistry o-- Chain : manages
+    ChainRegistry o-- ChainCustomizer : uses
+    Processor <|.. ProcessorCustomizer : customized by
+    Chain <|.. ChainCustomizer : customized by
+    Processor <|-- AbstractProcessor
+    Processor --> ProcessContext : processes
+    ProcessContext --> ProcessResult : accumulates
+    ChainDefinition ..> Chain : builds

@@ -1,0 +1,36 @@
+
+sequenceDiagram
+    participant User
+    participant ChainRegistry
+    participant Chain
+    participant Processor1
+    participant Processor2
+    participant ProcessContext
+
+    User->>ChainRegistry: process(context)
+    ChainRegistry->>Chain: process(context)
+    Chain->>Processor1: accepts(context)?
+    alt Processor1 accepts
+        Chain->>Processor1: beforeProcess(context)
+        Processor1-->>Chain: context
+        Chain->>Processor1: process(context)
+        Processor1-->>Chain: context
+        Chain->>Processor1: afterProcess(context)
+        Processor1-->>Chain: context
+    else Processor1 does not accept
+        Note right of Processor1: Skipped
+    end
+    Chain->>Processor2: accepts(context)?
+    alt Processor2 accepts
+        Chain->>Processor2: beforeProcess(context)
+        Processor2-->>Chain: context
+        Chain->>Processor2: process(context)
+        Processor2-->>Chain: context
+        Chain->>Processor2: afterProcess(context)
+        Processor2-->>Chain: context
+    else Processor2 does not accept
+        Note right of Processor2: Skipped
+    end
+    Chain->>ProcessContext: addResult(result)
+    Chain-->>ChainRegistry: context (with results)
+    ChainRegistry-->>User: processed context

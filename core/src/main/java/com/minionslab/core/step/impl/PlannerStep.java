@@ -9,8 +9,5 @@ public class PlannerStep extends AbstractStep {
     private String constraints;
     private String plannerName;
     
-    @Override
-    public String getType() {
-        return "planner";
-    }
+
 }

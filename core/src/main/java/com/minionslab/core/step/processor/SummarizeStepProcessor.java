@@ -2,9 +2,8 @@ package com.minionslab.core.step.processor;
 
 import com.minionslab.core.common.chain.Processor;
 import com.minionslab.core.step.StepContext;
-import com.minionslab.core.memory.MemoryQueryUtils;
+import com.minionslab.core.memory.query.MemoryQueryUtils;
 import com.minionslab.core.message.Message;
-import com.minionslab.core.message.MessageRole;
 import com.minionslab.core.model.MessageBundle;
 import com.minionslab.core.model.ModelCall;
 import com.minionslab.core.config.ModelConfig;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class SummarizeStepProcessor implements Processor<StepContext> {

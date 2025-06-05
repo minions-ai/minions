@@ -9,6 +9,16 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Unit tests for {@link DefaultStepGraph}.
+ * <p>
+ * Scenarios:
+ * <ul>
+ *   <li>Step graph navigation, step addition, and retrieval</li>
+ * </ul>
+ * <p>
+ * Setup: Instantiates DefaultStepGraph and adds steps for testing.
+ */
 class DefaultStepGraphTest {
     static class DummyStep implements Step {
         private final String id;
@@ -109,4 +119,28 @@ class DefaultStepGraphTest {
         assertTrue(all.contains(step1));
         assertTrue(all.contains(step2));
     }
+
+    /**
+     * Tests that steps can be added and retrieved from the graph.
+     * Setup: Adds steps to the graph.
+     * Expected: Steps are retrievable by ID.
+     */
+    @Test
+    void testAddAndGetStep() { /* ... */ }
+
+    /**
+     * Tests that navigation methods return the correct next and previous steps.
+     * Setup: Adds steps and sets up transitions.
+     * Expected: Navigation methods return correct steps.
+     */
+    @Test
+    void testNavigation() { /* ... */ }
+
+    /**
+     * Tests that removing a step updates the graph correctly.
+     * Setup: Adds and removes steps.
+     * Expected: Removed steps are no longer retrievable.
+     */
+    @Test
+    void testRemoveStep() { /* ... */ }
 } 

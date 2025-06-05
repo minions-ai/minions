@@ -1,0 +1,23 @@
+version: "3.8"
+services:
+  mongodb:
+    image: mongo:8.0.6
+    container_name: local-mongo
+    hostname: local-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - ./mongo-backup:/tmp/mongo-backup
+    networks:
+      - hls-network
+    entrypoint: ["/bin/bash", "-c", "mongod --bind_ip_all --fork --logpath /var/log/mongodb.log --dbpath /data/db && mongorestore --dir /tmp/mongo-backup --drop && tail -f /dev/null"]
+
+volumes:
+  mongo-data:
+    driver: local
+
+networks:
+  hls-network:
+    name: hls-network
+    driver: bridge

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MemoryLoggingAspect {
 
-    @Around("execution(* com.minionslab.core.memory.DefaultMemory.*(..)) || " +
+    @Around("execution(* com.minionslab.core.memory.AbstractMemory.*(..)) || " +
             "execution(* com.minionslab.core.memory.MemoryManager.*(..)) || " +
             "execution(* com.minionslab.core.memory.MemoryFactory.*(..))")
     public Object logMemoryMethods(ProceedingJoinPoint joinPoint) throws Throwable {

@@ -11,8 +11,5 @@ public class AskUserStep extends AbstractStep {
     private String inputType;
     private boolean optional;
     
-    @Override
-    public String getType() {
-        return "ask_user";
-    }
+
 }
