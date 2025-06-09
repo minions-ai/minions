@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Overview - Minions Developer Docs</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">Minions Developer Docs</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="./" class="nav-link active" aria-current="page">Overview</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../01%20-%20Core%20Concepts/" class="nav-link">Core Concepts</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../02%20-%20Step%20Graph/" class="nav-link">Step Graph</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../03%20-%20Memory%20Management/" class="nav-link">Memory Management</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../04%20-%20Process%20Chains/" class="nav-link">Process Chains</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../05%20-%20Tool%20Integration/" class="nav-link">Tool Integration</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../06%20-%20MCP%20Compliance/" class="nav-link">MCP Compliance</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../07%20-%20Spring%20Integration/" class="nav-link">Spring Integration</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../08%20-%20Evaluation%20%26%20Observability/" class="nav-link">Evaluation & Observability</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../09%20-%20Privacy%20%26%20Governance/" class="nav-link">Privacy & Governance</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../10%20-%20Extending%20Minions/" class="nav-link">Extending Minions</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../11%20-%20Examples/" class="nav-link">Examples</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../12%20-%20Testing%20%26%20Debugging/" class="nav-link">Testing & Debugging</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../13%20-%20Roadmap%20%26%20Contribution/" class="nav-link">Roadmap & Contribution</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" class="nav-link disabled">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../01%20-%20Core%20Concepts/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/minions-ai/minions/edit/master/docs/00 - Overview.md" class="nav-link"><i class="fa-brands fa-github"></i> Edit on GitHub</a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="2"><a href="#why-minions" class="nav-link">Why Minions?</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#key-design-principles" class="nav-link">Key Design Principles</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#agent-recipes" class="nav-link">Agent Recipes</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<p><strong>Minions</strong> is an extensible, MCP-compliant agentic AI framework written in Java and built using idiomatic Spring practices. Designed from the ground up with the principles of <strong>extensibility</strong>, <strong>traceability</strong>, and <strong>enterprise readiness</strong>, Minions provides a solid foundation for building and orchestrating autonomous AI agents in regulated and complex environments.</p>
+<p>At its core, Minions follows the <strong>Open/Closed Principle</strong>: the system is open for extension but closed for modification. Whether you're building a ReAct-style reasoning agent, a planner-executor-observer pipeline, or a bespoke recipe for your enterprise workflow, Minions enables it without changing the underlying framework.</p>
+<h2 id="why-minions">Why Minions?</h2>
+<p>The AI ecosystem has rapidly shifted toward <strong>agentic workflows</strong>—systems where autonomous agents reason, plan, act, and reflect over multiple steps. While many open-source frameworks offer this in Python, Minions is one of the few that brings this capability to the <strong>enterprise Java ecosystem</strong> with full support for:</p>
+<ul>
+<li><strong>Spring Boot auto-configuration and injection</strong></li>
+<li><strong>Modular architecture</strong> that can be expanded with Spring Beans</li>
+<li><strong>Privacy and governance by design</strong></li>
+<li><strong>Idiomatic support for lifecycle management, configuration, and testing</strong></li>
+</ul>
+<h2 id="key-design-principles">Key Design Principles</h2>
+<ul>
+<li>
+<p><strong>Extensibility First</strong><br />
+  Minions uses design patterns like <em>Definition/Customizer</em>, <em>Chain of Responsibility</em>, and <em>Factory Registry</em> to allow seamless plug-in of new components—steps, tools, memories, processors—without modifying the core.</p>
+</li>
+<li>
+<p><strong>Idiomatic Spring Integration</strong><br />
+  The framework follows familiar Spring idioms, making it easy for developers to inject, override, and extend functionality using standard annotations and configuration mechanisms.</p>
+</li>
+<li>
+<p><strong>MCP Compliance</strong><br />
+  Minions adheres to the <a href="https://github.com/langchain-ai/langgraph/blob/main/spec/mcp.md">Model Connector Protocol (MCP)</a>, enabling composability, cross-model interoperability, and architectural clarity.</p>
+</li>
+<li>
+<p><strong>Enterprise-Grade Capabilities</strong><br />
+  Features like memory privacy, audit hooks, multi-tenant memory isolation, and structured evaluation make Minions a suitable foundation for regulated industries like insurance, healthcare, and finance.</p>
+</li>
+</ul>
+<h2 id="agent-recipes">Agent Recipes</h2>
+<p>Every agent in Minions is instantiated from a <strong>Recipe</strong>. A recipe defines the agent’s purpose and structure:</p>
+<ul>
+<li>Its <strong>system prompt</strong> and <strong>goal</strong></li>
+<li>The <strong>step graph</strong> that outlines its thought/action flow</li>
+<li>Its <strong>memory strategy</strong>, specifying what the agent remembers and when</li>
+<li>Optional toolchains and observers</li>
+</ul>
+<p>Different types of recipes are available out-of-the-box, including:
+- <code>ReActAgentRecipe</code>
+- <code>PlannerExecutorObserverRecipe</code>
+- And more custom agent types</p>
+<p>We’ll dive deeper into recipes, step graphs, and memory strategies in the following sections.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
