@@ -1,6 +1,9 @@
 package com.minionslab.core.memory.strategy;
 
+import com.minionslab.core.common.chain.ProcessContext;
 import com.minionslab.core.memory.MemoryOperation;
+import com.minionslab.core.memory.MemorySubsystem;
+import com.minionslab.core.memory.query.MemoryQuery;
 
 import java.util.List;
 
@@ -11,9 +14,14 @@ import java.util.List;
  * Implementors can create custom query strategies for different storage backends, policies,
  * or optimization goals. Strategies can be registered and discovered at runtime.
  */
-public interface MemoryQueryStrategy extends MemoryStrategy{
+public interface MemoryQueryStrategy<T extends ProcessContext> extends MemoryStrategy<T> {
     
     default List<MemoryOperation> getOperationsSupported() {
         return List.of(MemoryOperation.QUERY);
     }
+    
+    MemoryQuery getMemoryQuery(T context);
+    
+    List<MemorySubsystem> getSupportedSubsystem();
+    
 }

@@ -1,10 +1,12 @@
 package com.minionslab.core.memory;
 
 import com.minionslab.core.memory.strategy.MemoryPersistenceStrategy;
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
+import com.minionslab.core.memory.strategy.MemoryQueryStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,9 +14,11 @@ import static org.mockito.Mockito.*;
 
 class AbstractMemoryTest {
     private MemoryPersistenceStrategy persistenceStrategy;
+    private List<MemoryQueryStrategy> queryStrategies;
     private DefaultMemory memory;
     @BeforeEach
     void setUp() {
+        queryStrategies = new ArrayList<>();
         persistenceStrategy = mock(MemoryPersistenceStrategy.class);
         memory = new DefaultMemory(MemorySubsystem.ENTITY, persistenceStrategy);
     }

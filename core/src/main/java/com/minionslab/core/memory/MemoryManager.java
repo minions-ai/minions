@@ -1,13 +1,17 @@
 package com.minionslab.core.memory;
 
+import com.minionslab.core.common.chain.ProcessContext;
 import com.minionslab.core.common.chain.Processor;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.memory.query.MemoryQuery;
-import com.minionslab.core.memory.query.QueryBuilder;
 import com.minionslab.core.memory.query.expression.Expr;
-import com.minionslab.core.message.Message;
+import com.minionslab.core.memory.strategy.MemoryQueryStrategy;
+import jdk.jshell.spi.ExecutionControl;
 
-import java.util.Collections;
+import javax.naming.OperationNotSupportedException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * MemoryManager coordinates memory operations (store, retrieve, flush, etc.)
@@ -19,19 +23,21 @@ import java.util.List;
  * and composition. You can extend this class or provide custom processors to
  * support new memory types, hybrid memory, or advanced behaviors.
  */
-public class MemoryManager implements Memory, Processor<MemoryContext> {
+public class MemoryManager implements Memory {
     /**
      * The list of memory processors (strategies) in the chain.
      */
-    private final List<Processor<MemoryContext>> memories;
+    private final List<Memory<MemoryContext, Message>> memories;
+    private final List<MemoryQueryStrategy> queryStrategies;
     
     /**
      * Constructs a MemoryManager with the given list of memory processors.
      *
      * @param memories the list of memory processors (strategies)
      */
-    public MemoryManager(List<Processor<MemoryContext>> memories) {
+    public MemoryManager(List<Memory<MemoryContext, Message>> memories, List<MemoryQueryStrategy> strategies) {
         this.memories = memories;
+        this.queryStrategies = strategies;
     }
     
     /**
@@ -42,18 +48,9 @@ public class MemoryManager implements Memory, Processor<MemoryContext> {
      */
     @Override
     public Message retrieve(String id) {
-        MemoryContext context = new MemoryContext();
-        context.setOperation(MemoryOperation.RETRIEVE);
-        MemoryQuery query = MemoryQuery.builder().expression(new QueryBuilder().id(id).build()).build();
-        context.setMemoryRequest(new MemoryRequest(query, null));
-        MemoryContext finalContext = context;
-        memories.stream().forEach(memory -> memory.process(finalContext));
-        List<Message> messages = context.getMemoryRequest() != null && context.getMemoryRequest().getMessagesToStore() != null
-                                         ? context.getMemoryRequest().getMessagesToStore() : Collections.emptyList();
-        if (!messages.isEmpty()) {
-            return messages.get(0);
-        }
-        return null;
+        MemoryQuery query = MemoryQuery.builder().expression(Expr.eq("id", id)).build();
+        List<Message> list = memories.stream().map(memory -> memory.retrieve(id)).filter(Objects::nonNull).toList();
+        return list.stream().findFirst().orElse(null);
     }
     
     /**
@@ -61,9 +58,7 @@ public class MemoryManager implements Memory, Processor<MemoryContext> {
      */
     @Override
     public void flush() {
-        MemoryContext context = new MemoryContext();
-        context.setOperation(MemoryOperation.FLUSH);
-        memories.stream().forEach(memory -> memory.process(context));
+        memories.stream().forEach(memory -> memory.flush());
     }
     
     /**
@@ -104,10 +99,15 @@ public class MemoryManager implements Memory, Processor<MemoryContext> {
     
     @Override
     public void store(Message message) {
-        MemoryContext context = new MemoryContext();
-        context.setOperation(MemoryOperation.STORE);
-        context.setMemoryRequest(new MemoryRequest(null, List.of(message)));
-        memories.stream().forEach(memory -> memory.process(context));
+        throw new RuntimeException("This method is not implemented. use store(MemorySubsystem,Message) instead.");
+    }
+    
+    public void store(MemorySubsystem memorySubsystem, Message message) {
+        for (Memory<MemoryContext, Message> memory : memories) {
+            if (memory.getMemorySubsystem().equals(memorySubsystem)) {
+                memory.store(message);
+            }
+        }
     }
     
     @Override
@@ -116,28 +116,38 @@ public class MemoryManager implements Memory, Processor<MemoryContext> {
     }
     
     private List<Message> execute(MemoryQuery query) {
-        MemoryContext context = new MemoryContext();
-        context.setOperation(MemoryOperation.RETRIEVE);
-        context.setMemoryRequest(new MemoryRequest(query, null));
-        memories.stream().forEach(memory -> memory.process(context));
-        
-        return List.of();
+        return memories.stream()
+                       .flatMap(memory -> memory.query(query).stream())
+                       .toList();
+    }
+    
+    public List<Message> query(ProcessContext context) {
+        List<Message> consolidatedResults = new ArrayList<>();
+        for (MemoryQueryStrategy strategy : queryStrategies) {
+            if (strategy.getOperationsSupported().contains(MemoryOperation.QUERY) && strategy.getSupportedSubsystem().contains(MemorySubsystem.MEMORY_MANAGER)) {
+                MemoryQuery query = strategy.getMemoryQuery(context);
+                List<Message> results = execute(query);
+                consolidatedResults.addAll(results);
+            }
+        }
+        return consolidatedResults;
     }
     
     @Override
-    public List<Message> query(MemoryContext context) {
-        return List.of();
+    public boolean accepts(ProcessContext input) {
+        return input != null;
     }
     
-    @Override
-    public boolean accepts(MemoryContext input) {
-        return true;
-    }
-    
-    @Override
-    public MemoryContext process(MemoryContext input) {
+    //todo needs implementation
+    public ProcessContext process(ProcessContext input) {
         return input;
     }
     
     
+    public void storeAll(List<Message> messages, MemorySubsystem memorySubsystem) {
+        this.memories.stream().filter(memory -> memory.getMemorySubsystem().equals(memorySubsystem))
+                     .forEach(memory -> {
+                         memory.storeAll(messages);
+                     });
+    }
 }

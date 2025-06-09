@@ -1,19 +1,18 @@
 package com.minionslab.core.memory.strategy.persistence.mongo; // Example package
 
 
-import com.minionslab.core.memory.Memory;
+import com.minionslab.core.common.message.Message;
+import com.minionslab.core.common.message.SimpleMessage;
 import com.minionslab.core.memory.query.MemoryQuery;
 import com.minionslab.core.memory.strategy.MemoryItem;
 import com.minionslab.core.memory.strategy.MemoryPersistenceStrategy;
-import com.minionslab.core.message.Message;
-import com.minionslab.core.message.SimpleMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.stereotype.Repository; // Or @Component
+import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,16 +23,13 @@ import java.util.stream.Collectors;
 public class MongoPersistenceStrategy implements MemoryPersistenceStrategy<Message> {
     
     private static final Logger log = LoggerFactory.getLogger(MongoPersistenceStrategy.class);
-    
-    private final MongoTemplate mongoTemplate;
-    private final MongoQueryTranslator queryConverter;
-    
-    // Mappers for different MemoryItem types this strategy handles
-    private final MessageMongoMapper messageMapper;
-    // private final FactMongoMapper factMapper; // Example for another type
-    
     // Collection names (could be made configurable)
     private static final String MESSAGES_COLLECTION_NAME = "messages";
+    private final MongoTemplate mongoTemplate;
+    private final MongoQueryTranslator queryConverter;
+    // private final FactMongoMapper factMapper; // Example for another type
+    // Mappers for different MemoryItem types this strategy handles
+    private final MessageMongoMapper messageMapper;
     // private static final String FACTS_COLLECTION_NAME = "facts";
     
     @Autowired
@@ -45,6 +41,53 @@ public class MongoPersistenceStrategy implements MemoryPersistenceStrategy<Messa
         this.queryConverter = queryConverter;
         this.messageMapper = messageMapper;
         // this.factMapper = factMapper;
+    }
+    
+    @Override
+    public List<Message> saveAll(List<Message> items) {
+        if (items == null || items.isEmpty()) {
+            return Collections.emptyList();
+        }
+        // Naive implementation. For performance, consider MongoTemplate.insertAll()
+        // or bulk operations, which would require grouping by type if saving mixed types.
+        return items.stream().map(this::save).collect(Collectors.toList());
+    }
+    
+    @Override
+    public Message save(Message item) {
+        if (item == null) {
+            throw new IllegalArgumentException("MemoryItem to save cannot be null.");
+        }
+        
+        String collectionName = getCollectionNameForDomainType(item.getClass());
+        Object mongoDocument; // The persistence-specific document
+        
+        if (item instanceof Message) {
+            mongoDocument = messageMapper.toDocument(item);
+        }
+        // else if (item instanceof Fact) {
+        //     mongoDocument = factMapper.toDocument((Fact) item);
+        // }
+        else {
+            log.error("No mapper available for MemoryItem type: {}", item.getClass().getName());
+            throw new UnsupportedOperationException("Save not implemented for type: " + item.getClass().getName());
+        }
+        
+        Object savedMongoDocument = mongoTemplate.save(mongoDocument, collectionName);
+        
+        // Map back to domain type
+        if (savedMongoDocument instanceof org.bson.Document && item instanceof Message) {
+            @SuppressWarnings("unchecked")
+            Message result = messageMapper.toDomain((org.bson.Document) savedMongoDocument);
+            return result;
+        }
+        // else if (savedMongoDocument instanceof FactMongoDocument && item instanceof Fact) {
+        //     @SuppressWarnings("unchecked")
+        //     Message result = (Message) factMapper.toDomain((FactMongoDocument) savedMongoDocument);
+        //     return result;
+        // }
+        log.error("Could not map saved document back to domain type: {}", item.getClass().getName());
+        throw new IllegalStateException("Failed to map saved document back to domain type for: " + item.getClass().getName());
     }
     
     // --- Helper methods to get collection name and document class ---
@@ -61,6 +104,31 @@ public class MongoPersistenceStrategy implements MemoryPersistenceStrategy<Messa
         throw new IllegalArgumentException("Unsupported MemoryItem type for collection name: " + domainItemType.getName());
     }
     
+    @Override
+    public Optional<Message> findById(String id, Class<Message> itemType) {
+        String collectionName = getCollectionNameForDomainType(itemType);
+        Class<?> documentClass = getDocumentClassForDomainType(itemType);
+        
+        Object foundMongoDocument = mongoTemplate.findById(id, documentClass, collectionName);
+        
+        if (foundMongoDocument == null) {
+            return Optional.empty();
+        }
+        
+        if (Message.class.isAssignableFrom(itemType) && foundMongoDocument instanceof org.bson.Document) {
+            @SuppressWarnings("unchecked")
+            Message result = messageMapper.toDomain((org.bson.Document) foundMongoDocument);
+            return Optional.of(result);
+        }
+        // else if (Fact.class.isAssignableFrom(itemType) && foundMongoDocument instanceof FactMongoDocument) {
+        //     @SuppressWarnings("unchecked")
+        //     Message result = (Message) factMapper.toDomain((FactMongoDocument) foundMongoDocument);
+        //     return Optional.of(result);
+        // }
+        log.error("No mapper available to convert found document to domain type: {}", itemType.getName());
+        return Optional.empty();
+    }
+    
     private Class<?> getDocumentClassForDomainType(Class<? extends MemoryItem> domainItemType) {
         if (Message.class.isAssignableFrom(domainItemType) || SimpleMessage.class.isAssignableFrom(domainItemType)) {
             return org.bson.Document.class;
@@ -73,79 +141,7 @@ public class MongoPersistenceStrategy implements MemoryPersistenceStrategy<Messa
     }
     
     @Override
-    public <T extends MemoryItem> T save(T item) {
-        if (item == null) {
-            throw new IllegalArgumentException("MemoryItem to save cannot be null.");
-        }
-        
-        String collectionName = getCollectionNameForDomainType(item.getClass());
-        Object mongoDocument; // The persistence-specific document
-        
-        if (item instanceof Message) {
-            mongoDocument = messageMapper.toDocument((Message) item);
-        }
-        // else if (item instanceof Fact) {
-        //     mongoDocument = factMapper.toDocument((Fact) item);
-        // }
-        else {
-            log.error("No mapper available for MemoryItem type: {}", item.getClass().getName());
-            throw new UnsupportedOperationException("Save not implemented for type: " + item.getClass().getName());
-        }
-        
-        Object savedMongoDocument = mongoTemplate.save(mongoDocument, collectionName);
-        
-        // Map back to domain type
-        if (savedMongoDocument instanceof org.bson.Document && item instanceof Message) {
-            @SuppressWarnings("unchecked")
-            T result = (T) messageMapper.toDomain((org.bson.Document) savedMongoDocument);
-            return result;
-        }
-        // else if (savedMongoDocument instanceof FactMongoDocument && item instanceof Fact) {
-        //     @SuppressWarnings("unchecked")
-        //     T result = (T) factMapper.toDomain((FactMongoDocument) savedMongoDocument);
-        //     return result;
-        // }
-        log.error("Could not map saved document back to domain type: {}", item.getClass().getName());
-        throw new IllegalStateException("Failed to map saved document back to domain type for: " + item.getClass().getName());
-    }
-    
-    @Override
-    public <T extends MemoryItem> List<T> saveAll(List<T> items) {
-        if (items == null || items.isEmpty()) {
-            return Collections.emptyList();
-        }
-        // Naive implementation. For performance, consider MongoTemplate.insertAll()
-        // or bulk operations, which would require grouping by type if saving mixed types.
-        return items.stream().map(this::save).collect(Collectors.toList());
-    }
-    
-    @Override
-    public <T extends MemoryItem> Optional<T> findById(String id, Class<T> itemType) {
-        String collectionName = getCollectionNameForDomainType(itemType);
-        Class<?> documentClass = getDocumentClassForDomainType(itemType);
-        
-        Object foundMongoDocument = mongoTemplate.findById(id, documentClass, collectionName);
-        
-        if (foundMongoDocument == null) {
-            return Optional.empty();
-        }
-        
-        if (Message.class.isAssignableFrom(itemType) && foundMongoDocument instanceof org.bson.Document) {
-            @SuppressWarnings("unchecked")
-            T result = (T) messageMapper.toDomain((org.bson.Document) foundMongoDocument);
-            return Optional.of(result);
-        }
-        // else if (Fact.class.isAssignableFrom(itemType) && foundMongoDocument instanceof FactMongoDocument) {
-        //     @SuppressWarnings("unchecked")
-        //     T result = (T) factMapper.toDomain((FactMongoDocument) foundMongoDocument);
-        //     return Optional.of(result);
-        // }
-        log.error("No mapper available to convert found document to domain type: {}", itemType.getName());
-        return Optional.empty();
-    }
-    
-    @Override
-    public <T extends MemoryItem> boolean deleteById(String id, Class<T> itemType) {
+    public boolean deleteById(String id, Class<Message> itemType) {
         String collectionName = getCollectionNameForDomainType(itemType);
         Class<?> documentClass = getDocumentClassForDomainType(itemType); // Needed for remove if collection stores polymorphic types
         Query query = Query.query(Criteria.where("_id").is(id));
@@ -154,14 +150,14 @@ public class MongoPersistenceStrategy implements MemoryPersistenceStrategy<Messa
     }
     
     @Override
-    public <T extends MemoryItem> void deleteAllOfType(Class<T> itemType) {
+    public void deleteAllOfType(Class<Message> itemType) {
         String collectionName = getCollectionNameForDomainType(itemType);
         Class<?> documentClass = getDocumentClassForDomainType(itemType);
         mongoTemplate.remove(new Query(), documentClass, collectionName); // Or just mongoTemplate.dropCollection(collectionName);
     }
     
     @Override
-    public <T extends MemoryItem> long count(Class<T> itemType) {
+    public long count(Class<Message> itemType) {
         String collectionName = getCollectionNameForDomainType(itemType);
         Class<?> documentClass = getDocumentClassForDomainType(itemType);
         return mongoTemplate.count(new Query(), documentClass, collectionName);

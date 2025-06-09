@@ -6,7 +6,7 @@ import com.minionslab.core.step.StepService;
 import org.springframework.stereotype.Component;
 
 @Component
-public class StepCompletionProcessor implements Processor<StepContext> {
+public class StepCompletionProcessor implements StepProcessor {
     
     
     private final StepService stepService;

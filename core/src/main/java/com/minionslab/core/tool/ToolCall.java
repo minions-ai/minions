@@ -2,7 +2,10 @@ package com.minionslab.core.tool;
 
 import com.minionslab.core.common.chain.ProcessContext;
 import com.minionslab.core.common.chain.ProcessResult;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.util.List;

@@ -1,11 +1,10 @@
 package com.minionslab.core.memory.strategy.persistence.mongo;
 
-import com.minionslab.core.message.EmbeddingMessage;
-import com.minionslab.core.message.MessageRole;
-import com.minionslab.core.message.MessageScope;
-import com.minionslab.core.message.SimpleMessage;
+import com.minionslab.core.common.message.EmbeddingMessage;
+import com.minionslab.core.common.message.MessageRole;
+import com.minionslab.core.common.message.MessageScope;
+import com.minionslab.core.common.message.SimpleMessage;
 import org.bson.Document;
-import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.Map;

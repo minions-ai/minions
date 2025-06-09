@@ -10,7 +10,7 @@ import java.util.Map;
 @Accessors(chain = true)
 public class QueryConfig {
     private final Map<String, String> properties = new HashMap<>();
-    private String limit;
+    private int limit;
     
     
     public Map<String, String> getProperties() {

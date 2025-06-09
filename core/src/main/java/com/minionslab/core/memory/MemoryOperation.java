@@ -4,5 +4,5 @@ public enum MemoryOperation {
     STORE,
     RETRIEVE,
     DELETE,
-    QUERY, FLUSH;
+    QUERY, FLUSH
 }

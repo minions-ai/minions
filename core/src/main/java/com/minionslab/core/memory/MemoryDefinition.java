@@ -1,8 +1,9 @@
 package com.minionslab.core.memory;
 
 
+import com.minionslab.core.memory.strategy.MemoryFlushStrategy;
 import com.minionslab.core.memory.strategy.MemoryPersistenceStrategy;
-import com.minionslab.core.memory.strategy.MemoryStrategyRegistry;
+import com.minionslab.core.memory.strategy.MemoryQueryStrategy;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,13 +33,9 @@ public interface MemoryDefinition {
      * @param persistenceStrategy the persistence strategy for this memory
      * @return a concrete AbstractMemory instance
      */
-    default AbstractMemory buildMemory(
-            MemoryStrategyRegistry registry,
-            MemoryPersistenceStrategy persistenceStrategy
-                                      ) {
-        
+    default AbstractMemory buildMemory() {
         // Return a DefaultMemory (concrete subclass of AbstractMemory)
-        return new DefaultMemory(getMemorySubsystem(), persistenceStrategy);
+        return new DefaultMemory(getMemorySubsystem(), getPersistStrategy());
     }
     
     /**
@@ -48,37 +45,23 @@ public interface MemoryDefinition {
      */
     MemorySubsystem getMemorySubsystem();
     
-    /**
-     * Get all strategy names used by this memory (query, persist, flush).
-     *
-     * @return the list of all strategy names
-     */
-    default List<String> getAllStrategyNames() {
-        return Stream.concat(getQueryStrategies().stream(),
-                             Stream.of(getPersistStrategy(), getFlushStrategy()))
-                     .collect(Collectors.toList());
-    }
-    
-    /**
-     * Get the list of query strategy names.
-     *
-     * @return the list of query strategy names
-     */
-    List<String> getQueryStrategies();
+
     
     /**
      * Get the name of the persistence strategy.
      *
      * @return the persistence strategy name
      */
-    String getPersistStrategy();
+    MemoryPersistenceStrategy getPersistStrategy();
+    
+
     
     /**
      * Get the name of the flush strategy.
      *
      * @return the flush strategy name
      */
-    String getFlushStrategy();
+    MemoryFlushStrategy getFlushStrategy();
     
     /**
      * Get the memory name (for registration or lookup).

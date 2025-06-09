@@ -2,8 +2,8 @@ package com.minionslab.core.model;
 
 import com.minionslab.core.common.chain.ProcessContext;
 import com.minionslab.core.common.chain.ProcessResult;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.config.ModelConfig;
-import com.minionslab.core.message.Message;
 import com.minionslab.core.tool.ToolCall;
 import lombok.Data;
 import lombok.experimental.Accessors;

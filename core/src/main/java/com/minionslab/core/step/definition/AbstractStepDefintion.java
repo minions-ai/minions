@@ -2,7 +2,7 @@ package com.minionslab.core.step.definition;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.step.Step;
 import com.minionslab.core.step.impl.AbstractStep;
 import lombok.Data;

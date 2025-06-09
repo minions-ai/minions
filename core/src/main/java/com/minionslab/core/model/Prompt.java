@@ -1,6 +1,6 @@
 package com.minionslab.core.model;
 
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
 
 import java.util.List;
 import java.util.Map;

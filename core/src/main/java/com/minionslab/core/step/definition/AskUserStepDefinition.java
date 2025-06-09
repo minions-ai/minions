@@ -1,11 +1,11 @@
 package com.minionslab.core.step.definition;
 
-import com.minionslab.core.message.Message;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.step.impl.AskUserStep;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 
 @Data
 @Accessors(chain = true)

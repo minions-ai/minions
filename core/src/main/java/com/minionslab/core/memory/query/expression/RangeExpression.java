@@ -1,6 +1,6 @@
 package com.minionslab.core.memory.query.expression;
 
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -25,8 +25,7 @@ public class RangeExpression implements MemoryQueryExpression {
         if (fieldValue == null) {
             return false;
         }
-        if (!(fieldValue instanceof Instant)) return false;
-        Instant timestamp = (Instant) fieldValue;
+        if (!(fieldValue instanceof Instant timestamp)) return false;
         return (rangeType == RangeType.AFTER && timestamp.isAfter(time)) ||
                        (rangeType == RangeType.BEFORE && timestamp.isBefore(time));
        

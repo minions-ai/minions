@@ -1,6 +1,6 @@
 package com.minionslab.core.agent;
 
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;

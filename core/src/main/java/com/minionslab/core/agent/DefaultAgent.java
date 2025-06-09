@@ -1,6 +1,6 @@
 package com.minionslab.core.agent;
 
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
 
 import java.util.Collections;
 import java.util.List;

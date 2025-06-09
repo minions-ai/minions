@@ -1,7 +1,9 @@
 package com.minionslab.core.memory;
 
+import com.minionslab.core.common.chain.ProcessContext;
+import com.minionslab.core.common.chain.Processor;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.memory.query.Queryable;
-import com.minionslab.core.message.Message;
 
 import java.util.List;
 
@@ -15,7 +17,7 @@ import java.util.List;
  *
  * @param <T> the type of Message handled by this memory
  */
-public interface Memory<T extends Message> extends Queryable<T> {
+public interface Memory<C extends ProcessContext,T extends Message> extends Queryable<T>, Processor<C> {
     /**
      * Store a single message in memory.
      *

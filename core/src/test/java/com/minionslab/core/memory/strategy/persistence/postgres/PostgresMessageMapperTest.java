@@ -1,6 +1,6 @@
 package com.minionslab.core.memory.strategy.persistence.postgres;
 
-import com.minionslab.core.message.*;
+import com.minionslab.core.common.message.*;
 import org.junit.jupiter.api.Test;
 
 import java.sql.ResultSet;

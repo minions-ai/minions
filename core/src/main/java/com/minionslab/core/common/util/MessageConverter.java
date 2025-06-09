@@ -1,8 +1,8 @@
 package com.minionslab.core.common.util;
 
-import com.minionslab.core.message.SimpleMessage;
-import com.minionslab.core.message.Message;
-import com.minionslab.core.message.MessageRole;
+import com.minionslab.core.common.message.Message;
+import com.minionslab.core.common.message.MessageRole;
+import com.minionslab.core.common.message.SimpleMessage;
 import com.minionslab.core.tool.ToolCall;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -25,9 +25,9 @@ public class MessageConverter {
      * @param springMessages The Spring AI messages to convert
      * @return The converted MCP messages
      */
-    public static List<com.minionslab.core.message.Message> toMCPMessages(List<org.springframework.ai.chat.messages.Message> springMessages) {
+    public static List<Message> toMCPMessages(List<org.springframework.ai.chat.messages.Message> springMessages) {
         return springMessages.stream()
-                             .<Message>map(MessageConverter::toMCPMessage)
+                             .map(MessageConverter::toMCPMessage)
                              .collect(Collectors.toList());
     }
     
@@ -93,7 +93,7 @@ public class MessageConverter {
      * @param message The MCP message to convert
      * @return The converted Spring AI message
      */
-    public static org.springframework.ai.chat.messages.Message toSpringMessage(com.minionslab.core.message.Message message) {
+    public static org.springframework.ai.chat.messages.Message toSpringMessage(Message message) {
         return switch (message.getRole()) {
             case SYSTEM, ERROR, TOOL, GOAL -> new SystemMessage(message.toPromptString());
             case USER -> new UserMessage(message.toPromptString());
@@ -102,7 +102,7 @@ public class MessageConverter {
         };
     }
     
-    public static com.minionslab.core.message.Message createErrorMessage(Exception e) {
+    public static Message createErrorMessage(Exception e) {
         return SimpleMessage.builder()
                              .role(MessageRole.ERROR)
                              .content("Error: " + e.getMessage() + "\n" +
@@ -117,7 +117,7 @@ public class MessageConverter {
         return ToolCall.builder()
                        .name(toolCall.name())
                        .request(new ToolCall.ToolCallRequest(
-                               toolCall.arguments() != null ? toolCall.arguments().toString() : null, null
+                               toolCall.arguments() != null ? toolCall.arguments() : null, null
                        ))
                        .build();
     }

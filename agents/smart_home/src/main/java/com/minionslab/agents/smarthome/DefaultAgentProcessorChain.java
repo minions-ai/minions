@@ -1,7 +1,7 @@
 package com.minionslab.agents.smarthome;
 
 import com.minionslab.core.agent.AgentContext;
-import com.minionslab.core.agent.AgentProcessor;
+import com.minionslab.core.agent.processor.StepOrchestratorProcessor;
 import com.minionslab.core.common.chain.AbstractBaseChain;
 import com.minionslab.core.common.chain.ProcessContext;
 import com.minionslab.core.common.chain.ProcessorCustomizer;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class DefaultAgentProcessorChain extends AbstractBaseChain<AgentProcessor, AgentContext> {
+public class DefaultAgentProcessorChain extends AbstractBaseChain<StepOrchestratorProcessor, AgentContext> {
     
     
     private final StepService stepService;
@@ -24,7 +24,7 @@ public class DefaultAgentProcessorChain extends AbstractBaseChain<AgentProcessor
      * @param processorProviders  provider for the initial list of processors
      * @param customizerProviders provider for the initial list of processor customizers
      */
-    public DefaultAgentProcessorChain(ObjectProvider<List<AgentProcessor>> processorProviders, ObjectProvider<List<ProcessorCustomizer>> customizerProviders, StepService stepService) {
+    public DefaultAgentProcessorChain(ObjectProvider<List<StepOrchestratorProcessor>> processorProviders, ObjectProvider<List<ProcessorCustomizer>> customizerProviders, StepService stepService) {
         super(processorProviders, customizerProviders);
         
         this.stepService = stepService;
@@ -32,8 +32,8 @@ public class DefaultAgentProcessorChain extends AbstractBaseChain<AgentProcessor
     
     @Override
     protected void registerProcessors() {
-        AgentProcessor agentProcessor = new AgentProcessor(stepService);
-        this.addToStart(agentProcessor);
+        StepOrchestratorProcessor stepOrchestratorProcessor = new StepOrchestratorProcessor(stepService);
+        this.addToStart(stepOrchestratorProcessor);
     }
     
     /**

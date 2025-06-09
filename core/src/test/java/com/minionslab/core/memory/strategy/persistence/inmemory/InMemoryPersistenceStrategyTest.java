@@ -1,11 +1,14 @@
 package com.minionslab.core.memory.strategy.persistence.inmemory;
 
+import com.minionslab.core.common.message.Message;
+import com.minionslab.core.common.message.MessageRole;
+import com.minionslab.core.common.message.MessageScope;
+import com.minionslab.core.common.message.SimpleMessage;
 import com.minionslab.core.memory.query.MemoryQuery;
-import com.minionslab.core.memory.query.QueryBuilder;
-import com.minionslab.core.message.Message;
-import com.minionslab.core.message.MessageRole;
-import com.minionslab.core.message.MessageScope;
-import com.minionslab.core.message.SimpleMessage;
+import static com.minionslab.core.memory.query.expression.Expr.*;
+
+import com.minionslab.core.memory.query.expression.Expr;
+import com.minionslab.core.memory.query.expression.ExprUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,6 +28,7 @@ class InMemoryPersistenceStrategyTest {
         strategy = new InMemoryPersistenceStrategy();
         msg1 = SimpleMessage.builder()
                             .id("1")
+                            .conversationId("C1")
                             .content("Hello world")
                             .metadata(Map.of())
                             .role(MessageRole.USER)
@@ -75,11 +79,11 @@ class InMemoryPersistenceStrategyTest {
     void testFetchCandidateMessages() {
         strategy.saveAll(List.of(msg1, msg2));
         MemoryQuery query = MemoryQuery.builder()
-                                       .expression(new QueryBuilder().role(MessageRole.USER).keyword("Hello").keyword(Map.of("entityType", "testEntity")).build())
+                                       .expression(ExprUtil.getUserMessagesExpression("C1").and(contains("content", "Hello"),metadata("entityType", "testEntity")))
                                        .limit(10)
                                        .build();
         List<Message> results = strategy.fetchCandidateMessages(query);
         assertEquals(1, results.size());
         assertEquals("1", results.get(0).getId());
     }
-} 
+}

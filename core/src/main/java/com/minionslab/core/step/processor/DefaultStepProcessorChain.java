@@ -28,15 +28,19 @@ public class DefaultStepProcessorChain extends AbstractBaseChain<StepProcessor, 
      * @param customizerProviders provider for the initial list of processor customizers
      * @param stepService
      */
-    public DefaultStepProcessorChain(ObjectProvider<List<StepProcessor>> processorProviders, ObjectProvider<List<ProcessorCustomizer>> customizerProviders,
-                                     StepService stepService, PlannerStepProcessor plannerStepProcessor, ModelCallStepProcessor modelCallStepProcessor,
-                                     ToolCallStepProcessor toolCallStepProcessor, StepCompletionProcessor stepCompletionProcessor, PreparationProcessor preparationProcessor) {
+    public DefaultStepProcessorChain(ObjectProvider<List<StepProcessor>> processorProviders,
+                                     ObjectProvider<List<ProcessorCustomizer>> customizerProviders,
+                                     StepService stepService) {
         super(processorProviders, customizerProviders);
-        this.plannerStepProcessor = plannerStepProcessor;
-        this.modelCallStepProcessor = modelCallStepProcessor;
-        this.toolCallStepProcessor = toolCallStepProcessor;
-        this.stepCompletionProcessor = stepCompletionProcessor;
-        this.preparationProcessor = preparationProcessor;
+        List<StepProcessor> processors = processorProviders.getIfAvailable();
+        if (processors == null) {
+            throw new IllegalStateException("No StepProcessors provided");
+        }
+        this.plannerStepProcessor = processors.stream().filter(p -> p instanceof PlannerStepProcessor).map(p -> (PlannerStepProcessor) p).findFirst().orElseThrow(() -> new IllegalStateException("PlannerStepProcessor not found"));
+        this.modelCallStepProcessor = processors.stream().filter(p -> p instanceof ModelCallStepProcessor).map(p -> (ModelCallStepProcessor) p).findFirst().orElseThrow(() -> new IllegalStateException("ModelCallStepProcessor not found"));
+        this.toolCallStepProcessor = processors.stream().filter(p -> p instanceof ToolCallStepProcessor).map(p -> (ToolCallStepProcessor) p).findFirst().orElseThrow(() -> new IllegalStateException("ToolCallStepProcessor not found"));
+        this.stepCompletionProcessor = processors.stream().filter(p -> p instanceof StepCompletionProcessor).map(p -> (StepCompletionProcessor) p).findFirst().orElseThrow(() -> new IllegalStateException("StepCompletionProcessor not found"));
+        this.preparationProcessor = processors.stream().filter(p -> p instanceof PreparationProcessor).map(p -> (PreparationProcessor) p).findFirst().orElseThrow(() -> new IllegalStateException("PreparationProcessor not found"));
     }
     
     @Override

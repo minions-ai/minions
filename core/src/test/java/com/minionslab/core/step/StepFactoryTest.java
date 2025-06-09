@@ -2,7 +2,7 @@ package com.minionslab.core.step;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.step.customizer.StepCustomizer;
 import com.minionslab.core.step.definition.StepDefinition;
 import com.minionslab.core.step.definition.StepDefinitionRegistry;

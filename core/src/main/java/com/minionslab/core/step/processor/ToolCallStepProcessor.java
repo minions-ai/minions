@@ -1,6 +1,5 @@
 package com.minionslab.core.step.processor;
 
-import com.minionslab.core.common.chain.Processor;
 import com.minionslab.core.service.ToolCallService;
 import com.minionslab.core.step.StepContext;
 import com.minionslab.core.tool.ToolCall;
@@ -10,7 +9,7 @@ import java.util.List;
 
 @Component
 public class ToolCallStepProcessor implements StepProcessor {
-    private ToolCallService toolCallService;
+    private final ToolCallService toolCallService;
     
     public ToolCallStepProcessor(ToolCallService toolCallService) {
         this.toolCallService = toolCallService;

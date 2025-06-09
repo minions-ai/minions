@@ -1,0 +1,5 @@
+- Support for Google A2A multi-agent protocol
+- Visual step graph debugger
+- RAG-native agent types
+- Python bridge (interop with LangChain tools)
+- Contributions welcome via GitHub

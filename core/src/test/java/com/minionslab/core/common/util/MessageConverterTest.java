@@ -1,7 +1,7 @@
 package com.minionslab.core.common.util;
 
-import com.minionslab.core.message.MessageRole;
-import com.minionslab.core.message.SimpleMessage;
+import com.minionslab.core.common.message.MessageRole;
+import com.minionslab.core.common.message.SimpleMessage;
 import com.minionslab.core.tool.ToolCall;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.messages.AssistantMessage;

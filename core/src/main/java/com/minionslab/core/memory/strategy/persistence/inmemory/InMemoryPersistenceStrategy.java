@@ -1,11 +1,12 @@
 package com.minionslab.core.memory.strategy.persistence.inmemory;
 
+import com.minionslab.core.common.chain.ProcessContext;
+import com.minionslab.core.common.message.Message;
+import com.minionslab.core.common.message.SimpleMessage;
 import com.minionslab.core.memory.query.MemoryQuery;
 import com.minionslab.core.memory.query.expression.MemoryQueryExpression;
 import com.minionslab.core.memory.strategy.MemoryItem;
 import com.minionslab.core.memory.strategy.MemoryPersistenceStrategy;
-import com.minionslab.core.message.Message;
-import com.minionslab.core.message.SimpleMessage;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,16 +19,15 @@ public class InMemoryPersistenceStrategy implements MemoryPersistenceStrategy<Me
     private final Map<String, Message> messageStore = new ConcurrentHashMap<>();
     
     @Override
-    public <T extends MemoryItem> List<T> saveAll(List<T> items) {
+    public  List<Message> saveAll(List<Message> items) {
         if (items == null || items.isEmpty())
             return Collections.emptyList();
         return items.stream().map(this::save).collect(Collectors.toList());
     }
     
     @Override
-    public <T extends MemoryItem> T save(T item) {
-        if (item instanceof Message) {
-            Message msg = (Message) item;
+    public  Message save(Message item) {
+        if (item instanceof Message msg) {
             messageStore.put(msg.getId(), msg);
             return item;
         }
@@ -35,20 +35,20 @@ public class InMemoryPersistenceStrategy implements MemoryPersistenceStrategy<Me
     }
     
     @Override
-    public <T extends MemoryItem> Optional<T> findById(String id, Class<T> itemType) {
+    public  Optional<Message> findById(String id, Class<Message> itemType) {
         if (Message.class.isAssignableFrom(itemType) || SimpleMessage.class.isAssignableFrom(itemType)) {
             Message msg = messageStore.get(id);
             if (msg == null)
                 return Optional.empty();
             @SuppressWarnings("unchecked")
-            T result = (T) msg;
+            Message result = (Message) msg;
             return Optional.of(result);
         }
         return Optional.empty();
     }
     
     @Override
-    public <T extends MemoryItem> boolean deleteById(String id, Class<T> itemType) {
+    public  boolean deleteById(String id, Class<Message> itemType) {
         if (Message.class.isAssignableFrom(itemType) || SimpleMessage.class.isAssignableFrom(itemType)) {
             return messageStore.remove(id) != null;
         }
@@ -56,14 +56,14 @@ public class InMemoryPersistenceStrategy implements MemoryPersistenceStrategy<Me
     }
     
     @Override
-    public <T extends MemoryItem> void deleteAllOfType(Class<T> itemType) {
+    public  void deleteAllOfType(Class<Message> itemType) {
         if (Message.class.isAssignableFrom(itemType) || SimpleMessage.class.isAssignableFrom(itemType)) {
             messageStore.clear();
         }
     }
     
     @Override
-    public <T extends MemoryItem> long count(Class<T> itemType) {
+    public  long count(Class<Message> itemType) {
         if (Message.class.isAssignableFrom(itemType) || SimpleMessage.class.isAssignableFrom(itemType)) {
             return messageStore.size();
         }
@@ -79,4 +79,6 @@ public class InMemoryPersistenceStrategy implements MemoryPersistenceStrategy<Me
                            .limit(query.getLimit())
                            .toList();
     }
+    
+
 }

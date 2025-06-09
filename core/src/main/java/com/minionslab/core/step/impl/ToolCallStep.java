@@ -1,6 +1,6 @@
 package com.minionslab.core.step.impl;
 
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.step.Step;
 import com.minionslab.core.step.StepContext;
 import com.minionslab.core.step.customizer.StepCustomizer;

@@ -1,6 +1,7 @@
 package com.minionslab.core.step.definition;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.step.Step;
 import com.minionslab.core.step.StepException;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,9 +35,9 @@ public class StepDefinitionServiceIntegrationTest {
         @Override
         public String getType() { return "integration"; }
         @Override
-        public com.minionslab.core.message.Message getSystemPrompt() { return null; }
+        public Message getSystemPrompt() { return null; }
         @Override
-        public com.minionslab.core.message.Message getGoal() { return null; }
+        public Message getGoal() { return null; }
     }
 
     @StepDefinitionType(type = "integration", description = "Integration test step")

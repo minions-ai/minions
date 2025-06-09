@@ -1,6 +1,7 @@
 package com.minionslab.core.step.graph;
 
 import com.minionslab.core.agent.AgentContext;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.step.Step;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,8 +27,8 @@ class DefaultStepGraphTest {
         @Override public void customize(com.minionslab.core.step.customizer.StepCustomizer customizer) {}
         @Override public String getId() { return id; }
         @Override public String getType() { return "dummy"; }
-        @Override public com.minionslab.core.message.Message getSystemPrompt() { return null; }
-        @Override public com.minionslab.core.message.Message getGoal() { return null; }
+        @Override public Message getSystemPrompt() { return null; }
+        @Override public Message getGoal() { return null; }
     }
 
     static class DummyTransitionStrategy implements TransitionStrategy {

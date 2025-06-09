@@ -1,18 +1,19 @@
 package com.minionslab.core.memory;
 
-import com.minionslab.core.common.chain.Processor;
+import com.minionslab.core.common.chain.ProcessContext;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.memory.query.MemoryQuery;
 import com.minionslab.core.memory.strategy.MemoryPersistenceStrategy;
-import com.minionslab.core.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 //todo should memory context carry the level of operators, like Agent, Step, Model call?
-public abstract class AbstractMemory<T extends Message> implements Memory<T>, Processor<MemoryContext> {
+public abstract class AbstractMemory<T extends ProcessContext, K extends Message> implements Memory<T, K> {
     private static final Logger log = LoggerFactory.getLogger(AbstractMemory.class);
     
     
@@ -23,6 +24,7 @@ public abstract class AbstractMemory<T extends Message> implements Memory<T>, Pr
     public AbstractMemory(MemorySubsystem memorySubsystem, MemoryPersistenceStrategy persistenceStrategy) {
         this.memorySubsystem = memorySubsystem;
         this.persistenceStrategy = persistenceStrategy;
+        
     }
     
     
@@ -33,9 +35,9 @@ public abstract class AbstractMemory<T extends Message> implements Memory<T>, Pr
      * @return the message, or null if not found
      */
     @Override
-    public T retrieve(String id) {
+    public K retrieve(String id) {
         log.debug("[{}] Retrieving message with id: {}", memorySubsystem, id);
-        Optional<T> result = persistenceStrategy.findById(id, Message.class);
+        Optional<K> result = persistenceStrategy.findById(id, Message.class);
         return result.orElse(null);
     }
     
@@ -46,19 +48,20 @@ public abstract class AbstractMemory<T extends Message> implements Memory<T>, Pr
      * @return the processed context
      */
     @Override
-    public MemoryContext process(MemoryContext input) {
-        if (input == null)
+    public ProcessContext process(ProcessContext input) {
+        if (input == null || !(input instanceof MemoryContext))
             throw new IllegalArgumentException("MemoryContext cannot be null");
-        switch (input.getOperation()) {
+        MemoryContext memoryContext = (MemoryContext) input;
+        switch (memoryContext.getOperation()) {
             case STORE:
                 log.debug("[{}] Storing messages", memorySubsystem);
-                storeAll(input.getMemoryRequest().getMessagesToStore());
+                storeAll(memoryContext.getMemoryRequest().getMessagesToStore());
                 break;
             case RETRIEVE:
             case QUERY:
                 log.debug("[{}] Querying messages", memorySubsystem);
                 Instant startedAt = Instant.now();
-                List<Message> results = persistenceStrategy.fetchCandidateMessages(input.getMemoryRequest().getQuery());
+                List<Message> results = persistenceStrategy.fetchCandidateMessages(memoryContext.getMemoryRequest().getQuery());
                 input.getResults().clear();
                 if (results != null && !results.isEmpty()) {
                     MemoryResult<Message> result = new MemoryResult<>(
@@ -74,7 +77,7 @@ public abstract class AbstractMemory<T extends Message> implements Memory<T>, Pr
                 break;
             case DELETE:
                 log.debug("[{}] Deleting message(s)", memorySubsystem);
-                List<String> ids = input.getMemoryRequest().getMessagesIdsToDelete();
+                List<String> ids = memoryContext.getMemoryRequest().getMessagesIdsToDelete();
                 if (ids != null && !ids.isEmpty()) {
                     ids.forEach(this::deleteById);
                 }
@@ -84,7 +87,7 @@ public abstract class AbstractMemory<T extends Message> implements Memory<T>, Pr
                 flush();
                 break;
             default:
-                log.warn("[{}] Unsupported operation: {}", memorySubsystem, input.getOperation());
+                log.warn("[{}] Unsupported operation: {}", memorySubsystem, memoryContext.getOperation());
         }
         return input;
     }
@@ -151,7 +154,7 @@ public abstract class AbstractMemory<T extends Message> implements Memory<T>, Pr
      * @param message the message to store
      */
     @Override
-    public void store(T message) {
+    public void store(K message) {
         log.debug("[{}] Storing single message", memorySubsystem);
         persistenceStrategy.save(message);
     }
@@ -162,26 +165,21 @@ public abstract class AbstractMemory<T extends Message> implements Memory<T>, Pr
      * @param input the memory context
      * @return list of messages
      */
-    @Override
-    public List<T> query(MemoryContext input) {
-        if (input == null)
-            throw new IllegalArgumentException("MemoryContext cannot be null");
-        input.setOperation(MemoryOperation.QUERY);
-        MemoryQuery query = input.getMemoryRequest().getQuery();
-        return this.query(query);
-    }
+    
     
     /**
      * Queries memory using a MemoryQuery.
      *
-     * @param input the memory query
+     * @param query the memory query
      * @return list of messages
      */
     @Override
-    public List<T> query(MemoryQuery input) {
-        if (input == null)
-            throw new IllegalArgumentException("MemoryQuery cannot be null");
-        return persistenceStrategy.fetchCandidateMessages(input);
+    public List<K> query(MemoryQuery query) {
+        log.debug("[{}] Querying messages", memorySubsystem);
+        Instant startedAt = Instant.now();
+        List list = persistenceStrategy.fetchCandidateMessages(query);
+        List<K> results = list;
+        return results;
     }
     
     /**
@@ -191,7 +189,7 @@ public abstract class AbstractMemory<T extends Message> implements Memory<T>, Pr
      * @return true if accepted
      */
     @Override
-    public boolean accepts(MemoryContext input) {
-        return true;
+    public boolean accepts(ProcessContext input) {
+        return input instanceof MemoryContext;
     }
 }

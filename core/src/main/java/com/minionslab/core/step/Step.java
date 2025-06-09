@@ -2,7 +2,7 @@ package com.minionslab.core.step;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.step.customizer.StepCustomizer;
 
 /**

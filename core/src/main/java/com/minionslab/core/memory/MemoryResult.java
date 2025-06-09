@@ -1,14 +1,12 @@
 package com.minionslab.core.memory;
 
 import com.minionslab.core.common.chain.ProcessResult;
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * MemoryResult represents the outcome of a memory operation in the MCP framework.

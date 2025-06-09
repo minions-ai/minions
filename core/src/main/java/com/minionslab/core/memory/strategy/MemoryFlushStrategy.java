@@ -1,6 +1,10 @@
 package com.minionslab.core.memory.strategy;
 
+import com.minionslab.core.common.chain.ProcessContext;
 import com.minionslab.core.memory.MemoryContext;
+import com.minionslab.core.memory.MemoryOperation;
+
+import java.util.List;
 
 /**
  * MemoryFlushStrategy defines a pluggable strategy for flushing memory in the MCP framework.
@@ -16,7 +20,10 @@ public interface MemoryFlushStrategy extends MemoryStrategy {
      * @param context the memory context
      * @return true if accepted
      */
-    boolean accepts(MemoryContext context);
+    default boolean accepts(ProcessContext context) {
+        return context != null && context instanceof MemoryContext;
+    }
+
     
     /**
      * Flush the memory using the given context.
@@ -24,4 +31,9 @@ public interface MemoryFlushStrategy extends MemoryStrategy {
      * @param context the memory context
      */
     void flush(MemoryContext context);
+    
+    @Override
+    default List<MemoryOperation> getOperationsSupported() {
+        return List.of(MemoryOperation.FLUSH);
+    }
 }

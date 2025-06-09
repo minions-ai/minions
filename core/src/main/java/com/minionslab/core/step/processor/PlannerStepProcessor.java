@@ -2,11 +2,11 @@ package com.minionslab.core.step.processor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.minionslab.core.common.chain.AbstractProcessor;
+import com.minionslab.core.common.message.Message;
+import com.minionslab.core.common.message.MessageRole;
+import com.minionslab.core.common.message.MessageScope;
+import com.minionslab.core.common.message.SimpleMessage;
 import com.minionslab.core.config.ModelConfig;
-import com.minionslab.core.message.Message;
-import com.minionslab.core.message.MessageRole;
-import com.minionslab.core.message.MessageScope;
-import com.minionslab.core.message.SimpleMessage;
 import com.minionslab.core.model.MessageBundle;
 import com.minionslab.core.model.ModelCall;
 import com.minionslab.core.step.StepContext;

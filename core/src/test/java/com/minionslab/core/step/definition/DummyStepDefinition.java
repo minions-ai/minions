@@ -1,5 +1,7 @@
 package com.minionslab.core.step.definition;
 
+import com.minionslab.core.common.message.Message;
+
 class DummyStepDefinition implements StepDefinition<DummyStepDefinition.DummyStep> {
     @Override
     public DummyStep buildStep() {
@@ -32,12 +34,12 @@ class DummyStepDefinition implements StepDefinition<DummyStepDefinition.DummySte
         }
         
         @Override
-        public com.minionslab.core.message.Message getSystemPrompt() {
+        public Message getSystemPrompt() {
             return null;
         }
         
         @Override
-        public com.minionslab.core.message.Message getGoal() {
+        public Message getGoal() {
             return null;
         }
     }

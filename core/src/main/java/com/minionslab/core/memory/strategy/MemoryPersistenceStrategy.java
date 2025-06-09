@@ -1,8 +1,10 @@
 package com.minionslab.core.memory.strategy;
 
+import com.minionslab.core.common.chain.ProcessContext;
+import com.minionslab.core.common.message.Message;
+import com.minionslab.core.memory.MemoryContext;
+import com.minionslab.core.memory.MemoryOperation;
 import com.minionslab.core.memory.query.MemoryQuery;
-import com.minionslab.core.message.Message;
-
 
 import java.util.List;
 import java.util.Optional;
@@ -12,7 +14,7 @@ import java.util.Optional;
  * Implementations of this interface will handle the specifics of interacting
  * with a particular data store (e.g., SQL database, NoSQL database, vector store, in-memory).
  */
-public interface MemoryPersistenceStrategy<T extends Message> { // Or MemoryPersistenceStrategy if you prefer
+public interface MemoryPersistenceStrategy<T extends Message> extends MemoryStrategy{ // Or MemoryPersistenceStrategy if you prefer
     
     /**
      * Saves or updates a single memory item in the persistence layer.
@@ -22,7 +24,7 @@ public interface MemoryPersistenceStrategy<T extends Message> { // Or MemoryPers
      * @param <T>  The type of the memory item, extending MemoryItem.
      * @return The saved or updated memory item (e.g., with a generated ID or updated version/timestamp).
      */
-    <T extends MemoryItem> T save(T item);
+    T save(T item);
     
     /**
      * Saves or updates a collection of memory items in the persistence layer.
@@ -32,7 +34,7 @@ public interface MemoryPersistenceStrategy<T extends Message> { // Or MemoryPers
      * @param <T>   The type of the memory items, extending MemoryItem.
      * @return A list of the saved or updated memory items.
      */
-    <T extends com.minionslab.core.memory.strategy.MemoryItem> List<T> saveAll(List<T> items);
+    List<T> saveAll(List<T> items);
     
     /**
      * Retrieves a memory item by its unique identifier.
@@ -43,7 +45,7 @@ public interface MemoryPersistenceStrategy<T extends Message> { // Or MemoryPers
      * @param <T>      The type of the memory item, extending MemoryItem.
      * @return An {@link Optional} containing the memory item if found, otherwise {@link Optional#empty()}.
      */
-    <T extends MemoryItem> Optional<T> findById(String id, Class<T> itemType);
+    Optional<T> findById(String id, Class<T> itemType);
     
     /**
      * Deletes a memory item by its unique identifier.
@@ -53,7 +55,7 @@ public interface MemoryPersistenceStrategy<T extends Message> { // Or MemoryPers
      * @param <T>      The type of the memory item, extending MemoryItem.
      * @return true if an item was deleted, false otherwise (optional: some might prefer void).
      */
-    <T extends MemoryItem> boolean deleteById(String id, Class<T> itemType);
+    boolean deleteById(String id, Class<T> itemType);
     
     /**
      * Deletes all memory items of a specific type. Use with caution.
@@ -61,7 +63,7 @@ public interface MemoryPersistenceStrategy<T extends Message> { // Or MemoryPers
      * @param itemType The class of memory items to delete.
      * @param <T>      The type of the memory item, extending MemoryItem.
      */
-    <T extends MemoryItem> void deleteAllOfType(Class<T> itemType);
+    void deleteAllOfType(Class<T> itemType);
     
     /**
      * Counts the number of memory items of a specific type.
@@ -70,7 +72,7 @@ public interface MemoryPersistenceStrategy<T extends Message> { // Or MemoryPers
      * @param <T>      The type of the memory item.
      * @return The total number of items of the specified type.
      */
-    <T extends MemoryItem> long count(Class<T> itemType);
+    long count(Class<T> itemType);
     
     
     // --- Querying Methods for Specific Types ---
@@ -88,18 +90,15 @@ public interface MemoryPersistenceStrategy<T extends Message> { // Or MemoryPers
      * @param query The {@link MemoryQuery} DSL object containing query criteria for messages.
      * @return A list of {@link Message} objects that are candidates matching the query.
      */
-    List<Message> fetchCandidateMessages(MemoryQuery query);
+    List<T> fetchCandidateMessages(MemoryQuery query);
     
-    /**
-     * (Optional - Placeholder for future extension if needed)
-     * A generic query method if you have other MemoryItem types that need querying
-     * with a different or more generic Query DSL than MemoryQuery (which is for Messages).
-     *
-     * @param genericQuery A generic query object (e.g., a map of criteria, or a new DSL class).
-     * @param itemType The class of the items to query.
-     * @param <T> The type of the MemoryItem.
-     * @return A list of items matching the generic query.
-     */
-    // <T extends MemoryItem> List<T> findByGenericQuery(Object genericQuery, Class<T> itemType);
+    @Override
+    default List<MemoryOperation> getOperationsSupported() {
+        return List.of(MemoryOperation.STORE,MemoryOperation.DELETE,MemoryOperation.RETRIEVE);
+    }
     
+    @Override
+    default boolean accepts(ProcessContext processContext) {
+        return processContext instanceof MemoryContext && getOperationsSupported().contains(((MemoryContext) processContext).getOperation());
+    }
 }

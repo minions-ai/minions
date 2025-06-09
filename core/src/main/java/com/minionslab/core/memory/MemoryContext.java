@@ -1,7 +1,7 @@
 package com.minionslab.core.memory;
 
 import com.minionslab.core.common.chain.ProcessContext;
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

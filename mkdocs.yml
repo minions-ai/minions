@@ -1,0 +1,30 @@
+site_name: Minions Developer Docs
+site_url: https://minions-ai.github.io/minions-docs  # 🔹 Add this for correct link resolution
+repo_url: https://github.com/minions-ai/minions
+docs_dir: docs
+
+theme:
+  name: material
+  features:
+    - navigation.expand
+    - navigation.sections
+    - navigation.instant
+    - toc.integrate
+
+nav:
+  - Home: 'index.md'
+  - Core Concepts: '01 - Core Concepts.md'
+  - Step Graph: '02 - Step Graph.md'
+  - Memory Management: '03 - Memory Management.md'
+  - Process Chains: '04 - Process Chains.md'
+  - Tool Integration: '05 - Tool Integration.md'
+  - MCP Compliance: '06 - MCP Compliance.md'
+  - Spring Integration: '07 - Spring Integration.md'
+  - Evaluation & Observability: '08 - Evaluation & Observability.md'
+  - Privacy & Governance: '09 - Privacy & Governance.md'
+  - Extending Minions: '10 - Extending Minions.md'
+  - Examples: '11 - Examples.md'
+  - Testing & Debugging: '12 - Testing & Debugging.md'
+  - Roadmap & Contribution: '13 - Roadmap & Contribution.md'
+
+use_directory_urls: false  # 🔹 Important for GitHub Pages to avoid broken links

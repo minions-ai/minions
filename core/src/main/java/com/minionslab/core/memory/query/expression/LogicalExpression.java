@@ -1,6 +1,6 @@
 package com.minionslab.core.memory.query.expression;
 
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

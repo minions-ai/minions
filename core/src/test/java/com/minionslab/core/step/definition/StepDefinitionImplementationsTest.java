@@ -1,7 +1,7 @@
 package com.minionslab.core.step.definition;
 
-import com.minionslab.core.message.MessageRole;
-import com.minionslab.core.message.SimpleMessage;
+import com.minionslab.core.common.message.MessageRole;
+import com.minionslab.core.common.message.SimpleMessage;
 import com.minionslab.core.step.impl.*;
 import org.junit.jupiter.api.Test;
 

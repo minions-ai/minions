@@ -1,7 +1,7 @@
 package com.minionslab.core.model;
 
-import com.minionslab.core.message.Message;
-import com.minionslab.core.message.MessageRole;
+import com.minionslab.core.common.message.Message;
+import com.minionslab.core.common.message.MessageRole;
 
 import java.util.*;
 

@@ -1,7 +1,5 @@
 package com.minionslab.core.common.chain;
 
-import com.minionslab.core.agent.AgentConfig;
-
 import java.util.List;
 
 /**
@@ -27,8 +25,5 @@ public interface ProcessContext<T extends ProcessResult> {
     
 
     
-    /**
-     * Represents a snapshot of the context for auditing or debugging.
-     */
-    record ProcessContextSnapshot(String initiatorType) {}
+
 } 

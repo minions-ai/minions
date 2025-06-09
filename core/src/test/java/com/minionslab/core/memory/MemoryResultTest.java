@@ -1,6 +1,6 @@
 package com.minionslab.core.memory;
 
-import com.minionslab.core.message.SimpleMessage;
+import com.minionslab.core.common.message.SimpleMessage;
 import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.List;

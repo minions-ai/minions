@@ -1,18 +1,16 @@
 package com.minionslab.core.memory;
 
 import com.minionslab.core.common.chain.Processor;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.memory.strategy.MemoryQueryStrategy;
 import com.minionslab.core.memory.strategy.MemoryStrategy;
 import com.minionslab.core.memory.strategy.MemoryStrategyRegistry;
-import com.minionslab.core.memory.strategy.persistence.inmemory.InMemoryPersistenceStrategy;
-import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * MemoryFactory is responsible for constructing and configuring memory managers and memory chains
@@ -34,16 +32,21 @@ public class MemoryFactory {
      */
     private final MemoryDefinitionRegistry memoryDefinitionRegistry;
     
+    
+    private List<MemoryQueryStrategy> queryStrategies;
+    
     /**
      * Constructs a MemoryFactory with the given strategy and definition registries.
      *
-     * @param registry the memory strategy registry
+     * @param registry                 the memory strategy registry
      * @param memoryDefinitionRegistry the memory definition registry
      */
     @Autowired
-    public MemoryFactory(MemoryStrategyRegistry registry, MemoryDefinitionRegistry memoryDefinitionRegistry) {
+    public MemoryFactory(MemoryStrategyRegistry registry, MemoryDefinitionRegistry memoryDefinitionRegistry, ObjectProvider<List<MemoryQueryStrategy>> objectProvider) {
         this.registry = registry;
         this.memoryDefinitionRegistry = memoryDefinitionRegistry;
+        
+        objectProvider.ifAvailable(queryStrategies -> this.queryStrategies = queryStrategies);
     }
     
     /**
@@ -56,7 +59,7 @@ public class MemoryFactory {
     public MemoryManager createMemories(List<MemorySubsystem> memoryNames) {
         List<MemoryDefinition> definitions = new ArrayList<>();
         for (MemorySubsystem memoryName : memoryNames) {
-            if (memoryName == null ) {
+            if (memoryName == null) {
                 throw new IllegalArgumentException("Memory name is null or blank");
             }
             MemoryDefinition def = memoryDefinitionRegistry.getMemoryDefinition(memoryName);
@@ -70,14 +73,12 @@ public class MemoryFactory {
     
     // Create the Memory Chain using strategies from the recipe, filling in missing types with defaults
     public MemoryManager createMemoriesByDefinitions(List<MemoryDefinition> definitions) {
-        List<Processor<MemoryContext>> memories = new ArrayList<>();
+        List<Memory<MemoryContext,Message>> memories = new ArrayList<>();
         
         for (MemoryDefinition definition : definitions) {
-            // TODO: Replace with proper registry/lookup by name using definition.getPersistStrategy()
-            com.minionslab.core.memory.strategy.MemoryPersistenceStrategy persistenceStrategy = new InMemoryPersistenceStrategy();
-            AbstractMemory abstractMemory = definition.buildMemory(registry, persistenceStrategy);
+            AbstractMemory abstractMemory = definition.buildMemory();
             memories.add(abstractMemory);
         }
-        return new MemoryManager(memories);
+        return new MemoryManager(memories, queryStrategies);
     }
 }

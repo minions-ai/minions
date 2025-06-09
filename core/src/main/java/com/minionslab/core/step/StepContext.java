@@ -1,15 +1,17 @@
 package com.minionslab.core.step;
 
+import com.minionslab.core.agent.AgentConfig;
+import com.minionslab.core.agent.AgentContext;
 import com.minionslab.core.common.chain.ChainRegistry;
 import com.minionslab.core.common.chain.ProcessContext;
 import com.minionslab.core.common.chain.ProcessResult;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.config.ModelConfig;
 import com.minionslab.core.memory.MemoryManager;
-import com.minionslab.core.message.Message;
 import com.minionslab.core.model.ModelCall;
 import com.minionslab.core.model.ModelCallStatus;
-import com.minionslab.core.model.Prompt;
 import com.minionslab.core.tool.ToolCall;
+import com.minionslab.core.tool.ToolCallStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -37,6 +39,7 @@ public class StepContext implements ProcessContext {
     // StepExecution fields
     private final String id = UUID.randomUUID().toString();
     private final Instant startedAt;
+    private final AgentContext agentContext;
     private StepCompletionOutputInstructions completionResult;
     private Instant completedAt;
     private StepStatus status;
@@ -51,29 +54,28 @@ public class StepContext implements ProcessContext {
     @NotNull
     private MemoryManager memoryManager;
     
-    public StepContext(Message userRequest,Step step, ChainRegistry chainRegistry) {
-        this.userRequest = userRequest;
+    public StepContext(AgentContext agentContext, Step step) {
+        this.agentContext = agentContext;
+        this.userRequest = agentContext.getAgent().getUserRequest();
         this.step = step;
-        this.chainRegistry = chainRegistry;
         this.startedAt = Instant.now();
         this.status = StepStatus.IN_PROGRESS;
         this.results = new ArrayList<>();
-        
+        this.metadata = new HashMap<>();
+        this.memoryManager = agentContext.getMemoryManager();
+        this.chainRegistry = agentContext.getChainRegistry();
+    }
+    
+    public static AgentConfig getConfig() {
+        return AgentContext.getConfig();
+    }
+    
+    public String getConversationId(){
+        return agentContext.getConversationId();
     }
     
     
 
-    
-
-    
-    
-    public Map<String, Object> getMetadata() {
-        return metadata;
-    }
-    
-    public void setMetadata(Map<String, Object> metadata) {
-        this.metadata = metadata;
-    }
     
     public void addModelCall(ModelCall modelCall) {
         this.modelCalls.add(modelCall);
@@ -84,18 +86,17 @@ public class StepContext implements ProcessContext {
     }
     
     public List<ModelCall> getUnfinishedModelCalls() {
-        return modelCalls.stream().filter(modelCall -> modelCall.getStatus().equals(ModelCallStatus.PENDING)).collect(Collectors.toUnmodifiableList());
+        return modelCalls.stream().filter(modelCall -> modelCall.getStatus().equals(ModelCallStatus.PENDING)).toList();
     }
     
     public List<ToolCall> unfinishedToolCalls() {
-        return toolCalls.stream().filter(toolCall -> toolCall.getStatus().equals(ModelCallStatus.PENDING)).collect(Collectors.toUnmodifiableList());
+        return toolCalls.stream().filter(toolCall -> toolCall.getStatus().equals(ToolCallStatus.PENDING)).toList();
     }
     
     @Override
     public void addResult(ProcessResult result) {
-    
+        results.add(result);
     }
     
     
-
 }

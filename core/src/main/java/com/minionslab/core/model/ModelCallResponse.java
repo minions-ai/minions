@@ -1,15 +1,13 @@
 package com.minionslab.core.model;
 
-import com.minionslab.core.message.EntityMessage;
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.EntityMessage;
+import com.minionslab.core.common.message.Message;
+import com.minionslab.core.step.StepCompletionOutputInstructions.StepCompletionInstruction;
 import com.minionslab.core.tool.ToolCall;
-import com.minionslab.core.common.util.MessageConverter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import org.springframework.ai.chat.model.ChatResponse;
-import com.minionslab.core.step.StepCompletionOutputInstructions.StepCompletionInstruction;
 
 import java.util.List;
 

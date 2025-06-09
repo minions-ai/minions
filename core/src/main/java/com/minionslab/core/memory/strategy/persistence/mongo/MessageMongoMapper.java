@@ -1,9 +1,9 @@
 package com.minionslab.core.memory.strategy.persistence.mongo; // Example package
 
-import com.minionslab.core.message.Message;
-import com.minionslab.core.message.MessageRole;
-import com.minionslab.core.message.MessageScope;
-import com.minionslab.core.message.SimpleMessage;
+import com.minionslab.core.common.message.Message;
+import com.minionslab.core.common.message.MessageRole;
+import com.minionslab.core.common.message.MessageScope;
+import com.minionslab.core.common.message.SimpleMessage;
 import org.bson.Document;
 import org.springframework.stereotype.Component;
 

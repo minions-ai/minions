@@ -4,7 +4,7 @@ import com.minionslab.core.common.chain.ChainRegistry;
 import com.minionslab.core.common.chain.ProcessContext;
 import com.minionslab.core.common.chain.ProcessResult;
 import com.minionslab.core.memory.MemoryFactory;
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.model.MessageBundle;
 import com.minionslab.core.service.ModelCallService;
 import org.junit.jupiter.api.BeforeEach;

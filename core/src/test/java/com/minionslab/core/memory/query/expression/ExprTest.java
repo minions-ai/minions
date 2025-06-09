@@ -1,8 +1,8 @@
 package com.minionslab.core.memory.query.expression;
 
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+
 import java.time.Instant;
 import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;

@@ -15,10 +15,7 @@ import com.minionslab.core.step.Step;
 public interface StepCustomizer<T extends Step> {
     
     default boolean accepts(T step){
-        if(step != null){
-            return true;
-        }
-        return false;
+        return step != null;
     }
     
     void customize(T step);

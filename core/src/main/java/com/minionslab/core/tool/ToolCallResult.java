@@ -1,7 +1,5 @@
 package com.minionslab.core.tool;
 
-import com.minionslab.core.common.chain.ProcessResult;
-
 /**
  * <b>Extensibility:</b>
  * <ul>

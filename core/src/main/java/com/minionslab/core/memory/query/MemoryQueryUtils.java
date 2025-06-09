@@ -1,9 +1,9 @@
 package com.minionslab.core.memory.query;
 
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.memory.MemoryManager;
 import com.minionslab.core.memory.MemorySubsystem;
-import com.minionslab.core.message.Message;
-import com.minionslab.core.message.MessageRole;
+import com.minionslab.core.memory.query.expression.ExprUtil;
 
 import java.time.Instant;
 import java.util.List;
@@ -11,23 +11,23 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MemoryQueryUtils {
-    public static List<Message> getLastNUserMessages(MemoryManager memoryManager, int n) {
+    public static List<Message> getLastNUserMessages(MemoryManager memoryManager, int n, String conversationid) {
         MemoryQuery query = MemoryQuery.builder()
                                        .limit(n)
-                                       .expression(new QueryBuilder().role(MessageRole.USER).build())
+                                       .expression(ExprUtil.getUserMessagesExpression(conversationid))
                                        .build();
         
-        return memoryManager.query(query).stream().filter(Message.class::isInstance).map(Message.class::cast).collect(Collectors.toList());
+        return memoryManager.query(query).stream().filter(Message.class::isInstance).map(message -> message).collect(Collectors.toList());
     }
     
-    public static List<Message> getLastNAssistantMessages(MemoryManager memoryManager, int n) {
+    public static List<Message> getLastNAssistantMessages(MemoryManager memoryManager, int n, String conversationid) {
         return memoryManager.query(
                 MemoryQuery.builder()
                            .subsystems(MemorySubsystem.SHORT_TERM)
-                           .expression(new QueryBuilder().role(MessageRole.ASSISTANT).build())
+                           .expression(ExprUtil.getAssistantMessagesExpression(conversationid))
                            .limit(n)
                            .build()
-                                  ).stream().filter(Message.class::isInstance).map(Message.class::cast).collect(Collectors.toList());
+                                  ).stream().filter(Message.class::isInstance).map(message -> message).collect(Collectors.toList());
     }
     
     public static List<Message> getEntitiesOfType(MemoryManager memoryManager, String entityType) {
@@ -56,7 +56,7 @@ public class MemoryQueryUtils {
                            .subsystems(MemorySubsystem.SHORT_TERM)
                            .expression(new QueryBuilder().keyword(metadata).build())
                            .build()
-                                  ).stream().filter(Message.class::isInstance).map(Message.class::cast).collect(Collectors.toList());
+                                  ).stream().filter(Message.class::isInstance).map(message -> message).collect(Collectors.toList());
     }
     
     public static List<Message> getMessagesAfter(MemoryManager memoryManager, Instant after, int limit) {

@@ -4,5 +4,5 @@ public enum StepCompletionOutcome {
     COMPLETE,
     INCOMPLETE,
     FAILED,
-    INTERRUPTED;
+    INTERRUPTED
 }

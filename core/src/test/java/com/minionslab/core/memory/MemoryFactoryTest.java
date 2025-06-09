@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import java.util.List;
 import com.minionslab.core.memory.strategy.MemoryStrategyRegistry;
+import org.springframework.beans.factory.ObjectProvider;
 
 /**
  * Unit tests for {@link MemoryFactory}.
@@ -26,7 +27,7 @@ class MemoryFactoryTest {
     void setUp() {
         strategyRegistry = mock(MemoryStrategyRegistry.class);
         defRegistry = mock(MemoryDefinitionRegistry.class);
-        factory = new MemoryFactory(strategyRegistry, defRegistry);
+        factory = new MemoryFactory(strategyRegistry, defRegistry,mock(ObjectProvider.class));
     }
 
     /**

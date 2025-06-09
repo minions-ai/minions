@@ -1,9 +1,9 @@
 package com.minionslab.core.step.definition;
 
-import com.minionslab.core.config.ModelConfig;
-import com.minionslab.core.message.Message;
-import com.minionslab.core.step.impl.ModelCallStep;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.minionslab.core.common.message.Message;
+import com.minionslab.core.config.ModelConfig;
+import com.minionslab.core.step.impl.ModelCallStep;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

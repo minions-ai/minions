@@ -1,8 +1,8 @@
 package com.minionslab.core.step.processor;
 
 import com.minionslab.core.common.chain.ChainRegistry;
-import com.minionslab.core.message.MessageRole;
-import com.minionslab.core.message.SimpleMessage;
+import com.minionslab.core.common.message.MessageRole;
+import com.minionslab.core.common.message.SimpleMessage;
 import com.minionslab.core.model.ModelCall;
 import com.minionslab.core.step.Step;
 import com.minionslab.core.step.StepContext;

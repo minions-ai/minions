@@ -1,12 +1,11 @@
 package com.minionslab.core.tool;
 
 
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.definition.ToolDefinition;
 
 import java.util.List;
 import java.util.Map;
-
-import org.springframework.ai.tool.ToolCallback;
-import org.springframework.ai.tool.definition.ToolDefinition;
 
 /**
  * Orchestrates tool operations in the Model Context Protocol.

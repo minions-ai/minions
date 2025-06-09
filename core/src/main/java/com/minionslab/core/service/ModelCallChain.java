@@ -6,20 +6,24 @@ import com.minionslab.core.common.chain.ProcessorCustomizer;
 import com.minionslab.core.model.ModelCall;
 import com.minionslab.core.service.adaptor.SpringAIModelAdaptor;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class ModelCallChain extends AbstractBaseChain<AIModelProvider, ModelCall> {
     
     
-    public ModelCallChain(ObjectProvider<List<AIModelProvider>> providers, ObjectProvider<List<ProcessorCustomizer>> processorCustomizers) {
+    private final SpringAIModelAdaptor springAIModelAdaptor;
+    
+    public ModelCallChain(ObjectProvider<List<AIModelProvider>> providers, ObjectProvider<List<ProcessorCustomizer>> processorCustomizers, SpringAIModelAdaptor springAIModelAdaptor) {
         super(providers, processorCustomizers);
-        
+        this.springAIModelAdaptor = springAIModelAdaptor;
     }
     
     @Override
     protected void registerProcessors() {
-        this.addToEnd(new SpringAIModelAdaptor());
+        this.addToEnd(springAIModelAdaptor);
     }
     
     /**

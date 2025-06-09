@@ -1,6 +1,5 @@
 package com.minionslab.core.step.impl;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

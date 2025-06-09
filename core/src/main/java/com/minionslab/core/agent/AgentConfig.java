@@ -10,6 +10,6 @@ import lombok.experimental.Accessors;
 public class AgentConfig {
     private ModelConfig modelConfig;
     private QueryConfig queryConfig;
-    
+    private SummarizationConfig summarizationConfig;
     
 }

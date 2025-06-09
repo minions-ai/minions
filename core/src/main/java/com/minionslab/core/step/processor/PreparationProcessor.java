@@ -1,8 +1,8 @@
 package com.minionslab.core.step.processor;
 
 import com.minionslab.core.common.chain.AbstractProcessor;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.memory.query.MemoryQuery;
-import com.minionslab.core.message.Message;
 import com.minionslab.core.model.MessageBundle;
 import com.minionslab.core.model.ModelCall;
 import com.minionslab.core.step.StepContext;
@@ -17,7 +17,7 @@ public class PreparationProcessor extends AbstractProcessor<StepContext, StepCon
         Message systemPrompt = input.getStep().getSystemPrompt();
         Message userRequest = input.getUserRequest();
         MessageBundle messageBundle = new MessageBundle(List.of(systemPrompt, userRequest));
-        input.getMemoryManager().query(getMemoryQuery());
+        input.getMemoryManager().process(input);
         ModelCall modelCall = new ModelCall(input.getModelCallConfig(), messageBundle);
         input.getModelCalls().add(modelCall);
         return input;

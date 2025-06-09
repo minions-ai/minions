@@ -1,8 +1,5 @@
 package com.minionslab.core.service;
 
-import com.minionslab.core.common.chain.Chain;
-import com.minionslab.core.common.chain.ChainRegistry;
-import com.minionslab.core.common.chain.ProcessorCustomizer;
 import com.minionslab.core.model.ModelCall;
 import com.minionslab.core.model.ModelInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +25,7 @@ public class ModelCallService {
     private final Map<String, ModelInfo> modelInfoCache = new ConcurrentHashMap<>();
     
 
-    private List<AIModelProvider> modelCallProviders = new ArrayList<>();
+    private final List<AIModelProvider> modelCallProviders = new ArrayList<>();
     
     public ModelCallService(ObjectProvider<List<AIModelProvider>> providers) {
         providers.ifAvailable(aIproviders-> this.modelCallProviders.addAll(aIproviders));

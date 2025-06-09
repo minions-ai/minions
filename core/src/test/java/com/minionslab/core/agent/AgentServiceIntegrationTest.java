@@ -2,11 +2,10 @@ package com.minionslab.core.agent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.minionslab.core.common.chain.ChainRegistry;
-import com.minionslab.core.memory.MemoryFactory;
+import com.minionslab.core.common.message.MessageFactory;
+import com.minionslab.core.common.message.MessageRole;
+import com.minionslab.core.common.message.SimpleMessage;
 import com.minionslab.core.memory.MemorySubsystem;
-import com.minionslab.core.message.MessageFactory;
-import com.minionslab.core.message.MessageRole;
-import com.minionslab.core.message.SimpleMessage;
 import com.minionslab.core.service.ModelCallService;
 import com.minionslab.core.service.ToolCallService;
 import com.minionslab.core.step.StepFactory;
@@ -21,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
 
@@ -38,27 +38,30 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 @SpringBootTest
 class AgentServiceIntegrationTest {
-    @Autowired
-    private AgentService agentService;
-    @Autowired
-    private ModelCallService modelCallService;
-    @Autowired
-    private ToolCallService toolCallService;
-    private StepFactory stepFactory;
     
+    @Autowired
+    private AgentService agentService; // Let Spring inject the full context
+    
+    @MockBean
+    private ModelCallService modelCallService;
+    
+    @MockBean
+    private ToolCallService toolCallService;
+    
+    @Autowired
     private ChainRegistry chainRegistry;
-    private MemoryFactory memoryFactory;
+    
     @Autowired
     private MessageFactory messageFactory;
     
+    private StepFactory stepFactory;
+    
     @BeforeEach
     void setUp() {
-        // No manual mocking or instantiation of agentService, modelCallService, or toolCallService
-        // Let Spring autowire the real beans
-        stepFactory = new StepFactory(new ObjectMapper()); // If needed, inject real beanFactory
+        stepFactory = new StepFactory(new ObjectMapper());
     }
     
-//    @Test
+    @Test
     void testAgentRecipeEndToEndModelAndToolCall() {
         // 1. Create step definitions
         ModelCallStepDefinition modelCallStepDefinition = new ModelCallStepDefinition();
@@ -98,6 +101,7 @@ class AgentServiceIntegrationTest {
         // 6. Assert workflow completed and results are present
         assertNotNull(context);
         assertNotNull(context.getResults());
+//        verify(modelCallService).call(any());
         // Optionally, check the results content
     }
 } 

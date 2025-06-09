@@ -1,7 +1,7 @@
 package com.minionslab.core.config;
 
 import com.minionslab.core.agent.AgentContext;
-import com.minionslab.core.agent.AgentProcessor;
+import com.minionslab.core.agent.processor.StepOrchestratorProcessor;
 import com.minionslab.core.common.chain.*;
 import com.minionslab.core.step.StepContext;
 import com.minionslab.core.step.StepService;
@@ -29,11 +29,11 @@ public class DeafultChainConfiguration {
     }
     
     @Bean(name = "agentProcessorChain")
-    public Chain<AgentProcessor, AgentContext> getAgentProcessorChain() {
+    public Chain<StepOrchestratorProcessor, AgentContext> getAgentProcessorChain() {
         Chain chain = new AbstractBaseChain(null, processorCustomizers) {
             @Override
             protected void registerProcessors() {
-                this.addToStart(new AgentProcessor(stepService));
+                this.addToStart(new StepOrchestratorProcessor(stepService));
             }
             
             @Override
@@ -50,7 +50,7 @@ public class DeafultChainConfiguration {
         Chain chain = new AbstractBaseChain(null, processorCustomizers) {
             @Override
             protected void registerProcessors() {
-                this.addToStart(new AgentProcessor(stepService));
+                this.addToStart(new StepOrchestratorProcessor(stepService));
             }
             
             @Override

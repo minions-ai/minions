@@ -1,15 +1,13 @@
 package com.minionslab.core.agent;
 
 import com.minionslab.core.common.chain.ChainRegistry;
+import com.minionslab.core.common.message.Message;
+import com.minionslab.core.common.message.MessageRole;
+import com.minionslab.core.common.message.SimpleMessage;
 import com.minionslab.core.memory.MemoryFactory;
-
 import com.minionslab.core.memory.MemoryManager;
-import com.minionslab.core.message.Message;
-import com.minionslab.core.message.MessageRole;
-import com.minionslab.core.message.SimpleMessage;
 import com.minionslab.core.service.ModelCallService;
 import com.minionslab.core.step.StepManager;
-import io.micrometer.core.instrument.MockClock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

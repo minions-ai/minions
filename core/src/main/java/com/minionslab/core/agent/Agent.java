@@ -1,11 +1,12 @@
 package com.minionslab.core.agent;
 
 import com.minionslab.core.common.logging.LoggingTopics;
-import com.minionslab.core.message.Message;
-import com.minionslab.core.message.MessageRole;
-import com.minionslab.core.message.MessageScope;
-import com.minionslab.core.message.SimpleMessage;
+import com.minionslab.core.common.message.Message;
+import com.minionslab.core.common.message.MessageRole;
+import com.minionslab.core.common.message.MessageScope;
+import com.minionslab.core.common.message.SimpleMessage;
 import com.minionslab.core.model.MessageBundle;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public abstract class Agent {
      * @param recipe the agent configuration
      * @param userRequest the initial user message
      */
-    public Agent(AgentRecipe recipe, Message userRequest) {
+    public Agent(@NotNull AgentRecipe recipe, Message userRequest) {
         this.agentId = generateAgentId();
         this.recipe = recipe;
         MessageBundle bundle = recipe.getMessageBundle();

@@ -1,6 +1,5 @@
 package com.minionslab.core.step.processor;
 
-import com.minionslab.core.message.Message;
 import com.minionslab.core.model.ModelCall;
 import com.minionslab.core.service.ModelCallService;
 import com.minionslab.core.step.StepContext;
@@ -9,7 +8,7 @@ import com.minionslab.core.tool.ToolCall;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.util.List;
-import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

@@ -1,11 +1,12 @@
 package com.minionslab.core.step.definition;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
 import com.minionslab.core.step.impl.ToolCallStep;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+
 import java.util.Map;
 
 @Data

@@ -1,0 +1,4 @@
+- Unit test Steps, Recipes, and Chains using JUnit + Spring Boot Test
+- Mock model responses and tool outputs
+- View memory snapshots between steps
+- Trace execution via built-in logging topics

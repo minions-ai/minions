@@ -1,6 +1,6 @@
 package com.minionslab.core.memory.query.expression;
 
-import com.minionslab.core.message.Message;
+import com.minionslab.core.common.message.Message;
 
 public class VectorSimilarityExpression implements MemoryQueryExpression {
     private final float[] embedding;

@@ -2,6 +2,9 @@ package com.minionslab.core.memory;
 
 import com.minionslab.core.memory.strategy.MemoryPersistenceStrategy;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

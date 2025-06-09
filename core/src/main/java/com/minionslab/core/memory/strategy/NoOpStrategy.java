@@ -1,5 +1,6 @@
 package com.minionslab.core.memory.strategy;
 
+import com.minionslab.core.common.chain.ProcessContext;
 import com.minionslab.core.memory.MemoryContext;
 import com.minionslab.core.memory.MemoryOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -19,25 +20,20 @@ class NoOpStrategy implements MemoryStrategy {
         this.operation = operation;
     }
     
-    @Override
-    public String getName() {
-        return "NoOpStrategy-" + operation.name();
-    }
+
     
     @Override
     public List<MemoryOperation> getOperationsSupported() {
         return singletonList(operation);
     }
     
-    
     @Override
-    public boolean accepts(MemoryContext input) {
+    public boolean accepts(ProcessContext processContext) {
         return true;
     }
     
-    @Override
-    public MemoryContext process(MemoryContext input) {
-        log.info("NoOpStrategy process was called for input {}", input);
-        return input;
-    }
+    
+
+    
+
 }

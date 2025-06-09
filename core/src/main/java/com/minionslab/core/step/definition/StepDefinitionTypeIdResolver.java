@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import org.reflections.Reflections;
-import java.lang.annotation.Annotation;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
