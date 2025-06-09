@@ -1,75 +1,54 @@
 # MCP Compliance
 
-Minions adheres to the [Model Connector Protocol (MCP)](https://github.com/langchain-ai/langgraph/blob/main/spec/mcp.md), ensuring compatibility with other MCP-compliant systems and tools.
+Minions is designed to be compatible with the [Model Connector Protocol (MCP)](https://github.com/langchain-ai/langgraph/blob/main/spec/mcp.md), with ongoing work to achieve full compliance.
 
-## Memory Compliance
+## Current Implementation
 
-### Memory Operations
+### Memory System
 
-All memory operations follow MCP specifications:
+The memory system is designed with MCP compatibility in mind:
 
 ```java
-// MCP-compliant memory query
+// Memory query with standard fields
 MemoryQuery query = MemoryQuery.builder()
-    .expression(Expr.mcp("conversationId", "C1"))
+    .subsystems(MemorySubsystem.EPISODIC)
     .limit(10)
+    .expression(Expr.eq("conversationId", "C1"))
     .build();
 
-// MCP-compliant memory storage
+// Message with standard metadata
 Message message = Message.builder()
     .content("content")
-    .metadata("mcp:type", "user_message")
+    .metadata("type", "user_message")
     .build();
 ```
 
 ### Memory Subsystems
 
-Each memory subsystem implements MCP interfaces:
+Memory subsystems follow a modular design that can be extended for MCP compliance:
 
 ```java
-public class EpisodicMemory implements Memory<MemoryContext, Message>, McpCompliant {
+public class EpisodicMemory implements Memory<MemoryContext, Message> {
     @Override
-    public McpMetadata getMcpMetadata() {
-        return McpMetadata.builder()
-            .type("episodic")
-            .version("1.0")
-            .build();
+    public MemorySubsystem getMemorySubsystem() {
+        return MemorySubsystem.EPISODIC;
     }
 }
 ```
 
-## Compliance Requirements
+## Planned MCP Compliance
 
 1. **Memory Operations**
-   - All memory queries must use MCP-compliant expressions
-   - Memory storage must include MCP metadata
-   - Memory retrieval must respect MCP limits
+   - [ ] Implement MCP-compliant expression types
+   - [ ] Add MCP metadata handling
+   - [ ] Support MCP-specific query patterns
 
 2. **Memory Subsystems**
-   - Each subsystem must implement McpCompliant interface
-   - Subsystems must provide MCP metadata
-   - Subsystems must handle MCP-specific operations
+   - [ ] Add MCP interface implementations
+   - [ ] Implement MCP metadata providers
+   - [ ] Support MCP-specific operations
 
 3. **Memory Persistence**
-   - Persistence strategies must store MCP metadata
-   - Data formats must follow MCP specifications
-   - Query languages must support MCP expressions
-
-## Testing Compliance
-
-```java
-@Test
-void testMcpCompliance() {
-    MemoryManager manager = new MemoryManager(memories, strategies);
-    
-    // Test MCP-compliant query
-    MemoryQuery query = createMcpQuery();
-    List<Message> results = manager.query(query);
-    assertMcpCompliant(results);
-    
-    // Test MCP-compliant storage
-    Message message = createMcpMessage();
-    manager.store(MemorySubsystem.EPISODIC, message);
-    assertMcpCompliant(message);
-}
-```
+   - [ ] Add MCP metadata storage
+   - [ ] Support MCP data formats
+   - [ ] Implement MCP query language support

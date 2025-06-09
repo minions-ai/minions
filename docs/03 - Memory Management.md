@@ -88,26 +88,48 @@ The memory query system provides a flexible and expressive way to retrieve messa
 
 ### MemoryQuery
 
-`MemoryQuery` is the main query object for retrieving messages from memory. It supports:
-- Specifying target memory subsystems
-- Setting result limits
-- Defining complex query expressions
-- Backend-agnostic query construction
+`MemoryQuery` is the main query object for retrieving messages from memory. It is implemented using Lombok annotations for builder pattern and data access:
 
 ```java
-MemoryQuery query = MemoryQuery.builder()
-    .subsystems(MemorySubsystem.EPISODIC)  // Target specific memory subsystem
-    .limit(10)                             // Limit results
-    .expression(expression)                // Query expression
-    .build();
+@Data
+@Accessors(chain = true)
+@EqualsAndHashCode
+@AllArgsConstructor
+@Builder
+@ToString
+public class MemoryQuery {
+    private MemorySubsystem subsystems;
+    private int limit;
+    private MemoryQueryExpression expression;
+    
+    public MemoryQuery(@NotBlank MemorySubsystem subsystem, int limit) {
+        this.subsystems = subsystem;
+        this.limit = limit;
+    }
+}
 ```
 
 ### MemoryQueryExpression
 
 `MemoryQueryExpression` is the base interface for all query expressions. It provides:
 - A method to evaluate messages against the expression
-- Support for logical operations (AND, OR, NOT)
-- A fluent API for building complex expressions
+- Default methods for logical operations (AND, OR, NOT)
+- Support for expression composition
+
+```java
+public interface MemoryQueryExpression {
+    boolean evaluate(Message message);
+    
+    default MemoryQueryExpression and(MemoryQueryExpression... expressions) {
+        List<MemoryQueryExpression> all = new ArrayList<>();
+        all.add(this);
+        Collections.addAll(all, expressions);
+        return new LogicalExpression(LogicalOperator.AND, all);
+    }
+    
+    // Similar default methods for or() and not()
+}
+```
 
 The framework provides several built-in expression types:
 
@@ -136,7 +158,7 @@ The framework provides several built-in expression types:
    ```
 
 5. **VectorSimilarityExpression**
-   - Performs vector similarity search
+   - Performs vector similarity search (placeholder implementation)
    ```java
    Expr.vector(embedding, topK)
    ```
@@ -150,13 +172,23 @@ The framework provides several built-in expression types:
    )
    ```
 
+7. **AlwaysTrueExpression**
+   - Default expression that always evaluates to true
+   ```java
+   Expr.alwaysTrue()
+   ```
+
 ### Query Building
 
-The `QueryBuilder` class provides a fluent API for constructing queries:
+The `QueryBuilder` class provides a fluent API for constructing queries, with some methods returning expressions directly:
 
 ```java
+// Returns MemoryQueryExpression
+MemoryQueryExpression roleExpr = new QueryBuilder()
+    .role(MessageRole.USER);
+
+// Returns QueryBuilder for chaining
 MemoryQuery query = new QueryBuilder()
-    .role(MessageRole.USER)
     .scope(MessageScope.CONVERSATION)
     .keyword("important")
     .after(Instant.now().minus(Duration.ofHours(1)))
@@ -168,16 +200,18 @@ MemoryQuery query = new QueryBuilder()
 
 ### Query Translation
 
-Queries can be translated to different backend formats:
+Queries can be translated to different backend formats with parameter binding:
 
 1. **MongoDB**
    ```java
    Query mongoQuery = mongoQueryTranslator.translate(memoryQuery);
+   // Translates to Spring Data MongoDB Query with Criteria
    ```
 
 2. **PostgreSQL**
    ```java
    String sql = postgresQueryTranslator.translate(memoryQuery);
+   // Generates parameterized SQL with ? placeholders
    ```
 
 3. **In-Memory**
@@ -189,18 +223,22 @@ Queries can be translated to different backend formats:
 
 ### Common Query Patterns
 
-The `MemoryQueryUtils` class provides utility methods for common query patterns:
+The `MemoryQueryUtils` class provides utility methods for common query patterns, with type filtering:
 
 ```java
-// Get last N user messages
+// Get last N user messages with type filtering
 List<Message> userMessages = MemoryQueryUtils.getLastNUserMessages(
-    memoryManager, 5, "conv123");
+    memoryManager, 5, "conv123")
+    .stream()
+    .filter(Message.class::isInstance)
+    .map(message -> message)
+    .collect(Collectors.toList());
 
-// Get last N assistant messages
+// Get last N assistant messages with subsystem specification
 List<Message> assistantMessages = MemoryQueryUtils.getLastNAssistantMessages(
     memoryManager, 5, "conv123");
 
-// Get entities of specific type
+// Get entities of specific type with subsystem specification
 List<Message> userEntities = MemoryQueryUtils.getEntitiesOfType(
     memoryManager, "user");
 ```
@@ -210,17 +248,18 @@ List<Message> userEntities = MemoryQueryUtils.getEntitiesOfType(
 Query strategies implement the `MemoryQueryStrategy` interface to provide context-aware querying:
 
 1. **Agent Strategies**
-   - `AgentEntityQueryStrategy`: Queries entity memory
+   - `AgentEntityQueryStrategy`: Queries entity memory with `AlwaysTrueExpression`
    - `AgentVectorQueryStrategy`: Performs vector similarity search
-   - `AgentShortTermQueryStrategy`: Queries short-term memory
-   - `AgentLongTermQueryStrategy`: Queries long-term memory
+   - `AgentShortTermQueryStrategy`: Queries short-term memory using `ExprUtil`
+   - `AgentLongTermQueryStrategy`: Queries long-term memory with recipe ID
 
 2. **Step Strategies**
-   - `StepEntityQueryStrategy`: Queries entity memory
+   - `StepEntityQueryStrategy`: Queries entity memory with `AlwaysTrueExpression`
    - `StepVectorQueryStrategy`: Performs vector similarity search
-   - `StepShortTermQueryStrategy`: Queries short-term memory
+   - `StepShortTermQueryStrategy`: Queries short-term memory using `ExprUtil`
 
 Each strategy:
-- Implements `getMemoryQuery` to build appropriate queries
+- Implements `getMemoryQuery` to build appropriate queries using `QueryConfig`
 - Specifies supported memory subsystems
 - Defines context acceptance criteria
+- Uses `MemoryManager`'s `queryStrategies` for execution
